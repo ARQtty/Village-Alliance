@@ -1,0 +1,30 @@
+{
+  "name": "Village-Alliance",
+  "version": "0.0.1",
+  "description": "Real time multiplayer strategy stylized like village",
+  "main": "server.js",
+  "dependencies": {
+    "express": "~4.15.2",
+    "http": "~0.0.0",
+    "socket.io": "~1.7.3"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "node server.js",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ARQtty/Village-Alliance.git"
+  },
+  "keywords": [
+    "RTS",
+    "Strategy",
+    "Village"
+  ],
+  "author": "Ilya Shamov",
+  "license": "BSD-2-Clause",
+  "bugs": {
+    "url": "https://github.com/ARQtty/Village-Alliance/issues"
+  }
+}

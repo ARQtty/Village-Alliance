@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>RTS</title>
+	<script type="text/javascript" src="/js/jquery-2.1.0.js"></script>
+	<script type="text/javascript" src="/js/socket.io.js"></script>
+	<script type="text/javascript" src="/client/engine.js"></script>
+	<script type="text/javascript" src="/client/client.js"></script>
+	<link rel="stylesheet" type="text/css" href="/client/client.css">
+</head>
+<body>
+	<div id="resourcesPanel" class="panel"></div>
+	<div id="buildPanel" class="panel">
+		<input type="button" name="Hide/show select" style="position: absolute; z-index: 6" onclick="toggleSelectPanel();">
+	</div>
+	<div id="selectPanel" class="panel" style="display: block;"></div>
+
+	<canvas id="game"></canvas>
+
+	<div id="triangleUp" class="triangle" onclick="mvViewportUp();"></div>
+	<div id="triangleRight" class="triangle" onclick="mvViewportR();"></div>
+	<div id="triangleDown" class="triangle" onclick="mvViewportDown();"></div>
+	<div id="triangleLeft" class="triangle" onclick="mvViewportL();"></div>
+</body>
+</html>

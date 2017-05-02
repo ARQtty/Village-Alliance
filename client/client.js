@@ -12,12 +12,13 @@ function mvViewportUp() {
 	if (y1 - (app.graphics.cellsInColumn / 2) > 0){
 		window.app.graphics.y1 = y1 - (window.app.graphics.cellsInColumn / 2);
 		window.app.graphics.y2 = window.app.graphics.y2 - (window.app.graphics.cellsInColumn / 2);
+		console.log('moveUp');
 	}else{
+		console.log('Can\'t move up')
 		window.app.graphics.y1 = 0;
 		window.app.graphics.y2 = window.app.graphics.cellsInColumn;
 	}
 	window.app.graphics.fillMap();
-	console.log('moveUp');
 }
 
 function mvViewportR() {
@@ -25,12 +26,13 @@ function mvViewportR() {
 	if (x2 + (window.app.graphics.cellsInRow / 2) < window.app.environment.map.sizeX){
 		window.app.graphics.x1 = window.app.graphics.x1 + (window.app.graphics.cellsInRow / 2);
 		window.app.graphics.x2 = x2 + (window.app.graphics.cellsInRow / 2);
+		console.log('moveRight');
 	}else{
 		window.app.graphics.x1 = window.app.environment.map.sizeX - window.app.graphics.cellsInRow;
 		window.app.graphics.x2 = window.app.environment.map.sizeX;
+		console.log('Can\'t move right');
 	}
 	window.app.graphics.fillMap();
-	console.log('moveRight');
 }
 
 function mvViewportDown() {
@@ -38,12 +40,13 @@ function mvViewportDown() {
 	if (y2 + (window.app.graphics.cellsInColumn / 2) < window.app.environment.map.sizeY){
 		window.app.graphics.y2 = y2 + (window.app.graphics.cellsInColumn / 2);
 		window.app.graphics.y1 = window.app.graphics.y1 + (window.app.graphics.cellsInColumn / 2);
+		console.log('moveDown');
 	}else{
 		window.app.graphics.y2 = window.app.environment.map.sizeY;
 		window.app.graphics.y1 = window.app.environment.map.sizeY - window.app.graphics.cellsInColumn;
+		console.log('Can\'t move down')
 	}
 	window.app.graphics.fillMap();
-	console.log('moveDown');
 }
 
 function mvViewportL() {
@@ -51,10 +54,11 @@ function mvViewportL() {
 	if (x1 - (window.app.graphics.cellsInRow / 2) > 0){
 		window.app.graphics.x1 = x1 - (window.app.graphics.cellsInRow / 2);
 		window.app.graphics.x2 = window.app.graphics.x2 - (window.app.graphics.cellsInRow / 2);
+		console.log('modeLeft');
 	}else{
 		window.app.graphics.x1 = 0;
 		window.app.graphics.x2 = window.app.graphics.cellsInRow;
+		console.log('Can\'t move left');
 	}
 	window.app.graphics.fillMap();
-	console.log('modeLeft');
 }

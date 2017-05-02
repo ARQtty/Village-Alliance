@@ -61,6 +61,8 @@ window.app = {
 		cellsInRow: Math.ceil(document.body.clientWidth  / 32),
 		cellsInColumn: Math.ceil(document.body.clientHeight / 32),
 
+		canvas: document.getElementById('game'),
+
 		textures: {
 			grass: new Image(),
 			house: new Image(),
@@ -94,15 +96,15 @@ window.app = {
 					   +' y1='+window.app.graphics.y1);
 			console.log(' x2='+window.app.graphics.x2
 					   +' y2='+window.app.graphics.y2);
+			window.app.graphics.cells = viewCells;
 			return viewCells
 		},
 
 		fillMap: function() {
-			var canvas = document.getElementById('game');
-			var context = canvas.getContext('2d');
+			var context = window.app.graphics.canvas.getContext('2d');
 			
-			canvas.width = document.body.clientWidth;
-			canvas.height = document.body.clientHeight;
+			window.app.graphics.canvas.width = document.body.clientWidth;
+			window.app.graphics.canvas.height = document.body.clientHeight;
 			// Представление всех ячеек
 			var cells = app.graphics.getViewport();
 
@@ -129,16 +131,6 @@ window.app = {
 
 					context.fillStyle = pattern;
 					context.fillRect(x * app.graphics.cellSize, y * app.graphics.cellSize, app.graphics.cellSize, app.graphics.cellSize);
-
-					context.beginPath();
-					context.strokeStyle = 'black';
-					// magic. According to http://stackoverflow.com/questions/8696631/canvas-drawings-like-lines-are-blurry
-					context.moveTo(x * app.graphics.cellSize - 0.5, y * app.graphics.cellSize - 0.5)
-					context.lineTo(x * app.graphics.cellSize - 0.5, y * app.graphics.cellSize + app.graphics.cellSize - 0.5)
-					context.lineTo(x * app.graphics.cellSize + app.graphics.cellSize - 0.5, y * app.graphics.cellSize + app.graphics.cellSize - 0.5)
-					context.lineTo(x * app.graphics.cellSize + app.graphics.cellSize - 0.5, y * app.graphics.cellSize - 0.5)
-					context.lineTo(x * app.graphics.cellSize - 0.5, y * app.graphics.cellSize - 0.5)
-					context.stroke()
 				}
 			}
 		},

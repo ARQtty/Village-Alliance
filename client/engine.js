@@ -42,7 +42,9 @@ window.app = {
 
         downloadMap: function() {
         	return $.get('/media/map.json').pipe(function(data) {
-        		console.log('Map sizes: x='+data.length+' y='+data[0].length);
+        		app.environment.map.sizeX = data.length;
+        		app.environment.map.sizeY = data[0].length;
+           		console.log('Map sizes: x='+data.length+' y='+data[0].length);
 	            app.environment.map.data = data;
 	            return true;
       		})
@@ -55,6 +57,9 @@ window.app = {
 		y1: 0,
 		x2: Math.ceil(document.body.clientWidth  / 32),
 		y2: Math.ceil(document.body.clientHeight / 32),
+		
+		cellsInRow: Math.ceil(document.body.clientWidth  / 32),
+		cellsInColumn: Math.ceil(document.body.clientHeight / 32),
 
 		textures: {
 			grass: new Image(),
@@ -84,7 +89,11 @@ window.app = {
 					viewCells[viewCells.length - 1].push(app.environment.map.data[x][y]);
 				}
 			}
-			console.log('Viewport x='+viewCells.length+' y='+viewCells[0].length);
+			console.log('Viewport:');
+			console.log(' x1='+window.app.graphics.x1
+					   +' y1='+window.app.graphics.y1);
+			console.log(' x2='+window.app.graphics.x2
+					   +' y2='+window.app.graphics.y2);
 			return viewCells
 		},
 
@@ -99,7 +108,7 @@ window.app = {
 
 			for (var x = 0; x < cells.length; x++){
 				for (var y = 0; y < cells[x].length; y++){
-					switch (cells[y][x]){
+					switch (cells[x][y]){
 
 						case 1:
 							var pattern = context.createPattern(app.graphics.textures.road, 'repeat');

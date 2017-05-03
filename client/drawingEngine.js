@@ -1,0 +1,5 @@
+$(function() {
+window.app.drawing = {
+
+
+}})

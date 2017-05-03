@@ -5,21 +5,29 @@
 	<script type="text/javascript" src="/js/jquery-2.1.0.js"></script>
 	<script type="text/javascript" src="/js/socket.io.js"></script>
 	<script type="text/javascript" src="/client/engine.js"></script>
+	<script type="text/javascript" src="/client/moveEngine.js"></script>
+	<script type="text/javascript" src="/client/drawingEngine.js"></script>
 	<script type="text/javascript" src="/client/client.js"></script>
 	<link rel="stylesheet" type="text/css" href="/client/client.css">
 </head>
 <body>
 	<div id="resourcesPanel" class="panel"></div>
+
 	<div id="buildPanel" class="panel">
-		<input type="button" name="Hide/show select" style="position: absolute; z-index: 6" onclick="toggleSelectPanel();">
+		<input type="button" value="Hide/show select" style="position: absolute; z-index: 6" onclick="toggleSelectPanel();">
+		<br><br>
+		<input type="button" value="Build house" style="position: absolute;z-index: 6" onclick="build('house');">
+		<br><br>
+		<input type="button" value="cancel" onclick="cancelBuild();">
 	</div>
+
 	<div id="selectPanel" class="panel" style="display: block;"></div>
 
 	<canvas id="game"></canvas>
 
-	<div id="triangleUp" class="triangle" onclick="mvViewportUp();"></div>
-	<div id="triangleRight" class="triangle" onclick="mvViewportR();"></div>
-	<div id="triangleDown" class="triangle" onclick="mvViewportDown();"></div>
-	<div id="triangleLeft" class="triangle" onclick="mvViewportL();"></div>
+	<div id="triangleUp" 	class="triangle" onclick="window.app.moveViewport.moveUp();"></div>
+	<div id="triangleRight" class="triangle" onclick="window.app.moveViewport.moveRight();"></div>
+	<div id="triangleDown"  class="triangle" onclick="window.app.moveViewport.moveDown();"></div>
+	<div id="triangleLeft"  class="triangle" onclick="window.app.moveViewport.moveLeft();"></div>
 </body>
 </html>

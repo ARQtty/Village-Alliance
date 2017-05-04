@@ -41,7 +41,7 @@ window.onload = function() {
 
 
 	function handleMouseDown(event) {
-		filling = getCellByPosition(event.layerX, event.layerY);
+		//filling = getCellByPosition(event.layerX, event.layerY);
 	}
 
 	window.app.graphics.canvas.addEventListener('mousedown', handleMouseDown, false);

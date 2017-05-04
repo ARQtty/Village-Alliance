@@ -7,6 +7,7 @@
 	<script type="text/javascript" src="/client/engine.js"></script>
 	<script type="text/javascript" src="/client/moveEngine.js"></script>
 	<script type="text/javascript" src="/client/drawingEngine.js"></script>
+	<script type="text/javascript" src="/client/position.js"></script>
 	<script type="text/javascript" src="/client/client.js"></script>
 	<link rel="stylesheet" type="text/css" href="/client/client.css">
 </head>
@@ -16,9 +17,9 @@
 	<div id="buildPanel" class="panel">
 		<input type="button" value="Hide/show select" style="position: absolute; z-index: 6" onclick="toggleSelectPanel();">
 		<br><br>
-		<input type="button" value="Build house" style="position: absolute;z-index: 6" onclick="build('house');">
+		<input type="button" value="Build house" style="position: absolute;z-index: 6" onclick="window.app.drawing.chooseStruct('house');">
 		<br><br>
-		<input type="button" value="cancel" onclick="cancelBuild();">
+		<input id="cancel" type="button" value="cancel" onclick="window.app.drawing.abortBuild();">
 	</div>
 
 	<div id="selectPanel" class="panel" style="display: block;"></div>

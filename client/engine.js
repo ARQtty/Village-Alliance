@@ -72,7 +72,7 @@ window.app = {
 				house: null,
 				road: null
 			},
-
+		
 			download: function(url, texture) {
 				var d = $.Deferred();
 				texture.src = url;

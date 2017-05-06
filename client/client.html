@@ -5,11 +5,16 @@
 	<script type="text/javascript" src="/js/jquery-2.1.0.js"></script>
 	<script type="text/javascript" src="/js/socket.io.js"></script>
 	<script type="text/javascript" src="/client/engine.js"></script>
-	<script type="text/javascript" src="/client/moveEngine.js"></script>
 	<script type="text/javascript" src="/client/drawingEngine.js"></script>
+	<script type="text/javascript" src="/client/moveEngine.js"></script>
 	<script type="text/javascript" src="/client/position.js"></script>
 	<script type="text/javascript" src="/client/client.js"></script>
 	<link rel="stylesheet" type="text/css" href="/client/client.css">
+	<style type="text/css">
+		#game {
+			cursor: url("media/textures/house.cur");
+		}
+	</style>
 </head>
 <body>
 	<div id="resourcesPanel" class="panel"></div>
@@ -17,7 +22,7 @@
 	<div id="buildPanel" class="panel">
 		<input type="button" value="Hide/show select" style="position: absolute; z-index: 6" onclick="toggleSelectPanel();">
 		<br><br>
-		<input type="button" value="Build house" style="position: absolute;z-index: 6" onclick="window.app.drawing.chooseStruct('house');">
+		<input type="button" value="house" style="position: absolute;z-index: 6" onclick="window.app.building.chooseStruct(this.value);console.log('Выбрал дом для постройки');">
 		<br><br>
 		<input id="cancel" type="button" value="cancel" onclick="window.app.drawing.abortBuild();">
 	</div>

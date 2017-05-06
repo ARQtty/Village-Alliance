@@ -1,40 +1,39 @@
 $(function() {
-window.app.drawing = {
+window.app.building = {
 
 	cancelButton: document.getElementById('cancel'),
 	buildingStructure: null,
 	buildingKey: null,
 
-
-	prepare2Build: function(model) {
+	prepare2Build: function() {
 		// Build structure will be placed on the ground
-		window.app.graphics.canvas.addEventListener('mouseup', build, false);
+		window.app.graphics.canvas.addEventListener('mouseup', window.app.building.build, false);
 		
 		// Build process will be aborted
-		window.app.drawing.cancelButton.addEventListener('mousedown', abortBuild, false);
+		window.app.building.cancelButton.addEventListener('mousedown', window.app.building.abortBuild, false);
 
-		document.style.cursor = model;
-		window.app.drawing.buildingStructure = model;
+		//TODO -> window.app.graphics.canvas.setAttribute("style", "cursor: url(media/textures/house.png);");
 	},
 
 
 	abortBuild: function() {
 		// Unset eventListeners, cursor texture, update buildPanel
-		var a;
+		
+		window.app.building.cancelButton.removeEventListener('mousedown', this);
+		window.app.graphics.canvas.removeEventListener('mouseup', window.app.building.build);
 	},
 
 
 	chooseStruct: function(model) {
 		// Choose from available structures
-		switch (model){
+		window.app.building.prepare2Build();
+		switch (model) {
 			case 'house':
-				window.app.drawing.prepare2Build(window.app.graphics.textures.house);
-				window.app.drawing.buildingKey = 3;
+				window.app.building.buildingKey = 3;
 				break;
 
 			case 'road':
-				window.app.drawing.prepare2Build(window.app.graphics.textures.road);
-				window.app.drawing.buildingKey = 2;
+				window.app.building.buildingKey = 2;
 				break;
 		}
 	},
@@ -42,18 +41,21 @@ window.app.drawing = {
 
 	build: function(event){
 		// Unset after click
-		window.app.graphics.canvas.removeEventListener('mouseup', build);
-		document.style.cursor = 'pointer';
+		window.app.graphics.canvas.removeEventListener('mouseup', window.app.building.build);
 		
-		var cellValue = window.app.position.getCellByPosition(event.layerX, event.layerY);
-		var cellUnderCursor = window.app.position.getCellCoords(event.layerX, event.layerY);
-		var cellX = cellUnderCursor[0],
-		    cellY = cellUnderCursor[1];
+		var cellValue = window.app.environment.getCellByPosition(event.layerX, event.layerY);
+		var cellUnderCursor = window.app.environment.getCellCoords(event.layerX, event.layerY);
+		var cellX = cellUnderCursor[0];
+		var cellY = cellUnderCursor[1];
 		
 		console.log('Хочу строить на '+cellX+', '+cellY);
-
-		window.app.graphics.cells[cellY][cellX] = window.app.drawing.buildingKey;
-		window.app.graphics.fillMap();
+		if (window.app.building.buildingKey == cellValue) {
+			console.warn('Такое здание уже стоит на этом месте');
+		}else{
+			console.log('Строю тут');
+			// Placing object on the map
+			window.app.graphics.fillCellWithTexture(cellY, cellX, window.app.building.buildingKey);
+		}
 	}
 
 }})

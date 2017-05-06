@@ -18,7 +18,7 @@ window.app = {
 			//app.environment.downloadData(),
 			app.environment.downloadMap()
 		).done(function() {
-			console.log('Okey downloadWorld');
+			console.info('Okey downloadWorld');
 			app.intialize();
 		});
 	},
@@ -44,10 +44,27 @@ window.app = {
         	return $.get('/media/map.json').pipe(function(data) {
         		app.environment.map.sizeX = data.length;
         		app.environment.map.sizeY = data[0].length;
-           		console.log('Map sizes: x='+data.length+' y='+data[0].length);
+           		console.info('Map sizes: x='+data.length+' y='+data[0].length);
 	            app.environment.map.data = data;
 	            return true;
       		})
+		},
+
+		getCellByPosition: function(top, left) {
+			/* Get cell value by click coords */
+
+			var topIndex = Math.floor(top / window.app.graphics.cellSize)
+			var leftIndex = Math.floor(left / window.app.graphics.cellSize)
+			
+			console.log('cells['+topIndex.toString()+']['+leftIndex.toString()+'] value='+window.app.graphics.cells[topIndex][leftIndex])
+
+			return window.app.graphics.cells[topIndex][leftIndex]
+		},
+
+		getCellCoords: function(x, y) {
+			var xIndex = Math.floor(x / window.app.graphics.cellSize);
+			var yIndex = Math.floor(y / window.app.graphics.cellSize);
+			return [xIndex, yIndex]
 		}
 	},
 
@@ -57,6 +74,7 @@ window.app = {
 		y1: 0,
 		x2: Math.ceil(document.body.clientWidth  / 32),
 		y2: Math.ceil(document.body.clientHeight / 32),
+		cells: [],
 		
 		cellsInRow: Math.ceil(document.body.clientWidth  / 32),
 		cellsInColumn: Math.ceil(document.body.clientHeight / 32),
@@ -135,9 +153,25 @@ window.app = {
 			}
 		},
 
+
+		fillCellWithTexture: function(x, y, textureId) {
+			/* Build structure in cell with coords x, y */
+
+			/*var cellUnderCursor = window.app.environment.getCellByPosition(x, y);
+		
+			var cellCoord = window.app.environment.getCellCoords(x, y);
+			var cellX = cellCoord[0];
+			var cellY = cellCoord[1];
+			*/
+			console.log('Поставил объект{'+textureId+'} на '+x+', '+y);
+			
+			window.app.environment.map.data[y + window.app.graphics.x1][x + window.app.graphics.y1] = textureId;
+			window.app.graphics.fillMap()
+		},
+
 		intialize: function() {
 			app.graphics.fillMap();
-			console.log('Okey intialize graphics');
+			console.info('Okey intialize graphics');
 		}
 	},
 

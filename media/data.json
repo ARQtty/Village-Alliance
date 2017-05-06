@@ -1,0 +1,23 @@
+{
+	"terrain": [
+		{},
+		{
+			"name": "Road",
+			"transitable": true,
+			"decription": "an old road. Perhaps even the Romans walked on it",
+			"HP" : null,
+			"XP": null,
+			"Reward": null
+		},
+		{},
+		{
+			"name": "House",
+			"transitable": false,
+			"decription": "village house. Inside it is always fed and sheltered at night",
+			"HP": 100,
+			"XP": 20,
+			"Reward": 200
+		}
+
+	]
+}

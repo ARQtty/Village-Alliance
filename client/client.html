@@ -7,7 +7,6 @@
 	<script type="text/javascript" src="/client/engine.js"></script>
 	<script type="text/javascript" src="/client/drawingEngine.js"></script>
 	<script type="text/javascript" src="/client/moveEngine.js"></script>
-	<script type="text/javascript" src="/client/position.js"></script>
 	<script type="text/javascript" src="/client/client.js"></script>
 	<link rel="stylesheet" type="text/css" href="/client/client.css">
 	<style type="text/css">
@@ -20,14 +19,27 @@
 	<div id="resourcesPanel" class="panel"></div>
 
 	<div id="buildPanel" class="panel">
-		<input type="button" value="Hide/show select" style="position: absolute; z-index: 6" onclick="toggleSelectPanel();">
+			
+		<input id="houseButton" class="buildButton" type="button" value="house" style="position: absolute;z-index: 6" onclick="window.app.building.chooseStruct(this.value);">
 		<br><br>
-		<input type="button" value="house" style="position: absolute;z-index: 6" onclick="window.app.building.chooseStruct(this.value);console.log('Выбрал дом для постройки');">
+
+		<input id="roadButton" class="buildButton" type="button" value="road" style="position: absolute;z-index: 6" onclick="window.app.building.chooseStruct(this.value);">
 		<br><br>
-		<input id="cancel" type="button" value="cancel" onclick="window.app.drawing.abortBuild();">
+
+		<input id="cancel" class="buildButton cancel" type="button" value="cancel" onclick="window.app.building.abortBuild();">
 	</div>
 
-	<div id="selectPanel" class="panel" style="display: block;"></div>
+	<div id="selectPanel" class="panel">
+		<div id="s_avatar">
+		</div>
+		<div id="s_selectInfo">
+			<span id="s_name"></span>
+			<span id="s_description"></span>
+			<span id="s_HP"></span>
+			<span id="s_XP"></span>
+			<span id="s_Gold"></span>
+		</div>
+	</div>
 
 	<canvas id="game"></canvas>
 

@@ -18,20 +18,53 @@ html, body{
 	right: 0px;
 	top: 0px;
 }
+
+
 #buildPanel{
 	width: 25vw;
 	height: 25vh;
 	right: 0px;
 	bottom: 0px;
 }
+	.buildButton{
+		width: 7vw;
+		height: 3vh;
+		position: absolute;
+		z-index: 6;
+		background-color: #D4D090;
+	}
+	.buildButtonChecked{
+		background-color: #FFBC2A;
+	}
+	/* Cancel build button */
+	#cancel{
+		background-color: #C84048;
+	}
+
+
 #selectPanel{
 	width: 45vw;
 	height: 25vh;
 	left: 0px;
 	bottom: 0px;
+	display: none;
+}
+	#s_avatar{
+		width: 8vw;
+		margin: 3vh 2vw;
+		display: inline-block;
+	}
+	#s_selectInfo{
+		width: 30vw;
+		height: 19vh;
+		margin: 3vh 1vw;
+		display: inline-block;
 }
 
 
+span {
+	display: block;
+}
 
 /* Элементы навигации */
 .triangle{

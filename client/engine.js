@@ -16,7 +16,8 @@ window.app = {
 				app.graphics.textures.road
 			),
 			//app.environment.downloadData(),
-			app.environment.downloadMap()
+			app.environment.downloadMap(),
+			app.environment.downloadData()
 		).done(function() {
 			console.info('Okey downloadWorld');
 			app.intialize();
@@ -34,8 +35,8 @@ window.app = {
 		},
 
 		downloadData: function() {
-            return $.get('/assets/data.json').pipe(function(data) {
-	            app.graphics.tilesets.descriptors = data;
+            return $.get('/media/data.json').pipe(function(data) {
+	            app.graphics.textures.descriptors = data;
 	            return true;
             });
         },
@@ -50,20 +51,25 @@ window.app = {
       		})
 		},
 
+		getTextureInfo: function(x, y) {
+			var textureId = width.app.environment.getCellByPosition(x, y);
+			return width.app.graphics.textures.descriptors[textureId]
+		},
+
 		getCellByPosition: function(top, left) {
 			/* Get cell value by click coords */
 
-			var topIndex = Math.floor(top / window.app.graphics.cellSize)
-			var leftIndex = Math.floor(left / window.app.graphics.cellSize)
+			var topIndex = Math.floor(top / app.graphics.cellSize)
+			var leftIndex = Math.floor(left / app.graphics.cellSize)
 			
-			console.log('cells['+topIndex.toString()+']['+leftIndex.toString()+'] value='+window.app.graphics.cells[topIndex][leftIndex])
+			console.log('cells['+topIndex.toString()+']['+leftIndex.toString()+'] value='+app.graphics.cells[topIndex][leftIndex])
 
-			return window.app.graphics.cells[topIndex][leftIndex]
+			return app.graphics.cells[topIndex][leftIndex]
 		},
 
 		getCellCoords: function(x, y) {
-			var xIndex = Math.floor(x / window.app.graphics.cellSize);
-			var yIndex = Math.floor(y / window.app.graphics.cellSize);
+			var xIndex = Math.floor(x / app.graphics.cellSize);
+			var yIndex = Math.floor(y / app.graphics.cellSize);
 			return [xIndex, yIndex]
 		}
 	},
@@ -110,19 +116,19 @@ window.app = {
 				}
 			}
 			console.log('Viewport:');
-			console.log(' x1='+window.app.graphics.x1
-					   +' y1='+window.app.graphics.y1);
-			console.log(' x2='+window.app.graphics.x2
-					   +' y2='+window.app.graphics.y2);
-			window.app.graphics.cells = viewCells;
+			console.log(' x1='+app.graphics.x1
+					   +' y1='+app.graphics.y1);
+			console.log(' x2='+app.graphics.x2
+					   +' y2='+app.graphics.y2);
+			app.graphics.cells = viewCells;
 			return viewCells
 		},
 
 		fillMap: function() {
-			var context = window.app.graphics.canvas.getContext('2d');
+			var context = app.graphics.canvas.getContext('2d');
 			
-			window.app.graphics.canvas.width = document.body.clientWidth;
-			window.app.graphics.canvas.height = document.body.clientHeight;
+			app.graphics.canvas.width = document.body.clientWidth;
+			app.graphics.canvas.height = document.body.clientHeight;
 			// Представление всех ячеек
 			var cells = app.graphics.getViewport();
 
@@ -157,16 +163,10 @@ window.app = {
 		fillCellWithTexture: function(x, y, textureId) {
 			/* Build structure in cell with coords x, y */
 
-			/*var cellUnderCursor = window.app.environment.getCellByPosition(x, y);
-		
-			var cellCoord = window.app.environment.getCellCoords(x, y);
-			var cellX = cellCoord[0];
-			var cellY = cellCoord[1];
-			*/
 			console.log('Поставил объект{'+textureId+'} на '+x+', '+y);
 			
-			window.app.environment.map.data[y + window.app.graphics.x1][x + window.app.graphics.y1] = textureId;
-			window.app.graphics.fillMap()
+			app.environment.map.data[y + app.graphics.x1][x + app.graphics.y1] = textureId;
+			app.graphics.fillMap()
 		},
 
 		intialize: function() {
@@ -179,4 +179,5 @@ window.app = {
 	}
 };
 app.downloadWorld();
+console.log(app.graphics.textures.descriptors)
 });

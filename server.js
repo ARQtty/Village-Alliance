@@ -11,7 +11,7 @@ server.listen(8000);
 
 app.use('/client', express.static(__dirname + '/client'));
 app.use('/js', express.static(__dirname + '/js'));
-app.use('/media', express.static(__dirname + '/js'));
+app.use('/media', express.static(__dirname + '/media'));
 
 
 app.get('/', function (req, res) {
@@ -19,13 +19,23 @@ app.get('/', function (req, res) {
 });
 
 app.get('/media/*', function (req, res) {
-    res.sendfile(__dirname + '/media/' + req.params[0]);
+    res.sendfile(__dirname + 'media/' + req.params[0]);
 });
 
 
-io.sockets.on('connection', function(client){
+io.sockets.on('connection', function(socket){
 	console.log('+1 client');
-	client.on('Hello', function(message){
-		console.log('...World!)');
-	})
+	socket.emit('chat', {
+		name: 'Server',
+		message: 'Socket Established',
+    });
+
+    socket.on('chat', function (data) {
+		socket.broadcast.emit('chat', {
+			name: data.name,
+			message: data.message
+		});
+
+        console.log("Chat"+ data.name + ": " + data.message);
+	});
 })

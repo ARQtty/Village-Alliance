@@ -42,6 +42,10 @@ window.app.building = {
 			case 'road':
 				app.building.buildingKey = 1;
 				break;
+
+			case 'water':
+				app.building.buildingKey = 2;
+				break;
 		}
 	},
 
@@ -60,7 +64,6 @@ window.app.building = {
 		if (app.building.buildingKey == cellValue) {
 			console.warn('Такое здание уже стоит на этом месте');
 		}else{
-			console.log('Строю тут');
 			// Placing object on the map
 			app.graphics.fillCellWithTexture(cellY, cellX, app.building.buildingKey);
 		}

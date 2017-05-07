@@ -9,7 +9,14 @@
 			"XP": null,
 			"Reward": null
 		},
-		{},
+		{
+			"name": "Water",
+			"transitable": false,
+			"decription": "water. No one knows what is in the deep...",
+			"HP": null,
+			"XP": null,
+			"Reward": null
+		},
 		{
 			"name": "House",
 			"transitable": false,

@@ -9,27 +9,30 @@
 	<script type="text/javascript" src="/client/moveEngine.js"></script>
 	<script type="text/javascript" src="/client/client.js"></script>
 	<link rel="stylesheet" type="text/css" href="/client/client.css">
-	<style type="text/css">
-		#game {
-			cursor: url("media/textures/house.cur");
-		}
-	</style>
 </head>
 <body>
-	<div id="resourcesPanel" class="panel"></div>
+	<div id="messagefield">
+		<div id="messages"></div>
+			<input id="message-input" placeholder="Message <Enter>" maxlength="100" autofocus/>
+		</div>
+	</div>
 
-	<div id="buildPanel" class="panel">
+	<div id="resourcesPanel" class="panel beautyBorder"></div>
+
+	<div id="buildPanel" class="panel beautyBorder">
 			
-		<input id="houseButton" class="buildButton" type="button" value="house" style="position: absolute;z-index: 6" onclick="window.app.building.chooseStruct(this.value);">
+		<input id="houseButton" class="buildButton" type="button" value="house" onclick="window.app.building.chooseStruct(this.value);">
 		<br><br>
 
-		<input id="roadButton" class="buildButton" type="button" value="road" style="position: absolute;z-index: 6" onclick="window.app.building.chooseStruct(this.value);">
+		<input id="roadButton" class="buildButton" type="button" value="road" onclick="window.app.building.chooseStruct(this.value);">
 		<br><br>
+
+		<input id="waterButton" class="buildButton" type="button" value="water" onclick="window.app.building.chooseStruct(this.value);">
 
 		<input id="cancel" class="buildButton cancel" type="button" value="cancel" onclick="window.app.building.abortBuild();">
 	</div>
 
-	<div id="selectPanel" class="panel">
+	<div id="selectPanel" class="panel beautyBorder">
 		<div id="s_avatar">
 		</div>
 		<div id="s_selectInfo">

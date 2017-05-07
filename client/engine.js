@@ -15,6 +15,10 @@ window.app = {
 				'/media/textures/road.png',
 				app.graphics.textures.road
 			),
+			app.graphics.textures.download(
+				'/media/textures/water.png',
+				app.graphics.textures.water
+			),
 			//app.environment.downloadData(),
 			app.environment.downloadMap(),
 			app.environment.downloadData()
@@ -26,6 +30,9 @@ window.app = {
 
 	intialize: function() {
 		app.graphics.intialize();
+		app.keyBinds.init();
+		app.network.connectSocket();
+		app.network.bindEvents();
 	},
 
 	environment: {
@@ -91,10 +98,12 @@ window.app = {
 			grass: new Image(),
 			house: new Image(),
 			road: new Image(),
+			water: new Image(),
 			descriptors: {
 				grass: null,
 				house: null,
-				road: null
+				road: null,
+				water: null
 			},
 		
 			download: function(url, texture) {
@@ -149,7 +158,7 @@ window.app = {
 							break;
 
 						case 2:
-							context.fillStyle = '#f31414'; 
+							var pattern = context.createPattern(app.graphics.textures.water, 'repeat');
 							break;
 					}
 
@@ -175,9 +184,80 @@ window.app = {
 		}
 	},
 
+	chat: {
+		chatPanel: document.getElementById('messagefield'),
+		$output: $('#messages'),
+        $input: $('#message-input'),
+
+        sendMessage: function() {
+				var message = app.chat.$input.val();
+				app.chat.$input.val('');
+				app.chat.message('P1', message);
+				app.network.send.chat(message);
+        },
+
+		toggle: function() {
+			/* Enter button controls chatPanel.
+			   Show if hidden, hide if showing and it 
+			   hasn't any message. Or send message */
+			if (app.chat.chatPanel.style.display == 'block'){
+			
+				if (app.chat.$input.val() != ''){ app.chat.sendMessage() }
+				else{ app.chat.chatPanel.style.display = 'none' }
+			
+			}else{ app.chat.chatPanel.style.display = 'block' }
+		},
+
+		message: function(who, message) {
+			/* Defence from XSS */
+			message = message.replace(/&/g, "&amp;").replace(/>/g, "&gt;").replace(/</g, "&lt;").replace(/"/g, "&quot;");
+            who = who.replace(/&/g, "&amp;").replace(/>/g, "&gt;").replace(/</g, "&lt;").replace(/"/g, "&quot;");
+            app.chat.$output
+                .append("<div class='message'><span class='username'>" + who + ": </span><span class='content'>" + message + "</span></div>")
+                //.animate({scrollTop: this.$output[0].scrollHeight});
+		}
+	},
+
 	network: {
+		socket: null,
+		connectSocket: function() {
+			app.network.socket = io.connect(window.document.location.protocol + "//" + window.document.location.host);
+		},
+
+		send: {
+			chat: function(message) {
+				app.network.socket.emit('chat', {
+					name: 'Someone happy',
+					message: message
+				});
+			}
+		},
+
+		bindEvents: function() {
+			var socket = app.network.socket;
+
+			socket.on('chat', function (data) {
+				app.chat.message(data.name, data.message);
+			});
+		}
+	},
+
+	keyBinds: {
+
+		init: function() {
+			$(document).keydown(app.keyBinds.keyboardHandler);
+		},
+
+		keyboardHandler: function(event) {
+			if (event.keyCode == 13){
+				/* Enter */
+				app.chat.toggle();
+
+			}else{
+				console.log('Unbinded keyCode "'+event.keyCode+'"')
+			}
+		}
 	}
 };
 app.downloadWorld();
-console.log(app.graphics.textures.descriptors)
 });

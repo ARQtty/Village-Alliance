@@ -20,6 +20,10 @@ window.onload = function() {
 				var avatar = app.graphics.textures.road;
 				break;
 
+			case 2:
+				var avatar = app.graphics.textures.water;
+				break;
+
 			case 3:
 				var avatar = app.graphics.textures.house;
 				break;
@@ -27,7 +31,7 @@ window.onload = function() {
 
 		if (informative) {
 			selectPanel.style.display = 'block';
-			s_avatar.innerHTML = '<img src="'+avatar.src+'" style="width: 9vw"/>';
+			s_avatar.innerHTML = '<img src="'+avatar.src+'" style="width: 5vw"/>';
 			s_name.innerHTML = '<b>Name</b>: '+description['name'];
 			s_description.innerHTML = '<b>It is</b> '+description['decription'];
 			s_HP.innerHTML = '<b>HP</b>: '+description['HP'];

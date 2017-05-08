@@ -181,6 +181,10 @@ window.app = {
 		intialize: function() {
 			app.graphics.fillMap();
 			console.info('Okey intialize graphics');
+		},
+
+		startAnimation: function() {
+			
 		}
 	},
 

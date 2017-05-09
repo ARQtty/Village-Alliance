@@ -4,22 +4,9 @@ window.app = {
 	downloadWorld: function () {
 		$.when(
 			app.graphics.textures.download(
-				'/media/textures/house.png',
-				app.graphics.textures.house
+				'/media/textures/terrain.png',
+				app.graphics.textures.terrain
 			),
-			app.graphics.textures.download(
-				'/media/textures/grass.png',
-				app.graphics.textures.grass
-			),
-			app.graphics.textures.download(
-				'/media/textures/road.png',
-				app.graphics.textures.road
-			),
-			app.graphics.textures.download(
-				'/media/textures/water.png',
-				app.graphics.textures.water
-			),
-			//app.environment.downloadData(),
 			app.environment.downloadMap(),
 			app.environment.downloadData()
 		).done(function() {
@@ -95,15 +82,11 @@ window.app = {
 		canvas: document.getElementById('game'),
 
 		textures: {
-			grass: new Image(),
-			house: new Image(),
-			road: new Image(),
-			water: new Image(),
+			terrain: new Image(),
+			zombie: new Image(),
 			descriptors: {
-				grass: null,
-				house: null,
-				road: null,
-				water: null
+				terrain: null,
+				zombie: null
 			},
 		
 			download: function(url, texture) {
@@ -143,27 +126,18 @@ window.app = {
 
 			for (var x = 0; x < cells.length; x++){
 				for (var y = 0; y < cells[x].length; y++){
-					switch (cells[x][y]){
 
-						case 1:
-							var pattern = context.createPattern(app.graphics.textures.road, 'repeat');
-							break;
-
-						case 3:
-							var pattern = context.createPattern(app.graphics.textures.house, 'repeat');
-							break;
-
-						case 0:
-							var pattern = context.createPattern(app.graphics.textures.grass, 'repeat');
-							break;
-
-						case 2:
-							var pattern = context.createPattern(app.graphics.textures.water, 'repeat');
-							break;
-					}
-
-					context.fillStyle = pattern;
-					context.fillRect(x * app.graphics.cellSize, y * app.graphics.cellSize, app.graphics.cellSize, app.graphics.cellSize);
+					var cellValue = cells[x][y];
+					context.drawImage(app.graphics.textures.terrain,	// Image
+									  0,                                // sx
+									  cellValue * app.graphics.cellSize,// sy
+									  app.graphics.cellSize, 			// sWidth
+									  app.graphics.cellSize,			// sHeight
+									  x * app.graphics.cellSize,		// dx
+									  y * app.graphics.cellSize, 		// dy
+									  app.graphics.cellSize, 			// dWidth
+									  app.graphics.cellSize				// dHeight
+									  );
 				}
 			}
 		},
@@ -171,9 +145,6 @@ window.app = {
 
 		fillCellWithTexture: function(x, y, textureId) {
 			/* Build structure in cell with coords x, y */
-
-			console.log('Поставил объект{'+textureId+'} на '+x+', '+y);
-			
 			app.environment.map.data[y + app.graphics.x1][x + app.graphics.y1] = textureId;
 			app.graphics.fillMap()
 		},
@@ -183,8 +154,8 @@ window.app = {
 			console.info('Okey intialize graphics');
 		},
 
-		startAnimation: function() {
-			
+		sprites: {
+
 		}
 	},
 
@@ -218,7 +189,6 @@ window.app = {
             who = who.replace(/&/g, "&amp;").replace(/>/g, "&gt;").replace(/</g, "&lt;").replace(/"/g, "&quot;");
             app.chat.$output
                 .append("<div class='message'><span class='username'>" + who + ": </span><span class='content'>" + message + "</span></div>")
-                //.animate({scrollTop: this.$output[0].scrollHeight});
 		}
 	},
 

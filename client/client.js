@@ -13,25 +13,25 @@ window.onload = function() {
 		//console.log(app.graphics.textures.descriptors.terrain[cellValue])
 		var informative = (cellValue == 0) ? false : true;
 		var description = app.graphics.textures.descriptors.terrain[cellValue];
-
+		// TODO -> Make a crop from terrain sprite
 		switch(cellValue){
 
 			case 1:
-				var avatar = app.graphics.textures.road;
+				var avatar = 'road';
 				break;
 
 			case 2:
-				var avatar = app.graphics.textures.water;
+				var avatar = 'water';
 				break;
 
 			case 3:
-				var avatar = app.graphics.textures.house;
+				var avatar = 'house';
 				break;
 		}
 
 		if (informative) {
 			selectPanel.style.display = 'block';
-			s_avatar.innerHTML = '<img src="'+avatar.src+'" style="width: 5vw"/>';
+			s_avatar.innerHTML = '<img src="/media/textures/'+avatar+'.png" style="width: 5vw;"/>';
 			s_name.innerHTML = '<b>Name</b>: '+description['name'];
 			s_description.innerHTML = '<b>It is</b> '+description['decription'];
 			s_HP.innerHTML = '<b>HP</b>: '+description['HP'];

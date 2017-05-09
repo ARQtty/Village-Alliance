@@ -1,6 +1,6 @@
 $(function() {
 window.app.building = {
-
+	/* Part for building structures on game field */
 	cancelButton: document.getElementById('cancel'),
 	buildingStructure: null,
 	buildingKey: null,

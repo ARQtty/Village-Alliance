@@ -1,46 +1,32 @@
 from PIL import Image, ImageDraw
 
-mapImage = Image.open('media/map.bmp', 'r')
-mapPixels = mapImage.load()
+mapImageSize = Image.open('media/map.bmp', 'r').size[0] # Square
+mapPixels = Image.open('media/map.bmp', 'r').load()
 
-def processColors(arr):
-	''' Matches pixels value to app texture codes '''
-
-	colorCodes = { '(15, 154, 255)': 2, # water
-				   '(76, 255, 0)': 3, # house
-				   '(150, 60, 50)': 1, # road
-				   '(150, 62, 53)': 1, # same road
-				   '(151, 62, 53)': 1, # same road
-				   '(255, 255, 255)': 0} #grass
-	textureCodes = []
-
-	for color in arr:
-		textureCodes += [colorCodes[str(color)]]
-
-	return textureCodes
-
+colorCodes = { (15, 154, 255): 2, # water
+               (76, 255, 0): 3, # house
+               (151, 62, 53): 1, # road
+               (255, 255, 255): 0} #grass
 
 with open('media/map.json', 'w') as jsonMap:
-	jsonMap.write('[')
-	
-	# For every image line
-	for i in range(mapImage.size[0]):
-		row = []
+    jsonMap.write('[')
+    
+    # For every image line
+    for i in range(mapImageSize):
+        
+        try:
+        	row = [colorCodes[mapPixels[i, x]] for x in range(mapImageSize)]
+        except KeyError:
+        	print('Error at parsing map image at row %d' % i)
 
-		# Loop for j index wich needed for PIL lib 
-		for j in range(mapImage.size[0]):
-			row += [mapPixels[i, j]]
+        # If first string        
+        if i == 0:
+            jsonMap.write(str(row) + ',\n')
+        # If last string
+        elif i == mapImageSize - 1:
+            jsonMap.write(' ' + str(row))    
+        
+        else:
+            jsonMap.write(' ' + str(row) + ',\n')
 
-		row = processColors(row)
-
-		# If first string		
-		if i == 0:
-			jsonMap.write(str(row) + ',\n')
-		# If last string
-		elif i == mapImage.size[0] - 1:
-			jsonMap.write(' ' + str(row))	
-		
-		else:
-			jsonMap.write(' ' + str(row) + ',\n')
-
-	jsonMap.write(']')
+    jsonMap.write(']')

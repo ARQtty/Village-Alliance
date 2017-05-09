@@ -106,6 +106,16 @@ html, body{
 	}
 
 
+#minimap{
+	width: 13vw;
+	height: 13vw;
+	background-color: #93E1DA;
+	position: relative;
+}
+#viewport{
+	background-color: red;
+	position: absolute;
+}
 
 
 .beautyBorder{

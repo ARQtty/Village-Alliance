@@ -140,6 +140,7 @@ window.app = {
 									  );
 				}
 			}
+			//app.moveViewport.minimap.drawMinimap();
 		},
 
 

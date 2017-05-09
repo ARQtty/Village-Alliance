@@ -41,6 +41,7 @@ window.app.moveViewport = {
 			console.log('Can\'t move down')
 		}
 		app.graphics.fillMap();
+		app.moveViewport.minimap.drawMinimap();
 	},
 
 	moveLeft: function() {
@@ -55,5 +56,23 @@ window.app.moveViewport = {
 			console.log('Can\'t move left');
 		}
 		app.graphics.fillMap();
+	},
+
+	minimap: {
+		minimapDiv: document.getElementById('minimap'),
+		viewportDiv: document.getElementById('viewport'),
+
+		drawMinimap: function() {
+			viewportX = app.environment.map.sizeX / app.moveViewport.minimap.minimapDiv.style.width,
+			viewportY = app.environment.map.sizeY / app.moveViewport.minimap.minimapDiv.style.height,
+			
+			viewport.style.left = app.graphics.x1 * viewportX;
+			viewport.style.top = app.graphics.y1 * viewportY;
+			viewport.style.width = viewportX.toString() + 'px';
+			viewport.style.height = viewportY.toString() + 'px';
+			
+			console.log('left:'+app.graphics.x1 * viewportX+', width:'+viewportX.toString());
+			console.log('"'+app.moveViewport.minimap.minimapDiv.style.width+'" - sizeX, "'+viewportX+'" - viewportX')
+		}
 	}
 }})

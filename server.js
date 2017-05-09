@@ -7,7 +7,7 @@ var app 		= express();
 var server		= require('http').createServer(app);
 var io          = require('socket.io').listen(server, {log: false});
 server.listen(8000);
-
+anySocket = null;
 
 app.use('/client', express.static(__dirname + '/client'));
 app.use('/js', express.static(__dirname + '/js'));
@@ -24,11 +24,13 @@ app.get('/media/*', function (req, res) {
 
 
 io.sockets.on('connection', function(socket){
+	anySocket = client;
 	console.log('+1 client');
 	socket.emit('chat', {
 		name: 'Server',
 		message: 'Socket Established',
     });
+
 
     socket.on('chat', function (data) {
 		socket.broadcast.emit('chat', {

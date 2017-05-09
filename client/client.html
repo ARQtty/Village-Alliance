@@ -11,13 +11,22 @@
 	<link rel="stylesheet" type="text/css" href="/client/client.css">
 </head>
 <body>
+
 	<div id="messagefield">
 		<div id="messages"></div>
 			<input id="message-input" placeholder="Message <Enter>" maxlength="100" autofocus/>
 		</div>
 	</div>
 
+
+	<div id="minimap">
+		<div id="viewport">			
+		</div>
+	</div>
+
+
 	<div id="resourcesPanel" class="panel beautyBorder"></div>
+
 
 	<div id="buildPanel" class="panel beautyBorder">
 			
@@ -32,6 +41,7 @@
 		<input id="cancel" class="buildButton cancel" type="button" value="cancel" onclick="window.app.building.abortBuild();">
 	</div>
 
+
 	<div id="selectPanel" class="panel beautyBorder">
 		<div id="s_avatar">
 		</div>
@@ -44,7 +54,9 @@
 		</div>
 	</div>
 
+
 	<canvas id="game"></canvas>
+
 
 	<div id="triangleUp" 	class="triangle" onclick="window.app.moveViewport.moveUp();"></div>
 	<div id="triangleRight" class="triangle" onclick="window.app.moveViewport.moveRight();"></div>

@@ -222,13 +222,28 @@ window.app = {
 			$(document).keydown(app.keyBinds.keyboardHandler);
 		},
 
-		keyboardHandler: function(event) {
-			if (event.keyCode == 13){
+		keyboardHandler: function(e) {
+			if (e.keyCode == 13){
 				/* Enter */
 				app.chat.toggle();
 
+			/* Move viewport */
+			}else if (e.keyCode == 38){
+				app.moveViewport.moveUp()
+			}else if (e.keyCode == 39){
+				app.moveViewport.moveRight()
+			}else if (e.keyCode == 40){
+				app.moveViewport.moveDown()
+			}else if (e.keyCode == 37){
+				app.moveViewport.moveLeft()
+
+			}else if (e.keyCode == 192){
+				// ` key
+				e.preventDefault();
+				app.moveViewport.displayMap()
+
 			}else{
-				console.log('Unbinded keyCode "'+event.keyCode+'"')
+				console.log('Unbinded keyCode "'+e.keyCode+'"')
 			}
 		}
 	}

@@ -4,6 +4,10 @@ window.app = {
 	downloadWorld: function () {
 		$.when(
 			app.graphics.textures.download(
+				'/media/textures/grass.png',
+				app.graphics.textures.grass
+			),
+			app.graphics.textures.download(
 				'/media/textures/terrain.png',
 				app.graphics.textures.terrain
 			),
@@ -88,6 +92,7 @@ window.app = {
 		canvas: document.getElementById('game'),
 
 		textures: {
+			grass: new Image(),
 			terrain: new Image(),
 			monsters: new Image(),
 			descriptors: {
@@ -129,31 +134,41 @@ window.app = {
 			app.graphics.canvas.height = document.body.clientHeight;
 			// Представление всех ячеек
 			var cells = app.graphics.getViewport();
+			var cSize = app.graphics.cellSize;
+
+			// TODO -> Необходим паттерн только для травы и дороги?
+			var grass = context.createPattern(app.graphics.textures.grass, 'repeat');
+			context.fillStyle = grass;
 
 			for (var x = 0; x < cells.length; x++){
 				for (var y = 0; y < cells[x].length; y++){
 
 					var cellValue = cells[x][y];
-					var cSize = app.graphics.cellSize;
-					
+
 					// terrain
-					var texture = app.graphics.textures.terrain;
-					context.drawImage(texture,			// Image
-									  0,       			// sx
-									  cellValue * cSize,// sy
-									  cSize, 			// sWidth
-									  cSize,			// sHeight
-									  x * cSize,		// dx
-									  y * cSize, 		// dy
-									  cSize, 			// dWidth
-									  cSize				// dHeight
-									  );
+					if (cellValue == 0) {
+						// grass pattern
+						context.fillRect(x * cSize, y * cSize, cSize, cSize);
+					}else{
+						var texture = app.graphics.textures.terrain;
+						context.drawImage(texture,			// Image
+										  0,       			// sx
+										  cellValue * cSize,// sy
+										  cSize, 			// sWidth
+										  cSize,			// sHeight
+										  x * cSize,		// dx
+										  y * cSize, 		// dy
+										  cSize, 			// dWidth
+										  cSize				// dHeight
+										  );
+					}
 					if (cellValue >= 4) {
 						// mobs
 						console.log('Monster on ['+x+', '+y+']. val='+(cellValue-4));
-
+						context.fillRect(x * cSize, y * cSize, cSize, cSize);
 						var texture = app.graphics.textures.monsters;
 						cellValue -= 4;
+
 						//app.sprites.drawSprite(x, y, cellValue)
 						context.drawImage(texture,			// Image
 										  cellValue * cSize,// sx
@@ -166,8 +181,6 @@ window.app = {
 										  cSize				// dHeight
 										  );
 					}
-					
-					
 				}
 			}
 		},

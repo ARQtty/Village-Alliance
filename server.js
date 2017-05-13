@@ -24,19 +24,16 @@ app.get('/media/*', function (req, res) {
 
 setInterval(function(){
 	var r = Math.ceil(Math.random() * 3);
-	if (anySocket){
-		switch(r){
-			case 1:
-				anySocket.broadcast.emit('newUnit', {a:'a'});
-				anySocket.emit('newUnit', {a:'a'});
-				console.log('Send newUnit'); break;
+	switch(r){
+		case 1:
+			io.sockets.emit('newUnit', {a:'a'});
+			console.log('Send newUnit'); break;
 
-			case 2:
-				anySocket.broadcast.emit('moveUnit', {b:'b'}); 
-				console.log('Send moveUnit'); break;
-		}
+		case 2:
+			io.sockets.emit('moveUnit', {b:'b'});
+			console.log('Send moveUnit'); break;
 	}
-}, 500);
+}, 1000);
 
 io.sockets.on('connection', function(socket){
 	anySocket = socket;

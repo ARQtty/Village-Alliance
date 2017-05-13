@@ -19,8 +19,10 @@
 	</div>
 
 
-	<div id="minimap">
-		<div id="viewport">			
+	<div id="mapDecorator">
+		<div id="minimap" class="panel">
+			<div id="viewport">
+			</div>
 		</div>
 	</div>
 
@@ -39,6 +41,13 @@
 		<input id="waterButton" class="buildButton" type="button" value="water" onclick="window.app.building.chooseStruct(this.value);">
 
 		<input id="cancel" class="buildButton cancel" type="button" value="cancel" onclick="window.app.building.abortBuild();">
+
+		<!--Experimental elements for send unit's moves-->
+		<input type="button" value="/\" onclick="sendUnitMove('U')">
+		<input type="button" value=">" onclick="sendUnitMove('R')">
+		<input type="button" value="\/" onclick="sendUnitMove('D')">
+		<input type="button" value="<" onclick="sendUnitMove('L')">
+
 	</div>
 
 

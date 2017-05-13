@@ -106,15 +106,25 @@ html, body{
 	}
 
 
+/* Minimap */
+#mapDecorator{
+	position: absolute; width: 25vh; height: 25vh; 
+	background: url('/media/map.bmp');
+	-webkit-transform(rotate(90deg));
+	-moz-transform(rotate(90deg));
+	ms-transform(rotate(90deg)); 
+	o-transform(rotate(90deg));
+	transform(rotate(90deg)); 
+	background-size: 100% 100%;
+}
 #minimap{
-	width: 13vw;
-	height: 13vw;
-	background-color: #93E1DA;
 	position: relative;
+	width: 25vh; 
+	height: 25vh;
 }
 #viewport{
-	background-color: red;
 	position: absolute;
+	border: 1px solid red;
 }
 
 

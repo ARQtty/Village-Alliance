@@ -3,10 +3,12 @@ from PIL import Image, ImageDraw
 mapImageSize = Image.open('media/map.bmp', 'r').size[0] # Square
 mapPixels = Image.open('media/map.bmp', 'r').load()
 
-colorCodes = { (15, 154, 255): 2, # water
-               (76, 255, 0): 3, # house
-               (151, 62, 53): 1, # road
-               (255, 255, 255): 0} #grass
+colorCodes = { (255, 255, 255): 0, # grass
+               (151, 62, 53):   1, # road
+               (15, 154, 255):  2, # water
+               (76, 255, 0):    3, # house
+               (255, 0, 0):     4, # zombie
+               (255, 216, 0):   5} # snake
 
 with open('media/map.json', 'w') as jsonMap:
     jsonMap.write('[')

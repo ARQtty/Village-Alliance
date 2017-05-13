@@ -7,6 +7,10 @@ window.app = {
 				'/media/textures/terrain.png',
 				app.graphics.textures.terrain
 			),
+			app.graphics.textures.download(
+				'/media/textures/monsters.png',
+				app.graphics.textures.monsters
+			),
 			app.environment.downloadMap(),
 			app.environment.downloadData()
 		).done(function() {
@@ -47,6 +51,7 @@ window.app = {
 
 		getTextureInfo: function(x, y) {
 			var textureId = width.app.environment.getCellByPosition(x, y);
+			console.log(textureId);
 			return width.app.graphics.textures.descriptors[textureId]
 		},
 
@@ -83,10 +88,10 @@ window.app = {
 
 		textures: {
 			terrain: new Image(),
-			zombie: new Image(),
+			monsters: new Image(),
 			descriptors: {
 				terrain: null,
-				zombie: null
+				monsters: null
 			},
 		
 			download: function(url, texture) {
@@ -128,19 +133,32 @@ window.app = {
 				for (var y = 0; y < cells[x].length; y++){
 
 					var cellValue = cells[x][y];
-					context.drawImage(app.graphics.textures.terrain,	// Image
-									  0,                                // sx
-									  cellValue * app.graphics.cellSize,// sy
-									  app.graphics.cellSize, 			// sWidth
-									  app.graphics.cellSize,			// sHeight
-									  x * app.graphics.cellSize,		// dx
-									  y * app.graphics.cellSize, 		// dy
-									  app.graphics.cellSize, 			// dWidth
-									  app.graphics.cellSize				// dHeight
-									  );
+					var cSize = app.graphics.cellSize;
+
+					if (cellValue < 4) {
+						// terrain
+						var texture = app.graphics.textures.terrain;
+						context.drawImage(texture,			// Image
+										  cellValue,        // sx
+										  cellValue * cSize,// sy
+										  cSize, 			// sWidth
+										  cSize,			// sHeight
+										  x * cSize,		// dx
+										  y * cSize, 		// dy
+										  cSize, 			// dWidth
+										  cSize				// dHeight
+										  );
+					}else{
+						// mobs
+						console.log('Monster on ['+x+', '+y+']');
+						var textures = app.graphics.textures.monsters;
+						cellValue -= 4;
+						//app.sprites.drawSprite(x, y, cellValue)
+					}
+					
+					
 				}
 			}
-			//app.moveViewport.minimap.drawMinimap();
 		},
 
 
@@ -223,13 +241,32 @@ window.app = {
 			$(document).keydown(app.keyBinds.keyboardHandler);
 		},
 
-		keyboardHandler: function(event) {
-			if (event.keyCode == 13){
+		keyboardHandler: function(e) {
+			if (e.keyCode == 13){
 				/* Enter */
 				app.chat.toggle();
 
+			/* Move viewport */
+			}else if (e.keyCode == 38){
+				app.moveViewport.moveUp();
+				e.preventDefault();
+			}else if (e.keyCode == 39){
+				app.moveViewport.moveRight();
+				e.preventDefault();
+			}else if (e.keyCode == 40){
+				app.moveViewport.moveDown();
+				e.preventDefault();
+			}else if (e.keyCode == 37){
+				app.moveViewport.moveLeft();
+				e.preventDefault();
+
+			}else if (e.keyCode == 192){
+				// ` key
+				e.preventDefault();
+				app.moveViewport.displayMap()
+
 			}else{
-				console.log('Unbinded keyCode "'+event.keyCode+'"')
+				console.log('Unbinded keyCode "'+e.keyCode+'"')
 			}
 		}
 	}

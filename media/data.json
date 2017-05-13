@@ -7,7 +7,8 @@
 			"decription": "an old road. Perhaps even the Romans walked on it",
 			"HP" : null,
 			"XP": null,
-			"Reward": null
+			"Reward": null,
+			"avatar": "road"
 		},
 		{
 			"name": "Water",
@@ -15,7 +16,8 @@
 			"decription": "water. No one knows what is in the deep...",
 			"HP": null,
 			"XP": null,
-			"Reward": null
+			"Reward": null,
+			"avatar": "water"
 		},
 		{
 			"name": "House",
@@ -23,8 +25,26 @@
 			"decription": "village house. Inside it is always fed and sheltered at night",
 			"HP": 100,
 			"XP": 20,
-			"Reward": 200
+			"Reward": 200,
+			"avatar": "house"
 		}
-
+	],
+	"monsters": [
+		{	"name": "Zombie",
+			"transitable": false,
+			"decription": "zombie. It smells like shit",
+			"HP": null,
+			"XP": null,
+			"Reward": 15,
+			"avatar": "zombie"
+		},
+		{	"name": "Snake",
+			"transitable": false,
+			"decription": "snake. Slippery and disgusting",
+			"HP": null,
+			"XP": null,
+			"Reward": 30,
+			"avatar": "snake"
+		}
 	]
 }

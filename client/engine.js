@@ -24,6 +24,7 @@ window.app = {
 		app.keyBinds.init();
 		app.network.connectSocket();
 		app.network.bindEvents();
+		app.sprites.listenActions();
 	},
 
 	environment: {
@@ -134,12 +135,28 @@ window.app = {
 
 					var cellValue = cells[x][y];
 					var cSize = app.graphics.cellSize;
+					
+					// terrain
+					var texture = app.graphics.textures.terrain;
+					context.drawImage(texture,			// Image
+									  0,       			// sx
+									  cellValue * cSize,// sy
+									  cSize, 			// sWidth
+									  cSize,			// sHeight
+									  x * cSize,		// dx
+									  y * cSize, 		// dy
+									  cSize, 			// dWidth
+									  cSize				// dHeight
+									  );
+					if (cellValue >= 4) {
+						// mobs
+						console.log('Monster on ['+x+', '+y+']. val='+(cellValue-4));
 
-					if (cellValue < 4) {
-						// terrain
-						var texture = app.graphics.textures.terrain;
+						var texture = app.graphics.textures.monsters;
+						cellValue -= 4;
+						//app.sprites.drawSprite(x, y, cellValue)
 						context.drawImage(texture,			// Image
-										  cellValue,        // sx
+										  cellValue * cSize,// sx
 										  cellValue * cSize,// sy
 										  cSize, 			// sWidth
 										  cSize,			// sHeight
@@ -148,12 +165,6 @@ window.app = {
 										  cSize, 			// dWidth
 										  cSize				// dHeight
 										  );
-					}else{
-						// mobs
-						console.log('Monster on ['+x+', '+y+']');
-						var textures = app.graphics.textures.monsters;
-						cellValue -= 4;
-						//app.sprites.drawSprite(x, y, cellValue)
 					}
 					
 					

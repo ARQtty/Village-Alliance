@@ -67,7 +67,6 @@ window.app.moveViewport = {
 		var mapY = document.getElementById('minimap').offsetHeight;
 		var viewX = mapX / app.environment.map.sizeX;
 		var viewY = mapY / app.environment.map.sizeY;
-		//console.log('MapX:'+mapX+', mapY:'+mapY+'viewX:'+viewX+', viewY'+viewY);
 
 		var viewportDiv = document.getElementById('viewpot');
 		viewport.style.width = viewX * (app.graphics.x2 - app.graphics.x1) + 'px';

@@ -8,6 +8,10 @@ window.app = {
 				app.graphics.textures.grass
 			),
 			app.graphics.textures.download(
+				'/media/textures/road.png',
+				app.graphics.textures.road
+			),
+			app.graphics.textures.download(
 				'/media/textures/terrain.png',
 				app.graphics.textures.terrain
 			),
@@ -29,6 +33,7 @@ window.app = {
 		app.network.connectSocket();
 		app.network.bindEvents();
 		app.sprites.listenActions();
+		app.sprites.initGameLoop();
 	},
 
 	environment: {
@@ -93,6 +98,7 @@ window.app = {
 
 		textures: {
 			grass: new Image(),
+			road: new Image(),
 			terrain: new Image(),
 			monsters: new Image(),
 			descriptors: {
@@ -118,37 +124,38 @@ window.app = {
 					viewCells[viewCells.length - 1].push(app.environment.map.data[x][y]);
 				}
 			}
-			console.log('Viewport:');
-			console.log(' x1='+app.graphics.x1
-					   +' y1='+app.graphics.y1);
-			console.log(' x2='+app.graphics.x2
-					   +' y2='+app.graphics.y2);
 			app.graphics.cells = viewCells;
 			return viewCells
 		},
 
 		fillMap: function() {
+			/* terrain drawing */
 			var context = app.graphics.canvas.getContext('2d');
 			
 			app.graphics.canvas.width = document.body.clientWidth;
 			app.graphics.canvas.height = document.body.clientHeight;
-			// Представление всех ячеек
+			// Cells representation
 			var cells = app.graphics.getViewport();
 			var cSize = app.graphics.cellSize;
 
-			// TODO -> Необходим паттерн только для травы и дороги?
+			// Most popular patterns
 			var grass = context.createPattern(app.graphics.textures.grass, 'repeat');
-			context.fillStyle = grass;
+			var road  = context.createPattern(app.graphics.textures.road, 'repeat');
 
 			for (var x = 0; x < cells.length; x++){
 				for (var y = 0; y < cells[x].length; y++){
-
 					var cellValue = cells[x][y];
 
-					// terrain
 					if (cellValue == 0) {
 						// grass pattern
+						context.fillStyle = grass;
 						context.fillRect(x * cSize, y * cSize, cSize, cSize);
+
+					}else if (cellValue == 1) {
+						// road pattern
+						context.fillStyle = road;
+						context.fillRect(x * cSize, y * cSize, cSize, cSize);				
+
 					}else{
 						var texture = app.graphics.textures.terrain;
 						context.drawImage(texture,			// Image
@@ -159,27 +166,7 @@ window.app = {
 										  x * cSize,		// dx
 										  y * cSize, 		// dy
 										  cSize, 			// dWidth
-										  cSize				// dHeight
-										  );
-					}
-					if (cellValue >= 4) {
-						// mobs
-						console.log('Monster on ['+x+', '+y+']. val='+(cellValue-4));
-						context.fillRect(x * cSize, y * cSize, cSize, cSize);
-						var texture = app.graphics.textures.monsters;
-						cellValue -= 4;
-
-						//app.sprites.drawSprite(x, y, cellValue)
-						context.drawImage(texture,			// Image
-										  cellValue * cSize,// sx
-										  cellValue * cSize,// sy
-										  cSize, 			// sWidth
-										  cSize,			// sHeight
-										  x * cSize,		// dx
-										  y * cSize, 		// dy
-										  cSize, 			// dWidth
-										  cSize				// dHeight
-										  );
+										  cSize);			// dHeight
 					}
 				}
 			}
@@ -187,7 +174,7 @@ window.app = {
 
 
 		fillCellWithTexture: function(x, y, textureId) {
-			/* Build structure in cell with coords x, y */
+			/* Building structure in cell with coords x, y */
 			app.environment.map.data[y + app.graphics.x1][x + app.graphics.y1] = textureId;
 			app.graphics.fillMap()
 		},
@@ -195,10 +182,6 @@ window.app = {
 		intialize: function() {
 			app.graphics.fillMap();
 			console.info('Okey intialize graphics');
-		},
-
-		sprites: {
-
 		}
 	},
 

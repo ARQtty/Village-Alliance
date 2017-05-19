@@ -8,34 +8,36 @@ window.onload = function() {
 	var s_Gold = document.getElementById('s_Gold');
 	var selectPanel = document.getElementById('selectPanel');
 
-	function displayTextureInfo(event) {
+	function getTextureInfo(event) {
+		var coords = app.environment.getCellCoords;
 		var cellValue = app.environment.getCellByPosition(event.layerX, event.layerY);
-		//console.log(app.graphics.textures.descriptors.terrain[cellValue])
-		var informative = (cellValue == 0) ? false : true;
-		if (cellValue < 4){
-			var description = app.graphics.textures.descriptors.terrain[cellValue];
-		}else{
-			var description = app.graphics.textures.descriptors.monsters[cellValue - 4];
+		var informative = (cellValue == 0) ? false : true; // grass is not informative
+		
+		// if we click on the monster
+		if ([coords[0], coords[1]] in app.sprites.coords) {
+			var monster = app.sprites.coords[[coords[0], coords[1]]];
+			description = monster.description;
+		
+		}else if (cellValue < 4) {
+			if (informative) {
+				showDescription(app.graphics.textures.descriptors.terrain[cellValue]);
+			}else{
+				selectPanel.style.display = 'none';
+			}
 		}
+	}
+
+	function showDescription(desc) {
 		// TODO -> Make a crop from sprites
 		//      -> don't show null descriptions
-		if (informative) {
-			selectPanel.style.display = 'block';
-			s_avatar.innerHTML = '<img src="/media/textures/'+description['avatar']+'.png" style="width: 5vw;"/>';
-			s_name.innerHTML = '<b>Name</b>: '+description['name'];
-			s_description.innerHTML = '<b>It is</b> '+description['decription'];
-			s_HP.innerHTML = '<b>HP</b>: '+description['HP'];
-			s_XP.innerHTML = '<b>XP</b>: '+description['XP'];
-			s_Gold.innerHTML = '<b>Gold for destroy</b>: '+description['Reward']
-		}else{
-			selectPanel.style.display = 'none'
-		}
+		selectPanel.style.display = 'block';
+		s_avatar.innerHTML = '<img src="/media/textures/'+desc['avatar']+'.png" style="width: 5vw;"/>';
+		s_name.innerHTML = '<b>Name</b>: '+desc['name'];
+		s_description.innerHTML = '<b>It is</b> '+desc['decription'];
+		s_HP.innerHTML = '<b>HP</b>: '+desc['HP'];
+		s_XP.innerHTML = '<b>XP</b>: '+desc['XP'];
+		s_Gold.innerHTML = '<b>Gold for destroy</b>: '+desc['Reward']
 	}
 
-	function sendUnitMove(d) {
-		// Experimental elements for send unit's moves
-		
-	}
-
-	document.getElementById('game').addEventListener('mousedown', displayTextureInfo, false);
+	document.body.addEventListener('mousedown', getTextureInfo, false);
 }

@@ -6,6 +6,11 @@ html, body{
 	background-color: #00FFAF
 }
 
+#game{
+	position: absolute;
+	z-index: 2
+}
+
 .panel{
 	background-color: #7d7f7d;
 	position: absolute;
@@ -109,7 +114,9 @@ html, body{
 
 /* Minimap */
 #mapDecorator{
-	position: absolute; width: 25vh; height: 25vh; 
+	position: absolute; 
+	width: 25vh; 
+	height: 25vh; 
 	background: url('/media/map.bmp');
 	-webkit-transform(rotate(90deg));
 	-moz-transform(rotate(90deg));
@@ -118,6 +125,7 @@ html, body{
 	transform(rotate(90deg)); 
 	background-size: 100% 100%;
 	display: none;
+	z-index: 3;
 }
 #minimap{
 	position: relative;

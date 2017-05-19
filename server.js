@@ -1,4 +1,4 @@
-#!/usr/bin/env node
+#!/usr/bin/env nodejs
 
 'use strict';
 
@@ -22,19 +22,44 @@ app.get('/media/*', function (req, res) {
     res.sendfile(__dirname + 'media/' + req.params[0]);
 });
 
+
+var oneNewUnit = {  x: Math.ceil(Math.random() * 17),
+					y: Math.ceil(Math.random() * 17),
+					id: 4538424, // some random number
+					textureType: 1,
+					info: {
+						Name: 'zombie',
+						avatar: 'zombie',
+						description: 'Desc',
+						},
+					characteristics: {
+						HP: Math.random()*400,
+						XP: Math.random()*300,
+						Reward: 300
+						},
+					moving: {
+						speed: 32, // px/s
+						need2Move: false,
+						need2MoveX: 0,
+						need2MoveY: 0,
+						}
+					};
+
+/* Monsters AI */
 setInterval(function(){
 	var r = Math.ceil(Math.random() * 3);
 	switch(r){
 		case 1:
-			io.sockets.emit('newUnit', {a:'a'});
-			console.log('Send newUnit'); break;
-
-		case 2:
-			io.sockets.emit('moveUnit', {b:'b'});
-			console.log('Send moveUnit'); break;
+			io.sockets.emit('moveUnit', {
+										 action: 'move',
+										 id: 4538424,
+										 dx: -1, // blocks
+										 dy: 0});
+			console.log('Send moveUnit dx: 1 dy: 1'); break;
 	}
 }, 1000);
 
+/* Clients */
 io.sockets.on('connection', function(socket){
 	anySocket = socket;
 	console.log('+1 client');
@@ -42,6 +67,8 @@ io.sockets.on('connection', function(socket){
 		name: 'Server',
 		message: 'Socket Established',
     });
+    // One example unit
+    socket.emit('newUnit', oneNewUnit);
 
 
     socket.on('chat', function (data) {

@@ -38,7 +38,7 @@ var oneNewUnit = {  x: Math.ceil(Math.random() * 17),
 						Reward: 300
 						},
 					moving: {
-						speed: 32, // px/s
+						speed: 64, // px/s
 						need2Move: false,
 						need2MoveX: 0,
 						need2MoveY: 0,
@@ -50,12 +50,14 @@ setInterval(function(){
 	var r = Math.ceil(Math.random() * 3);
 	switch(r){
 		case 1:
+			var x = Math.ceil(Math.random() * 3) - 2;
+			var y = (x == 0) ? (Math.ceil(Math.random() * 5) - 2) : 0;
 			io.sockets.emit('moveUnit', {
 										 action: 'move',
 										 id: 4538424,
-										 dx: -1, // blocks
-										 dy: 0});
-			console.log('Send moveUnit dx: 1 dy: 1'); break;
+										 dx: x, // blocks
+										 dy: y});
+			console.log('Send moveUnit dx: '+x+' dy: '+y); break;
 	}
 }, 1000);
 

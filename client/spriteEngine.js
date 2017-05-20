@@ -1,7 +1,7 @@
 $(function() {
 window.app.sprites = {
 
-	fps: 40,
+	fps: 50,
 
 	listenActions: function() {
 		socket = app.network.socket;
@@ -45,6 +45,7 @@ window.app.sprites = {
 
 						case 'move':
 							arr[i].moving.need2Move = true;
+							console.log(event.dx, ' -- ', event.dy);
 							arr[i].moving.need2MoveX += event.dx;
 							arr[i].moving.need2MoveY += event.dy;
 							break;
@@ -76,19 +77,35 @@ window.app.sprites = {
 						Math.abs(toMove[i].moving.need2MoveY) > dS){
 						
 						// Moving one axis
+						//console.log(Math.abs(toMove[i].moving.need2MoveX), '  ' ,Math.abs(toMove[i].moving.need2MoveY));
+
 						if (Math.abs(toMove[i].moving.need2MoveX) > Math.abs(toMove[i].moving.need2MoveY)){
 
-							toMove[i].moving.need2MoveX += dS;
-							toMove[i].x += dS;
+							if (toMove[i].moving.need2MoveX > 0){
+								toMove[i].moving.need2MoveX -= dS;
+								toMove[i].x += dS;
+							}else{
+								toMove[i].moving.need2MoveX += dS;
+								toMove[i].x -= dS;
+							}
+
 						}else{
-							toMove[i].moving.need2MoveY += dS;
-							toMove[i].y += dS;
+
+							if (toMove[i].moving.need2MoveY > 0){
+								toMove[i].moving.need2MoveY -= dS;
+								toMove[i].y += dS;
+							}else{
+								toMove[i].moving.need2MoveY += dS;
+								toMove[i].y -= dS;
+							}
 						}
 
 						// Finally, check compleating the movement
 						if (Math.abs(toMove[i].moving.need2MoveX) < dS &&
 							Math.abs(toMove[i].moving.need2MoveY) < dS){
 							toMove[i].moving.need2Move = false;
+							toMove[i].moving.need2MoveX = 0;
+							toMove[i].moving.need2MoveY = 0;
 						}
 					}
 				}

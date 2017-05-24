@@ -8,7 +8,7 @@ window.onload = function() {
 	var s_Gold = document.getElementById('s_Gold');
 	var selectPanel = document.getElementById('selectPanel');
 
-	function getTextureInfo(event) {
+	function getTextureDescription(event) {
 		var coords = app.environment.getCellCoords;
 		var cellValue = app.environment.getCellByPosition(event.layerX, event.layerY);
 		var informative = (cellValue == 0) ? false : true; // grass is not informative
@@ -39,5 +39,5 @@ window.onload = function() {
 		s_Gold.innerHTML = '<b>Gold for destroy</b>: '+desc['Reward']
 	}
 
-	document.body.addEventListener('mousedown', getTextureInfo, false);
+	document.body.addEventListener('mousedown', getTextureDescription, false);
 }

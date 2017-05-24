@@ -159,6 +159,7 @@ span {
 	border-right: 2vw solid transparent;
 	border-bottom: 4vh solid #b5b5b5;
 	position: absolute;
+	z-index: 3;
 }
 
 #triangleUp{	

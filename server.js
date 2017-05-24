@@ -44,21 +44,43 @@ var oneNewUnit = {  x: Math.ceil(Math.random() * 17),
 						need2MoveY: 0,
 						}
 					};
+var secondNewUnit = {x: Math.ceil(Math.random() * 17),
+					y: Math.ceil(Math.random() * 17),
+					id: 175237, // some random number
+					textureType: 0,
+					info: {
+						Name: 'zombie',
+						avatar: 'zombie',
+						description: 'Desc',
+						},
+					characteristics: {
+						HP: Math.random()*400,
+						XP: Math.random()*300,
+						Reward: 300
+						},
+					moving: {
+						speed: 32, // px/s
+						need2Move: false,
+						need2MoveX: 0,
+						need2MoveY: 0,
+						}
+
+}
 
 /* Monsters AI */
 setInterval(function(){
 	var r = Math.ceil(Math.random() * 3);
-	switch(r){
-		case 1:
-			var x = Math.ceil(Math.random() * 3) - 2;
-			var y = (x == 0) ? (Math.ceil(Math.random() * 5) - 2) : 0;
-			io.sockets.emit('moveUnit', {
-										 action: 'move',
-										 id: 4538424,
-										 dx: x, // blocks
-										 dy: y});
-			console.log('Send moveUnit dx: '+x+' dy: '+y); break;
-	}
+
+	var x = Math.ceil(Math.random() * 3) - 2;
+	var y = (x == 0) ? (Math.ceil(Math.random() * 5) - 2) : 0;
+	var id = (r == 1)? 4538424: 175237;
+
+	io.sockets.emit('moveUnit', {
+								 action: 'move',
+								 id: id,
+								 dx: x, // blocks
+								 dy: y});
+	console.log('Send moveUnit '+id+' dx: '+x+' dy: '+y);
 }, 1000);
 
 /* Clients */
@@ -71,6 +93,7 @@ io.sockets.on('connection', function(socket){
     });
     // One example unit
     socket.emit('newUnit', oneNewUnit);
+    socket.emit('newUnit', secondNewUnit);
 
 
     socket.on('chat', function (data) {

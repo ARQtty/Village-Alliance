@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>client/spriteEngine.js - Documentation</title>
+
+    <script src="scripts/prettify/prettify.js"></script>
+    <script src="scripts/prettify/lang-css.js"></script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc.css">
+</head>
+<body>
+
+<input type="checkbox" id="nav-trigger" class="nav-trigger" />
+<label for="nav-trigger" class="navicon-button x">
+  <div class="navicon"></div>
+</label>
+
+<label for="nav-trigger" class="overlay"></label>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="engine.module_environment.html">environment</a><ul class='methods'><li data-type='method'><a href="engine.module_environment.html#~downloadData">downloadData</a></li><li data-type='method'><a href="engine.module_environment.html#~getCellByPosition">getCellByPosition</a></li><li data-type='method'><a href="engine.module_environment.html#~getCellCoords">getCellCoords</a></li><li data-type='method'><a href="engine.module_environment.html#~getTextureInfo">getTextureInfo</a></li></ul></li><li><a href="module-building.html">building</a><ul class='methods'><li data-type='method'><a href="module-building.html#~abortBuild">abortBuild</a></li><li data-type='method'><a href="module-building.html#~build">build</a></li><li data-type='method'><a href="module-building.html#~chooseStruct">chooseStruct</a></li><li data-type='method'><a href="module-building.html#~prepare2Build">prepare2Build</a></li></ul></li><li><a href="module-chat.html">chat</a><ul class='methods'><li data-type='method'><a href="module-chat.html#~message">message</a></li><li data-type='method'><a href="module-chat.html#~sendMessage">sendMessage</a></li><li data-type='method'><a href="module-chat.html#~toggle">toggle</a></li></ul></li><li><a href="module-engine.html">engine</a><ul class='methods'><li data-type='method'><a href="module-engine.html#~downloadWorld">downloadWorld</a></li></ul></li><li><a href="module-graphics.html">graphics</a><ul class='methods'><li data-type='method'><a href="module-graphics.html#~download">download</a></li><li data-type='method'><a href="module-graphics.html#~fillCellWithTexture">fillCellWithTexture</a></li><li data-type='method'><a href="module-graphics.html#~fillMap">fillMap</a></li><li data-type='method'><a href="module-graphics.html#~getViewport">getViewport</a></li></ul></li><li><a href="module-keyBinds.html">keyBinds</a><ul class='methods'><li data-type='method'><a href="module-keyBinds.html#~keyboardHandler">keyboardHandler</a></li></ul></li><li><a href="module-moveViewport.html">moveViewport</a><ul class='methods'><li data-type='method'><a href="module-moveViewport.html#~displayMap">displayMap</a></li><li data-type='method'><a href="module-moveViewport.html#~drawMinimapViewport">drawMinimapViewport</a></li><li data-type='method'><a href="module-moveViewport.html#~moveDown">moveDown</a></li><li data-type='method'><a href="module-moveViewport.html#~moveLeft">moveLeft</a></li><li data-type='method'><a href="module-moveViewport.html#~moveRight">moveRight</a></li><li data-type='method'><a href="module-moveViewport.html#~moveUp">moveUp</a></li></ul></li><li><a href="module-network.html">network</a><ul class='methods'><li data-type='method'><a href="module-network.html#~connectSocket">connectSocket</a></li></ul></li><li><a href="module-sprites.html">sprites</a><ul class='methods'><li data-type='method'><a href="module-sprites.html#~drawViewportSprites">drawViewportSprites</a></li><li data-type='method'><a href="module-sprites.html#~getViewportSprites">getViewportSprites</a></li><li data-type='method'><a href="module-sprites.html#~listenActions">listenActions</a></li></ul></li></ul><h3>Global</h3><ul><li><a href="global.html"></a></li><li><a href="global.html#ACK">ACK</a></li><li><a href="global.html#BINARY_ACK">BINARY_ACK</a></li><li><a href="global.html#BINARY_EVENT">BINARY_EVENT</a></li><li><a href="global.html#CONNECT">CONNECT</a></li><li><a href="global.html#decode">decode</a></li><li><a href="global.html#decodeBase64Packet">decodeBase64Packet</a></li><li><a href="global.html#decodePacket">decodePacket</a></li><li><a href="global.html#Decoder">Decoder</a></li><li><a href="global.html#deconstructPacket">deconstructPacket</a></li><li><a href="global.html#DISCONNECT">DISCONNECT</a></li><li><a href="global.html#encode">encode</a></li><li><a href="global.html#encodeBase64Packet">encodeBase64Packet</a></li><li><a href="global.html#encodePacket">encodePacket</a></li><li><a href="global.html#encodePayload">encodePayload</a></li><li><a href="global.html#encodePayloadAsArrayBuffer">encodePayloadAsArrayBuffer</a></li><li><a href="global.html#encodePayloadAsBlob">encodePayloadAsBlob</a></li><li><a href="global.html#Encoder">Encoder</a></li><li><a href="global.html#ERROR">ERROR</a></li><li><a href="global.html#EVENT">EVENT</a></li><li><a href="global.html#parser">parser</a></li><li><a href="global.html#polling">polling</a></li><li><a href="global.html#protocol">protocol</a></li><li><a href="global.html#reconstructPacket">reconstructPacket</a></li><li><a href="global.html#removeBlobs">removeBlobs</a></li><li><a href="global.html#types">types</a></li></ul>
+</nav>
+
+<div id="main">
+    
+    <h1 class="page-title">client/spriteEngine.js</h1>
+    
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/**
+Sprite logic of the app
+@module sprites
+*/
+$(function() {
+window.app.sprites = {
+	sprCanvas: document.getElementById('monstersGameField'),
+
+	/**
+	Catches socket's event and run appropriate functions
+	@method listenActions
+	*/
+	listenActions: function() {
+		socket = app.network.socket;
+		socket.on('newUnit', function(data){
+			console.log('newUnit on ['+data.x+', '+data.y+']');
+			app.sprites.coords[data.x, data.y] = data;
+			app.sprites.drawViewportSprites();
+		});
+		socket.on('moveUnit', function(data){
+			console.log('moveUnit message');
+		});
+		socket.on('hitUnit', function(data){
+			console.log('hitUnit message');
+		});
+		socket.on('hurtUnit', function(data){
+			console.log('hurtUnit message');
+		});
+		console.info('Okey init listenActions');
+	},
+
+	coords: {},
+
+
+	/**
+	Drawing on monsters on game field
+	@method drawViewportSprites
+	*/
+	drawViewportSprites: function() {
+		app.sprites.sprCanvas.width = document.body.clientWidth;
+		app.sprites.sprCanvas.height = document.body.clientHeight;
+		var sprContext = app.sprites.sprCanvas.getContext('2d');
+
+		var sprites2draw = app.sprites.getViewportSprites();
+		var cSize = app.graphics.cellSize;
+		
+		for (var i = 0; i &lt; sprites2draw.lenght; i++){
+			x1 = app.graphics.x1 - sprites2draw[i].x;
+			y1 = app.graphics.y1 - sprites2draw[i].y;
+			sprContext.drawImage(app.graphics.textures.monsters,
+								 sprites2draw[i].textureType * cSize,
+								 3 * cSize,
+								 cSize,
+								 cSize,
+								 x1 * cSize,
+								 y1 * cSize,
+								 cSize,
+								 cSize);
+		}
+	},
+
+
+	/**
+	Scan mosters array and return monsters which are in viewport
+	@method getViewportSprites
+	@return sprites {Array} Array of objects - monsters information
+	*/
+	getViewportSprites: function() {
+		var returnableSprites = [];
+		var arr = app.sprites.coords;
+		for (var i = 0; i &lt; app.sprites.coords.lenght; i++){
+			if (arr[i].x >= app.graphics.x1 &amp;&amp;
+				arr[i].x &lt;= app.graphics.x2 &amp;&amp;
+				arr[i].y >= app.graphics.y1 &amp;&amp;
+				arr[i].y &lt;= app.graphics.y2){
+				returnableSprites.push(arr[i])
+			}
+		}
+		return returnableSprites
+	}
+}})</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.4.3</a> on Sat Jun 03 2017 00:44:33 GMT+0300 (MSK) using the <a href="https://github.com/clenemt/docdash">docdash</a> theme.
+</footer>
+
+<script>prettyPrint();</script>
+<script src="scripts/linenumber.js"></script>
+</body>
+</html>

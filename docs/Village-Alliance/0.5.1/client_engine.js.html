@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>client/engine.js - Documentation</title>
+
+    <script src="scripts/prettify/prettify.js"></script>
+    <script src="scripts/prettify/lang-css.js"></script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc.css">
+</head>
+<body>
+
+<input type="checkbox" id="nav-trigger" class="nav-trigger" />
+<label for="nav-trigger" class="navicon-button x">
+  <div class="navicon"></div>
+</label>
+
+<label for="nav-trigger" class="overlay"></label>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="engine.module_environment.html">environment</a><ul class='methods'><li data-type='method'><a href="engine.module_environment.html#~downloadData">downloadData</a></li><li data-type='method'><a href="engine.module_environment.html#~getCellByPosition">getCellByPosition</a></li><li data-type='method'><a href="engine.module_environment.html#~getCellCoords">getCellCoords</a></li><li data-type='method'><a href="engine.module_environment.html#~getTextureInfo">getTextureInfo</a></li></ul></li><li><a href="module-building.html">building</a><ul class='methods'><li data-type='method'><a href="module-building.html#~abortBuild">abortBuild</a></li><li data-type='method'><a href="module-building.html#~build">build</a></li><li data-type='method'><a href="module-building.html#~chooseStruct">chooseStruct</a></li><li data-type='method'><a href="module-building.html#~prepare2Build">prepare2Build</a></li></ul></li><li><a href="module-chat.html">chat</a><ul class='methods'><li data-type='method'><a href="module-chat.html#~message">message</a></li><li data-type='method'><a href="module-chat.html#~sendMessage">sendMessage</a></li><li data-type='method'><a href="module-chat.html#~toggle">toggle</a></li></ul></li><li><a href="module-engine.html">engine</a><ul class='methods'><li data-type='method'><a href="module-engine.html#~downloadWorld">downloadWorld</a></li></ul></li><li><a href="module-graphics.html">graphics</a><ul class='methods'><li data-type='method'><a href="module-graphics.html#~download">download</a></li><li data-type='method'><a href="module-graphics.html#~fillCellWithTexture">fillCellWithTexture</a></li><li data-type='method'><a href="module-graphics.html#~fillMap">fillMap</a></li><li data-type='method'><a href="module-graphics.html#~getViewport">getViewport</a></li></ul></li><li><a href="module-keyBinds.html">keyBinds</a><ul class='methods'><li data-type='method'><a href="module-keyBinds.html#~keyboardHandler">keyboardHandler</a></li></ul></li><li><a href="module-moveViewport.html">moveViewport</a><ul class='methods'><li data-type='method'><a href="module-moveViewport.html#~displayMap">displayMap</a></li><li data-type='method'><a href="module-moveViewport.html#~drawMinimapViewport">drawMinimapViewport</a></li><li data-type='method'><a href="module-moveViewport.html#~moveDown">moveDown</a></li><li data-type='method'><a href="module-moveViewport.html#~moveLeft">moveLeft</a></li><li data-type='method'><a href="module-moveViewport.html#~moveRight">moveRight</a></li><li data-type='method'><a href="module-moveViewport.html#~moveUp">moveUp</a></li></ul></li><li><a href="module-network.html">network</a><ul class='methods'><li data-type='method'><a href="module-network.html#~connectSocket">connectSocket</a></li></ul></li><li><a href="module-sprites.html">sprites</a><ul class='methods'><li data-type='method'><a href="module-sprites.html#~drawViewportSprites">drawViewportSprites</a></li><li data-type='method'><a href="module-sprites.html#~getViewportSprites">getViewportSprites</a></li><li data-type='method'><a href="module-sprites.html#~listenActions">listenActions</a></li></ul></li></ul><h3>Global</h3><ul><li><a href="global.html"></a></li><li><a href="global.html#ACK">ACK</a></li><li><a href="global.html#BINARY_ACK">BINARY_ACK</a></li><li><a href="global.html#BINARY_EVENT">BINARY_EVENT</a></li><li><a href="global.html#CONNECT">CONNECT</a></li><li><a href="global.html#decode">decode</a></li><li><a href="global.html#decodeBase64Packet">decodeBase64Packet</a></li><li><a href="global.html#decodePacket">decodePacket</a></li><li><a href="global.html#Decoder">Decoder</a></li><li><a href="global.html#deconstructPacket">deconstructPacket</a></li><li><a href="global.html#DISCONNECT">DISCONNECT</a></li><li><a href="global.html#encode">encode</a></li><li><a href="global.html#encodeBase64Packet">encodeBase64Packet</a></li><li><a href="global.html#encodePacket">encodePacket</a></li><li><a href="global.html#encodePayload">encodePayload</a></li><li><a href="global.html#encodePayloadAsArrayBuffer">encodePayloadAsArrayBuffer</a></li><li><a href="global.html#encodePayloadAsBlob">encodePayloadAsBlob</a></li><li><a href="global.html#Encoder">Encoder</a></li><li><a href="global.html#ERROR">ERROR</a></li><li><a href="global.html#EVENT">EVENT</a></li><li><a href="global.html#parser">parser</a></li><li><a href="global.html#polling">polling</a></li><li><a href="global.html#protocol">protocol</a></li><li><a href="global.html#reconstructPacket">reconstructPacket</a></li><li><a href="global.html#removeBlobs">removeBlobs</a></li><li><a href="global.html#types">types</a></li></ul>
+</nav>
+
+<div id="main">
+    
+    <h1 class="page-title">client/engine.js</h1>
+    
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/**
+General application logic. It is planned to divide into parts
+@module engine
+*/
+$(function() {
+window.app = {
+
+	/**
+	Gets textures and map from server. Is an entry-point of client-part of the app
+	@method downloadWorld
+	*/
+	downloadWorld: function () {
+		$.when(
+			app.graphics.textures.download(
+				'/media/textures/grass.png',
+				app.graphics.textures.grass
+			),
+			app.graphics.textures.download(
+				'/media/textures/road.png',
+				app.graphics.textures.road
+			),
+			app.graphics.textures.download(
+				'/media/textures/terrain.png',
+				app.graphics.textures.terrain
+			),
+			app.graphics.textures.download(
+				'/media/textures/monsters.png',
+				app.graphics.textures.monsters
+			),
+			app.environment.downloadMap(),
+			app.environment.downloadData()
+		).done(function() {
+			console.info('Okey downloadWorld');
+			app.intialize();
+		});
+	},
+
+	intialize: function() {
+		app.graphics.intialize();
+		app.keyBinds.init();
+		app.network.connectSocket();
+		app.network.bindEvents();
+		app.sprites.listenActions();
+	},
+
+
+	/**
+
+	@memberof engine
+	@module environment
+	*/
+	environment: {
+
+		map: {
+			data: []
+		},
+
+
+		/**
+		Gets textures descriptors from server
+		@method downloadData
+		*/
+		downloadData: function() {
+            return $.get('/media/data.json').pipe(function(data) {
+	            app.graphics.textures.descriptors = data;
+	            return true;
+            });
+        },
+
+
+        /**
+        Gets array-like map from server. Also gets size of map
+		@method
+        */
+        downloadMap: function() {
+        	return $.get('/media/map.json').pipe(function(data) {
+        		app.environment.map.sizeX = data.length;
+        		app.environment.map.sizeY = data[0].length;
+           		console.info('Map sizes: x='+data.length+' y='+data[0].length);
+	            app.environment.map.data = data;
+	            return true;
+      		})
+		},
+
+
+		/**
+		Gets information about texture from it's ID. MAYBE USELESS
+		@method getTextureInfo
+		@param x {Integer}
+		@param y {Integer}
+		@return description {Object}
+		*/
+		getTextureInfo: function(x, y) {
+			var textureId = width.app.environment.getCellByPosition(x, y);
+			console.log(textureId);
+			return app.graphics.textures.descriptors[textureId]
+		},
+
+
+		/**
+		Gets cell value by click coordinates
+		@method getCellByPosition
+		@param top {Integer} Distance from top of window
+		@param left {Integer} Distance from left of window
+		@return cells[top][left] {Integer} Value of cell in this position 
+		*/
+		getCellByPosition: function(top, left) {
+			var topIndex = Math.floor(top / app.graphics.cellSize)
+			var leftIndex = Math.floor(left / app.graphics.cellSize)
+			
+			console.log('cells['+topIndex.toString()+']['+leftIndex.toString()+'] value='+app.graphics.cells[topIndex][leftIndex])
+
+			return app.graphics.cells[topIndex][leftIndex]
+		},
+
+
+		/**
+		Gets cells coordinates from mouse click coordinates
+		@method getCellCoords
+		@param x {Integer} Distance in pixels from left of window
+		@param y {Integer} Distance in pixels from top of window
+		@return [xIndex, yIndex] {Array} Indexes of cell in world map
+		*/
+		getCellCoords: function(x, y) {
+			var xIndex = Math.floor(x / app.graphics.cellSize);
+			var yIndex = Math.floor(y / app.graphics.cellSize);
+			return [xIndex, yIndex]
+		}
+	},
+
+
+	/**
+
+	@module graphics
+	*/
+	graphics: {
+		cellSize: 32,
+		x1: 0,
+		y1: 0,
+		x2: Math.ceil(document.body.clientWidth  / 32),
+		y2: Math.ceil(document.body.clientHeight / 32),
+		cells: [],
+		
+		cellsInRow: Math.ceil(document.body.clientWidth  / 32),
+		cellsInColumn: Math.ceil(document.body.clientHeight / 32),
+
+		canvas: document.getElementById('game'),
+
+		textures: {
+			grass: new Image(),
+			road: new Image(),
+			terrain: new Image(),
+			monsters: new Image(),
+			descriptors: {
+				terrain: null,
+				monsters: null
+			},
+
+			/**
+			Mappings texture data from a server with code objects 
+			of theese textures
+			@method download
+			@param url {String} Path to file on server
+			@param texture {Object} Object for write in data from url
+			@return Promise {Object} Deferred download object
+			*/		
+			download: function(url, texture) {
+				var d = $.Deferred();
+				texture.src = url;
+				texture.onload = function() { d.resolve(); }
+				texture.onerror = function() { d.reject(); }
+				return d.promise();
+			}
+		},
+
+
+		/**
+		Cuts a piece of the world map array that is in the visibility zone on the screen
+		@method getViewport
+		@return cells {Array} The visible part of world map
+		*/
+		getViewport: function() {
+			var viewCells = [];
+
+			for (var x = app.graphics.x1; x &lt; app.graphics.x2; x++){
+				viewCells.push([]);
+				for (var y = app.graphics.y1; y &lt; app.graphics.y2; y++){
+					viewCells[viewCells.length - 1].push(app.environment.map.data[x][y]);
+				}
+			}
+			console.log('Viewport:');
+			console.log(' x1='+app.graphics.x1
+					   +' y1='+app.graphics.y1);
+			console.log(' x2='+app.graphics.x2
+					   +' y2='+app.graphics.y2);
+			app.graphics.cells = viewCells;
+			return viewCells
+		},
+
+
+		/**
+		Covers the game field with surface textures
+		@method fillMap
+		@todo Need only a pattern for grass and road is needed?
+		*/
+		fillMap: function() {
+			var context = app.graphics.canvas.getContext('2d');
+			
+			app.graphics.canvas.width = document.body.clientWidth;
+			app.graphics.canvas.height = document.body.clientHeight;
+			// Representation of all cells
+			var cells = app.graphics.getViewport();
+			var cSize = app.graphics.cellSize;
+
+			var grass = context.createPattern(app.graphics.textures.grass, 'repeat');
+			var road  = context.createPattern(app.graphics.textures.road, 'repeat');
+			context.fillStyle = grass;
+
+			for (var x = 0; x &lt; cells.length; x++){
+				for (var y = 0; y &lt; cells[x].length; y++){
+
+					var cellValue = cells[x][y];
+
+					// terrain
+					if (cellValue == 0) {
+						// grass pattern
+						context.fillRect(x * cSize, y * cSize, cSize, cSize);
+					}else{
+						var texture = app.graphics.textures.terrain;
+						context.drawImage(texture,			// Image
+										  0,       			// sx
+										  cellValue * cSize,// sy
+										  cSize, 			// sWidth
+										  cSize,			// sHeight
+										  x * cSize,		// dx
+										  y * cSize, 		// dy
+										  cSize, 			// dWidth
+										  cSize				// dHeight
+										  );
+					}
+					if (cellValue >= 4) {
+						// mobs
+						console.log('Monster on ['+x+', '+y+']. val='+(cellValue-4));
+						context.fillRect(x * cSize, y * cSize, cSize, cSize);
+						var texture = app.graphics.textures.monsters;
+						cellValue -= 4;
+
+						//app.sprites.drawSprite(x, y, cellValue)
+						context.drawImage(texture,			// Image
+										  cellValue * cSize,// sx
+										  cellValue * cSize,// sy
+										  cSize, 			// sWidth
+										  cSize,			// sHeight
+										  x * cSize,		// dx
+										  y * cSize, 		// dy
+										  cSize, 			// dWidth
+										  cSize				// dHeight
+										  );
+					}
+				}
+			}
+		},
+
+
+		/**
+		Builds structure in cell with coords x, y
+		@method fillCellWithTexture
+		@param x {Integer} X-index of cell in world map array
+		@param y {Integer} Y-index of cell in world map array
+		@param textureId {Integer} Code of object which be written to world map
+		@todo Send building event to server
+		*/
+		fillCellWithTexture: function(x, y, textureId) {
+			app.environment.map.data[y + app.graphics.x1][x + app.graphics.y1] = textureId;
+			app.graphics.fillMap()
+		},
+
+		intialize: function() {
+			app.graphics.fillMap();
+			console.info('Okey intialize graphics');
+		}
+	},
+
+
+	/**
+
+	@module chat
+	*/
+	chat: {
+		chatPanel: document.getElementById('messagefield'),
+		$output: $('#messages'),
+        $input: $('#message-input'),
+
+
+        /**
+		Sends text from the chat input line to the server
+        @method sendMessage
+        */
+        sendMessage: function() {
+				var message = app.chat.$input.val();
+				app.chat.$input.val('');
+				app.chat.message('P1', message);
+				app.network.send.chat(message);
+        },
+
+
+        /**
+        Enter button is controling chatPanel.
+		Show if hidden, hide if showing and it hasn't any message. 
+		Sending message if there is some text in form
+		@method toggle
+		*/
+		toggle: function() {
+			if (app.chat.chatPanel.style.display == 'block'){
+			
+				if (app.chat.$input.val() != ''){ app.chat.sendMessage() }
+				else{ app.chat.chatPanel.style.display = 'none' }
+			
+			}else{ app.chat.chatPanel.style.display = 'block' }
+		},
+
+
+		/**
+		Shows message in chat panel. Filter for avoiding XSS attacks
+		@method message
+		@param who {String} Name of person which sended message
+		@param message {String} Text of the message
+		*/
+		message: function(who, message) {
+			/* Defence from XSS */
+			message = message.replace(/&amp;/g, "&amp;amp;").replace(/>/g, "&amp;gt;").replace(/&lt;/g, "&amp;lt;").replace(/"/g, "&amp;quot;");
+            who = who.replace(/&amp;/g, "&amp;amp;").replace(/>/g, "&amp;gt;").replace(/&lt;/g, "&amp;lt;").replace(/"/g, "&amp;quot;");
+            app.chat.$output
+                .append("&lt;div module='message'>&lt;span module='username'>" + who + ": &lt;/span>&lt;span module='content'>" + message + "&lt;/span>&lt;/div>")
+		}
+	},
+
+
+	/**
+
+	@module network
+	*/
+	network: {
+		socket: null,
+
+		/**
+		Creates socket object.
+		@method connectSocket
+		*/
+		connectSocket: function() {
+			app.network.socket = io.connect(window.document.location.protocol + "//" + window.document.location.host);
+		},
+
+		send: {
+			chat: function(message) {
+				app.network.socket.emit('chat', {
+					name: 'Someone happy',
+					message: message
+				});
+			}
+		},
+
+		/**
+		Bind "chat" socket event for delegating message displaying
+		on module:network:connectSocket
+		*/
+		bindEvents: function() {
+			var socket = app.network.socket;
+
+			socket.on('chat', function (data) {
+				app.chat.message(data.name, data.message);
+			});
+		}
+	},
+
+	/**
+
+	@module keyBinds
+	*/
+	keyBinds: {
+
+		init: function() {
+			$(document).keydown(app.keyBinds.keyboardHandler);
+		},
+
+
+		/**
+		Catches keypress events and run appropriate functions
+		@method keyboardHandler
+		@param e {Event} Keypress event
+		*/
+		keyboardHandler: function(e) {
+			if (e.keyCode == 13){
+				/* Enter */
+				app.chat.toggle();
+
+			/* Move viewport */
+			}else if (e.keyCode == 38){
+				app.moveViewport.moveUp();
+				e.preventDefault();
+			}else if (e.keyCode == 39){
+				app.moveViewport.moveRight();
+				e.preventDefault();
+			}else if (e.keyCode == 40){
+				app.moveViewport.moveDown();
+				e.preventDefault();
+			}else if (e.keyCode == 37){
+				app.moveViewport.moveLeft();
+				e.preventDefault();
+
+			}else if (e.keyCode == 192){
+				// ` key
+				e.preventDefault();
+				app.moveViewport.displayMap()
+
+			}else{
+				console.log('Unbinded keyCode "'+e.keyCode+'"')
+			}
+		}
+	}
+};
+app.downloadWorld();
+});
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.4.3</a> on Sat Jun 03 2017 00:44:33 GMT+0300 (MSK) using the <a href="https://github.com/clenemt/docdash">docdash</a> theme.
+</footer>
+
+<script>prettyPrint();</script>
+<script src="scripts/linenumber.js"></script>
+</body>
+</html>

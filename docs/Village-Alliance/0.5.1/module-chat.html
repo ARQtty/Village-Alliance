@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>chat - Documentation</title>
+
+    <script src="scripts/prettify/prettify.js"></script>
+    <script src="scripts/prettify/lang-css.js"></script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc.css">
+</head>
+<body>
+
+<input type="checkbox" id="nav-trigger" class="nav-trigger" />
+<label for="nav-trigger" class="navicon-button x">
+  <div class="navicon"></div>
+</label>
+
+<label for="nav-trigger" class="overlay"></label>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="engine.module_environment.html">environment</a><ul class='methods'><li data-type='method'><a href="engine.module_environment.html#~downloadData">downloadData</a></li><li data-type='method'><a href="engine.module_environment.html#~getCellByPosition">getCellByPosition</a></li><li data-type='method'><a href="engine.module_environment.html#~getCellCoords">getCellCoords</a></li><li data-type='method'><a href="engine.module_environment.html#~getTextureInfo">getTextureInfo</a></li></ul></li><li><a href="module-building.html">building</a><ul class='methods'><li data-type='method'><a href="module-building.html#~abortBuild">abortBuild</a></li><li data-type='method'><a href="module-building.html#~build">build</a></li><li data-type='method'><a href="module-building.html#~chooseStruct">chooseStruct</a></li><li data-type='method'><a href="module-building.html#~prepare2Build">prepare2Build</a></li></ul></li><li><a href="module-chat.html">chat</a><ul class='methods'><li data-type='method'><a href="module-chat.html#~message">message</a></li><li data-type='method'><a href="module-chat.html#~sendMessage">sendMessage</a></li><li data-type='method'><a href="module-chat.html#~toggle">toggle</a></li></ul></li><li><a href="module-engine.html">engine</a><ul class='methods'><li data-type='method'><a href="module-engine.html#~downloadWorld">downloadWorld</a></li></ul></li><li><a href="module-graphics.html">graphics</a><ul class='methods'><li data-type='method'><a href="module-graphics.html#~download">download</a></li><li data-type='method'><a href="module-graphics.html#~fillCellWithTexture">fillCellWithTexture</a></li><li data-type='method'><a href="module-graphics.html#~fillMap">fillMap</a></li><li data-type='method'><a href="module-graphics.html#~getViewport">getViewport</a></li></ul></li><li><a href="module-keyBinds.html">keyBinds</a><ul class='methods'><li data-type='method'><a href="module-keyBinds.html#~keyboardHandler">keyboardHandler</a></li></ul></li><li><a href="module-moveViewport.html">moveViewport</a><ul class='methods'><li data-type='method'><a href="module-moveViewport.html#~displayMap">displayMap</a></li><li data-type='method'><a href="module-moveViewport.html#~drawMinimapViewport">drawMinimapViewport</a></li><li data-type='method'><a href="module-moveViewport.html#~moveDown">moveDown</a></li><li data-type='method'><a href="module-moveViewport.html#~moveLeft">moveLeft</a></li><li data-type='method'><a href="module-moveViewport.html#~moveRight">moveRight</a></li><li data-type='method'><a href="module-moveViewport.html#~moveUp">moveUp</a></li></ul></li><li><a href="module-network.html">network</a><ul class='methods'><li data-type='method'><a href="module-network.html#~connectSocket">connectSocket</a></li></ul></li><li><a href="module-sprites.html">sprites</a><ul class='methods'><li data-type='method'><a href="module-sprites.html#~drawViewportSprites">drawViewportSprites</a></li><li data-type='method'><a href="module-sprites.html#~getViewportSprites">getViewportSprites</a></li><li data-type='method'><a href="module-sprites.html#~listenActions">listenActions</a></li></ul></li></ul><h3>Global</h3><ul><li><a href="global.html"></a></li><li><a href="global.html#ACK">ACK</a></li><li><a href="global.html#BINARY_ACK">BINARY_ACK</a></li><li><a href="global.html#BINARY_EVENT">BINARY_EVENT</a></li><li><a href="global.html#CONNECT">CONNECT</a></li><li><a href="global.html#decode">decode</a></li><li><a href="global.html#decodeBase64Packet">decodeBase64Packet</a></li><li><a href="global.html#decodePacket">decodePacket</a></li><li><a href="global.html#Decoder">Decoder</a></li><li><a href="global.html#deconstructPacket">deconstructPacket</a></li><li><a href="global.html#DISCONNECT">DISCONNECT</a></li><li><a href="global.html#encode">encode</a></li><li><a href="global.html#encodeBase64Packet">encodeBase64Packet</a></li><li><a href="global.html#encodePacket">encodePacket</a></li><li><a href="global.html#encodePayload">encodePayload</a></li><li><a href="global.html#encodePayloadAsArrayBuffer">encodePayloadAsArrayBuffer</a></li><li><a href="global.html#encodePayloadAsBlob">encodePayloadAsBlob</a></li><li><a href="global.html#Encoder">Encoder</a></li><li><a href="global.html#ERROR">ERROR</a></li><li><a href="global.html#EVENT">EVENT</a></li><li><a href="global.html#parser">parser</a></li><li><a href="global.html#polling">polling</a></li><li><a href="global.html#protocol">protocol</a></li><li><a href="global.html#reconstructPacket">reconstructPacket</a></li><li><a href="global.html#removeBlobs">removeBlobs</a></li><li><a href="global.html#types">types</a></li></ul>
+</nav>
+
+<div id="main">
+    
+    <h1 class="page-title">chat</h1>
+    
+
+    
+
+
+
+
+<section>
+
+<header>
+    
+        
+    
+</header>
+
+<article>
+    <div class="container-overview">
+    
+        
+
+        
+    
+    </div>
+
+    
+
+    
+
+    
+
+     
+
+    
+
+    
+
+    
+        <h3 class="subsection-title">Methods</h3>
+
+        
+            
+
+    
+
+    <h4 class="name" id="~message"><span class="type-signature">(inner) </span>message<span class="signature">(who, message)</span><span class="type-signature"></span></h4>
+
+    
+
+
+
+
+<dl class="details">
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="client_engine.js.html">client/engine.js</a>, <a href="client_engine.js.html#line323">line 323</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+<div class="description">
+    Shows message in chat panel. Filter for avoiding XSS attacks
+</div>
+
+
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>who</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">String</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">Name of person which sended message</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>message</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">String</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">Text of the message</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="~sendMessage"><span class="type-signature">(inner) </span>sendMessage<span class="signature">()</span><span class="type-signature"></span></h4>
+
+    
+
+
+
+
+<dl class="details">
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="client_engine.js.html">client/engine.js</a>, <a href="client_engine.js.html#line295">line 295</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+<div class="description">
+    Sends text from the chat input line to the server
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="~toggle"><span class="type-signature">(inner) </span>toggle<span class="signature">()</span><span class="type-signature"></span></h4>
+
+    
+
+
+
+
+<dl class="details">
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="client_engine.js.html">client/engine.js</a>, <a href="client_engine.js.html#line307">line 307</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+<div class="description">
+    Enter button is controling chatPanel.
+		Show if hidden, hide if showing and it hasn't any message. 
+		Sending message if there is some text in form
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+    
+
+    
+
+    
+</article>
+
+</section>
+
+
+
+
+</div>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.4.3</a> on Sat Jun 03 2017 00:44:33 GMT+0300 (MSK) using the <a href="https://github.com/clenemt/docdash">docdash</a> theme.
+</footer>
+
+<script>prettyPrint();</script>
+<script src="scripts/linenumber.js"></script>
+</body>
+</html>

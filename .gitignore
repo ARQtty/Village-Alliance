@@ -1,4 +1,7 @@
 *~
 node_modules/*
 RTSGraph.py
+<<<<<<< HEAD
 RTS_client_scheme*
+=======
+>>>>>>> 17c7332e34ce61dbeec4ea47755d7daa7acc60aa

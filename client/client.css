@@ -11,10 +11,6 @@ html, body{
 	z-index: 2
 }
 
-#monstersGameField{
-	position: absolute;
-	z-index: 3;
-}
 
 .panel{
 	background-color: #7d7f7d;
@@ -119,7 +115,9 @@ html, body{
 
 /* Minimap */
 #mapDecorator{
-	position: absolute; width: 25vh; height: 25vh; 
+	position: absolute; 
+	width: 25vh; 
+	height: 25vh; 
 	background: url('/media/map.bmp');
 	-webkit-transform(rotate(90deg));
 	-moz-transform(rotate(90deg));
@@ -128,6 +126,7 @@ html, body{
 	transform(rotate(90deg)); 
 	background-size: 100% 100%;
 	display: none;
+	z-index: 3;
 }
 #minimap{
 	position: relative;
@@ -161,6 +160,7 @@ span {
 	border-right: 2vw solid transparent;
 	border-bottom: 4vh solid #b5b5b5;
 	position: absolute;
+	z-index: 3;
 }
 
 #triangleUp{	

@@ -1,6 +1,15 @@
+/**
+Viewport moving functions. Associated with the control arrows on the screen
+@module moveViewport
+*/
+
 $(function() {
 window.app.moveViewport = {
 
+
+	/**
+	@method moveUp
+	*/	
 	moveUp: function() {
 		var y1 = app.graphics.y1;
 		if (y1 - Math.ceil(app.graphics.cellsInColumn / 2) > 0){
@@ -16,6 +25,9 @@ window.app.moveViewport = {
 		app.moveViewport.drawMinimapViewport();
 	},
 
+	/**
+	@method moveRight
+	*/
 	moveRight: function() {
 		var x2 = app.graphics.x2;
 		if (x2 + Math.ceil(app.graphics.cellsInRow / 2) < app.environment.map.sizeX){
@@ -31,6 +43,12 @@ window.app.moveViewport = {
 		app.moveViewport.drawMinimapViewport();
 	},
 
+	/**
+	Calculates translated coordinates after pressing Down arrow on game
+	screen. Calls fillMap and drawMinimapViewport functions
+	@class
+	@method moveDown
+	*/
 	moveDown: function() {
 		var y2 = app.graphics.y2;
 		if (y2 + Math.ceil(app.graphics.cellsInColumn / 2) < app.environment.map.sizeY){
@@ -46,6 +64,9 @@ window.app.moveViewport = {
 		app.moveViewport.drawMinimapViewport();
 	},
 
+	/**
+	@method moveLeft
+	*/
 	moveLeft: function() {
 		var x1 = app.graphics.x1;
 		if (x1 - Math.ceil(app.graphics.cellsInRow / 2) > 0){
@@ -61,7 +82,11 @@ window.app.moveViewport = {
 		app.moveViewport.drawMinimapViewport();
 	},
 
+	/**
+	Draws a red rectangle on minimap. It shows viewport area.
 
+	@method drawMinimapViewport
+	*/
 	drawMinimapViewport: function() {
 		var mapX = document.getElementById('minimap').offsetWidth;
 		var mapY = document.getElementById('minimap').offsetHeight;
@@ -77,6 +102,11 @@ window.app.moveViewport = {
 		viewport.style.top = viewY * app.graphics.y1 + 'px';
 	},
 
+	/**
+	Shows minimap div if its display property is "none". Else set property to "none".
+
+	@method displayMap
+	*/
 	displayMap: function() {
 		var map = document.getElementById('mapDecorator');
 		map.style.display = (map.style.display == 'none') ? 'block' : 'none';

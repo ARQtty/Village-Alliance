@@ -1,6 +1,6 @@
 {
   "name": "Village-Alliance",
-  "version": "0.0.1",
+  "version": "0.5.1",
   "description": "Real time multiplayer strategy stylized like village",
   "main": "server.js",
   "dependencies": {
@@ -10,8 +10,8 @@
   },
   "devDependencies": {},
   "scripts": {
-    "test": "node server.js",
-    "start": "node server.js"
+    "test": "nodejs server.js",
+    "start": "nodejs server.js"
   },
   "repository": {
     "type": "git",

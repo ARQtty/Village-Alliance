@@ -6,6 +6,16 @@ html, body{
 	background-color: #00FFAF
 }
 
+#game{
+	position: absolute;
+	z-index: 2
+}
+
+#monstersGameField{
+	position: absolute;
+	z-index: 3;
+}
+
 .panel{
 	background-color: #7d7f7d;
 	position: absolute;

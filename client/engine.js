@@ -1,11 +1,23 @@
+/**
+General application logic. It is planned to divide into parts
+@module engine
+*/
 $(function() {
 window.app = {
 
+	/**
+	Gets textures and map from server. Is an entry-point of client-part of the app
+	@method downloadWorld
+	*/
 	downloadWorld: function () {
 		$.when(
 			app.graphics.textures.download(
 				'/media/textures/grass.png',
 				app.graphics.textures.grass
+			),
+			app.graphics.textures.download(
+				'/media/textures/road.png',
+				app.graphics.textures.road
 			),
 			app.graphics.textures.download(
 				'/media/textures/terrain.png',
@@ -31,12 +43,23 @@ window.app = {
 		app.sprites.listenActions();
 	},
 
+
+	/**
+
+	@memberof engine
+	@module environment
+	*/
 	environment: {
 
 		map: {
 			data: []
 		},
 
+
+		/**
+		Gets textures descriptors from server
+		@method downloadData
+		*/
 		downloadData: function() {
             return $.get('/media/data.json').pipe(function(data) {
 	            app.graphics.textures.descriptors = data;
@@ -44,6 +67,11 @@ window.app = {
             });
         },
 
+
+        /**
+        Gets array-like map from server. Also gets size of map
+		@method
+        */
         downloadMap: function() {
         	return $.get('/media/map.json').pipe(function(data) {
         		app.environment.map.sizeX = data.length;
@@ -54,15 +82,29 @@ window.app = {
       		})
 		},
 
+
+		/**
+		Gets information about texture from it's ID. MAYBE USELESS
+		@method getTextureInfo
+		@param x {Integer}
+		@param y {Integer}
+		@return description {Object}
+		*/
 		getTextureInfo: function(x, y) {
 			var textureId = width.app.environment.getCellByPosition(x, y);
 			console.log(textureId);
-			return width.app.graphics.textures.descriptors[textureId]
+			return app.graphics.textures.descriptors[textureId]
 		},
 
-		getCellByPosition: function(top, left) {
-			/* Get cell value by click coords */
 
+		/**
+		Gets cell value by click coordinates
+		@method getCellByPosition
+		@param top {Integer} Distance from top of window
+		@param left {Integer} Distance from left of window
+		@return cells[top][left] {Integer} Value of cell in this position 
+		*/
+		getCellByPosition: function(top, left) {
 			var topIndex = Math.floor(top / app.graphics.cellSize)
 			var leftIndex = Math.floor(left / app.graphics.cellSize)
 			
@@ -71,6 +113,14 @@ window.app = {
 			return app.graphics.cells[topIndex][leftIndex]
 		},
 
+
+		/**
+		Gets cells coordinates from mouse click coordinates
+		@method getCellCoords
+		@param x {Integer} Distance in pixels from left of window
+		@param y {Integer} Distance in pixels from top of window
+		@return [xIndex, yIndex] {Array} Indexes of cell in world map
+		*/
 		getCellCoords: function(x, y) {
 			var xIndex = Math.floor(x / app.graphics.cellSize);
 			var yIndex = Math.floor(y / app.graphics.cellSize);
@@ -78,6 +128,11 @@ window.app = {
 		}
 	},
 
+
+	/**
+
+	@module graphics
+	*/
 	graphics: {
 		cellSize: 32,
 		x1: 0,
@@ -93,13 +148,22 @@ window.app = {
 
 		textures: {
 			grass: new Image(),
+			road: new Image(),
 			terrain: new Image(),
 			monsters: new Image(),
 			descriptors: {
 				terrain: null,
 				monsters: null
 			},
-		
+
+			/**
+			Mappings texture data from a server with code objects 
+			of theese textures
+			@method download
+			@param url {String} Path to file on server
+			@param texture {Object} Object for write in data from url
+			@return Promise {Object} Deferred download object
+			*/		
 			download: function(url, texture) {
 				var d = $.Deferred();
 				texture.src = url;
@@ -109,6 +173,12 @@ window.app = {
 			}
 		},
 
+
+		/**
+		Cuts a piece of the world map array that is in the visibility zone on the screen
+		@method getViewport
+		@return cells {Array} The visible part of world map
+		*/
 		getViewport: function() {
 			var viewCells = [];
 
@@ -127,17 +197,23 @@ window.app = {
 			return viewCells
 		},
 
+
+		/**
+		Covers the game field with surface textures
+		@method fillMap
+		@todo Need only a pattern for grass and road is needed?
+		*/
 		fillMap: function() {
 			var context = app.graphics.canvas.getContext('2d');
 			
 			app.graphics.canvas.width = document.body.clientWidth;
 			app.graphics.canvas.height = document.body.clientHeight;
-			// Представление всех ячеек
+			// Representation of all cells
 			var cells = app.graphics.getViewport();
 			var cSize = app.graphics.cellSize;
 
-			// TODO -> Необходим паттерн только для травы и дороги?
 			var grass = context.createPattern(app.graphics.textures.grass, 'repeat');
+			var road  = context.createPattern(app.graphics.textures.road, 'repeat');
 			context.fillStyle = grass;
 
 			for (var x = 0; x < cells.length; x++){
@@ -186,8 +262,15 @@ window.app = {
 		},
 
 
+		/**
+		Builds structure in cell with coords x, y
+		@method fillCellWithTexture
+		@param x {Integer} X-index of cell in world map array
+		@param y {Integer} Y-index of cell in world map array
+		@param textureId {Integer} Code of object which be written to world map
+		@todo Send building event to server
+		*/
 		fillCellWithTexture: function(x, y, textureId) {
-			/* Build structure in cell with coords x, y */
 			app.environment.map.data[y + app.graphics.x1][x + app.graphics.y1] = textureId;
 			app.graphics.fillMap()
 		},
@@ -195,18 +278,24 @@ window.app = {
 		intialize: function() {
 			app.graphics.fillMap();
 			console.info('Okey intialize graphics');
-		},
-
-		sprites: {
-
 		}
 	},
 
+
+	/**
+
+	@module chat
+	*/
 	chat: {
 		chatPanel: document.getElementById('messagefield'),
 		$output: $('#messages'),
         $input: $('#message-input'),
 
+
+        /**
+		Sends text from the chat input line to the server
+        @method sendMessage
+        */
         sendMessage: function() {
 				var message = app.chat.$input.val();
 				app.chat.$input.val('');
@@ -214,10 +303,14 @@ window.app = {
 				app.network.send.chat(message);
         },
 
+
+        /**
+        Enter button is controling chatPanel.
+		Show if hidden, hide if showing and it hasn't any message. 
+		Sending message if there is some text in form
+		@method toggle
+		*/
 		toggle: function() {
-			/* Enter button controls chatPanel.
-			   Show if hidden, hide if showing and it 
-			   hasn't any message. Or send message */
 			if (app.chat.chatPanel.style.display == 'block'){
 			
 				if (app.chat.$input.val() != ''){ app.chat.sendMessage() }
@@ -226,17 +319,34 @@ window.app = {
 			}else{ app.chat.chatPanel.style.display = 'block' }
 		},
 
+
+		/**
+		Shows message in chat panel. Filter for avoiding XSS attacks
+		@method message
+		@param who {String} Name of person which sended message
+		@param message {String} Text of the message
+		*/
 		message: function(who, message) {
 			/* Defence from XSS */
 			message = message.replace(/&/g, "&amp;").replace(/>/g, "&gt;").replace(/</g, "&lt;").replace(/"/g, "&quot;");
             who = who.replace(/&/g, "&amp;").replace(/>/g, "&gt;").replace(/</g, "&lt;").replace(/"/g, "&quot;");
             app.chat.$output
-                .append("<div class='message'><span class='username'>" + who + ": </span><span class='content'>" + message + "</span></div>")
+                .append("<div module='message'><span module='username'>" + who + ": </span><span module='content'>" + message + "</span></div>")
 		}
 	},
 
+
+	/**
+
+	@module network
+	*/
 	network: {
 		socket: null,
+
+		/**
+		Creates socket object.
+		@method connectSocket
+		*/
 		connectSocket: function() {
 			app.network.socket = io.connect(window.document.location.protocol + "//" + window.document.location.host);
 		},
@@ -250,6 +360,10 @@ window.app = {
 			}
 		},
 
+		/**
+		Bind "chat" socket event for delegating message displaying
+		on module:network:connectSocket
+		*/
 		bindEvents: function() {
 			var socket = app.network.socket;
 
@@ -259,12 +373,22 @@ window.app = {
 		}
 	},
 
+	/**
+
+	@module keyBinds
+	*/
 	keyBinds: {
 
 		init: function() {
 			$(document).keydown(app.keyBinds.keyboardHandler);
 		},
 
+
+		/**
+		Catches keypress events and run appropriate functions
+		@method keyboardHandler
+		@param e {Event} Keypress event
+		*/
 		keyboardHandler: function(e) {
 			if (e.keyCode == 13){
 				/* Enter */

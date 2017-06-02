@@ -1,3 +1,8 @@
+/**
+The logic of construction of objects on the game space	
+@module building
+*/
+
 $(function() {
 window.app.building = {
 	/* Part for building structures on game field */
@@ -6,29 +11,40 @@ window.app.building = {
 	buildingKey: null,
 	buildingModel: null,
 
+
+	/**
+	Starts listening to canvas for a click to build structure. 
+	Structure will be placed on the ground or bulding wiil be aborted
+	by pressing the cancel button.
+	@method prepare2Build
+	@todo Set the cursor image as a selected texture
+	*/
 	prepare2Build: function() {
-		// Build structure will be placed on the ground
 		app.graphics.canvas.addEventListener('mouseup', app.building.build, false);
-		
 		// Build process will be aborted
 		app.building.cancelButton.addEventListener('mousedown', app.building.abortBuild, false);
-
-		//TODO -> window.app.graphics.canvas.setAttribute("style", "cursor: url(media/textures/house.png);");
 	},
 
 
+	/**
+	Unset eventListeners, cursor texture, update buildPanel
+	@method abortBuild
+	*/
 	abortBuild: function() {
-		// Unset eventListeners, cursor texture, update buildPanel
-		
 		app.building.cancelButton.removeEventListener('mousedown', this);
 		app.graphics.canvas.removeEventListener('mouseup', app.building.build);
 		document.getElementById(app.building.buildingModel+'Button').classList.remove("buildButtonChecked");
 	},
 
 
-	chooseStruct: function(model) {
-		// Choose from available structures
 
+	/**
+	Connects the UI and module. Specifies the building ID for the building. 
+	Change the color of the choosen model build-button
+	@method chooseStruct
+	@param model {String} Choosen from UI build buttons
+	*/
+	chooseStruct: function(model) {
 		app.building.buildingModel = model;
 		app.building.prepare2Build();
 		// Allot button with color
@@ -50,6 +66,12 @@ window.app.building = {
 	},
 
 
+	/**
+	Gets the coordinates of the place of the line, calls the procedure 
+	for rendering the constructed building, if this can be constructed.
+	@method build
+	@param event {Event} A mouse event
+	*/
 	build: function(event){
 		// Unset after click
 		app.graphics.canvas.removeEventListener('mouseup', app.building.build);

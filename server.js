@@ -1,4 +1,4 @@
-#!/usr/bin/env node
+#!/usr/bin/env nodejs
 
 'use strict';
 
@@ -22,11 +22,21 @@ app.get('/media/*', function (req, res) {
     res.sendfile(__dirname + 'media/' + req.params[0]);
 });
 
+/* Monsters AI */
 setInterval(function(){
 	var r = Math.ceil(Math.random() * 3);
 	switch(r){
 		case 1:
-			io.sockets.emit('newUnit', {a:'a'});
+			io.sockets.emit('newUnit', {x: Math.ceil(Math.random() * 7),
+										y: Math.ceil(Math.random() * 7),
+										textureType: 0,
+										Name: 'zombie',
+										avatar: 'zombie',
+										description: 'Desc',
+										HP: Math.random()*400,
+										XP: Math.random()*300,
+										Reward: 300
+										});
 			console.log('Send newUnit'); break;
 
 		case 2:
@@ -35,6 +45,7 @@ setInterval(function(){
 	}
 }, 1000);
 
+/* Clients */
 io.sockets.on('connection', function(socket){
 	anySocket = socket;
 	console.log('+1 client');

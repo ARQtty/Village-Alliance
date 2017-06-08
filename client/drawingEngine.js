@@ -88,6 +88,9 @@ window.app.building = {
 		}else{
 			// Placing object on the map
 			app.graphics.fillCellWithTexture(cellY, cellX, app.building.buildingKey);
+			app.network.socket.emit('verifyBuild', {x: cellX, 
+	                                                y: cellY, 
+	                                                structureID: app.building.buildingKey});
 		}
 	}
 

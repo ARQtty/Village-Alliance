@@ -1,11 +1,17 @@
-#!/usr/bin/env nodejs
+#!/usr/bin/env node
 
 'use strict';
 
-var express 	= require("express");
-var app 		= express();
-var server		= require('http').createServer(app);
-var io          = require('socket.io').listen(server, {log: false});
+var fs            = require("fs");
+var express 	  = require("express");
+var app 		  = express();
+var server		  = require('http').createServer(app);
+var io            = require('socket.io').listen(server, {log: false});
+
+var map = require('./media/map.json');
+var movements     = require("./server/movements.js");
+var playerActions = require("./server/playerActions.js");
+
 server.listen(8000);
 var anySocket = null;
 
@@ -27,6 +33,7 @@ var oneNewUnit = {  x: Math.ceil(Math.random() * 17),
 					y: Math.ceil(Math.random() * 17),
 					id: 4538424, // some random number
 					textureType: 1,
+					unitCode: 1,
 					info: {
 						Name: 'zombie',
 						avatar: 'zombie',
@@ -48,6 +55,7 @@ var secondNewUnit = {x: Math.ceil(Math.random() * 17),
 					y: Math.ceil(Math.random() * 17),
 					id: 175237, // some random number
 					textureType: 0,
+					unitCode: 2,
 					info: {
 						Name: 'zombie',
 						avatar: 'zombie',
@@ -64,25 +72,65 @@ var secondNewUnit = {x: Math.ceil(Math.random() * 17),
 						need2MoveX: 0,
 						need2MoveY: 0,
 						}
+					}
 
+var units = [oneNewUnit, secondNewUnit];
+var unitsMap = [];
+for (var i=0; i<map.length; i++){
+	units.push([]);
+	for (var j=0; j<map[i].length; j++){
+		units[i][j] = 0;
+	}
 }
+ENEMIES_SEARCH_RADIUS = 4;
 
 /* Monsters AI */
 setInterval(function(){
-	var r = Math.ceil(Math.random() * 3);
+	if (anySocket)
+	{
+	// For every unit
+	for (var i=0; i<units.length; i++){
 
-	var x = Math.ceil(Math.random() * 3) - 2;
-	var y = (x == 0) ? (Math.ceil(Math.random() * 5) - 2) : 0;
-	var id = (r == 1)? 4538424: 175237;
+		// arr[0] = true/false
+		// arr[1] = [x, y] if arr[0] is true. Else empty array
+		var unitIsNear_ = movements.unitIsNear(unitsMap, units[i].x, units[i].y, ENEMIES_SEARCH_RADIUS);
+		if (unitIsNear_[0]){
+			var attackedUnitX = unitIsNear_[1][0],
+			    attackedUnitY = unitIsNear_[1][1];
+			    // TODO
+			var nextPoint = shortestStepTo(units[i].x, 
+				                           units[i].y, 
+				                           attackedUnitX, 
+				                           attackedUnitY);
 
-	io.sockets.emit('moveUnit', {
-								 action: 'move',
-								 id: id,
-								 dx: x, // blocks
-								 dy: y});
-	console.log('Send moveUnit '+id+' dx: '+x+' dy: '+y);
+		}else{
+			// Random move
 
-}, 1000);
+			var x = Math.ceil(Math.random()*3 - 2);
+			var y = (x == 0) ? (Math.ceil(Math.random()*3 - 2)) : 0;
+
+			if (movements.isMoveable(map, units[i].x + x, units[i].y + y)){
+				io.sockets.emit('moveUnit', {
+											 action: 'move',
+											 id: units[i].id,
+											 dx: x, // blocks
+											 dy: y});
+				console.log('Send moveUnit '+units[i].id+' dx: '+x+' dy: '+y);
+				unitsMap = movements.verifyUnitMove(unitsMap, 
+					                                units[i].x,
+					                                units[i].y, 
+					                                units[i].x + x, 
+					                                units[i].y + y, 
+					                                units[i].unitCode);
+				units[i].x += x;
+				units[i].y += y;
+			}else{
+				console.log("immoveable...", units[i].x, '+', x, ', ', units[i].y, '+', y);
+			}
+		}
+	}
+	}
+}, 2000);
 
 /* Clients */
 io.sockets.on('connection', function(socket){
@@ -105,4 +153,8 @@ io.sockets.on('connection', function(socket){
 
         console.log("Chat"+ data.name + ": " + data.message);
 	});
+
+	socket.on('verifyBuild', function(data){
+		map = playerActions.verifyBuild(map, socket, data.x, data.y, data.structureID);
+	})
 })

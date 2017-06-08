@@ -11,9 +11,12 @@ var io            = require('socket.io').listen(server, {log: false});
 var map = require('./media/map.json');
 var movements     = require("./server/movements.js");
 var playerActions = require("./server/playerActions.js");
-
-server.listen(8000);
 var anySocket = null;
+
+
+/******** Requests *************/
+server.listen(8000);
+
 
 app.use('/client', express.static(__dirname + '/client'));
 app.use('/js', express.static(__dirname + '/js'));
@@ -27,8 +30,10 @@ app.get('/', function (req, res) {
 app.get('/media/*', function (req, res) {
     res.sendfile(__dirname + 'media/' + req.params[0]);
 });
+/*******************************/
 
 
+/******** Variables ************/
 var oneNewUnit = {  x: Math.ceil(Math.random() * 17),
 					y: Math.ceil(Math.random() * 17),
 					id: 4538424, // some random number
@@ -83,6 +88,8 @@ for (var i=0; i<map.length; i++){
 	}
 }
 ENEMIES_SEARCH_RADIUS = 4;
+/*******************************/
+
 
 /* Monsters AI */
 setInterval(function(){
@@ -131,6 +138,7 @@ setInterval(function(){
 	}
 	}
 }, 2000);
+
 
 /* Clients */
 io.sockets.on('connection', function(socket){

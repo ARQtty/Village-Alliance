@@ -7,7 +7,7 @@ Server side sprites engine. Controls unit's moves
 var immoveableTextureCodes = [2, 3];
 var playerUnitCodes = [1];
 
-module.exports = {
+var md = module.exports = {
 
 	/**
 	Check whether it is possible to pass through the territory
@@ -78,15 +78,158 @@ module.exports = {
 
 
 	/**
-
+	Finds the shortest step (one-cell movement) to target unit.
+	Based on Lee Algorithm (Wave algorithm).
 	@method shortestStepTo
+	@param map {Array} World map. Used for detect impossible territories for move
+	@param monsterX {Integer} X coordinate of a monster
+	@param monsterY {Integer} Y coordinate of a monster
+	@param unitX {Integer} X coordinate of a target unit
+	@param unitY {Integer} Y coordinate of a target unit
 	@return point {Array}
 	*/
-	shortestStepTo: function(monsterX, monsterY, unitX, unitY){
-		// TODO
-		// TODO upd docs
+	shortestStepTo: function(map, monsterX, monsterY, unitX, unitY){
+		
+		// Create a field within which we search
+		var field = [],
+			xDistance = Math.abs(monsterX - unitX),
+			yDistance = Math.abs(monsterY - unitY),
+		    distance = xDistance + yDistance;
+		    //fieldSize = 2*distance + 1;
+		console.log("Distance between {"+monsterX+','+monsterY+'} and {'+unitX+','+unitY+'} is '+distance);
+
+		for (var i=0; i<map.length; i++){
+			field.push([]);
+			console.log(i);
+			for (var j=0; j<map[0].length; j++){
+				
+				// Is monster
+				if (i == distance && j == distance){
+					field[i][j] = {mark: 'start',
+					               x: monsterX,
+					               y: monsterY,
+					               passable: true,
+					               visited: false,
+					               pathLen: 0};
+					var start_i = i,
+					    start_j = j;
+
+				// Is unit
+				}else if (monsterX+i-distance == unitX && monsterY+j-distance == unitY){
+					field[i][j] = {mark: 'stop',
+				                   x: unitX,
+				                   y: unitY,
+				                   passable: true,
+				                   visited: false,
+				                   pathLen: Infinity};
+				
+				// Is block
+				}else{
+
+					// Define passability
+					if (this.isMoveable(map, monsterX+i-distance, monsterY+j-distance)){
+						// Is passable block
+						var passability = true
+					}else{
+						// Is impassable block
+						passability = false
+					}
+
+					field[i][j] = {mark: 'block',
+				                   x: monsterX + i - xDistance,
+				                   y: monsterY + j - yDistance,
+				                   passable: passability,
+				                   visited: false,
+				                   pathLen: Infinity};
+				}
+				
+			}
+		}
+		console.log("Field shapes are: "+field.length, field[0].length);
+
+		// Field created. Approach Lee algorithm
+		
+		// Mark the lengths of the shortest paths to each cell
+		var lowLimit = 0,
+		    hightLimit = field.length;
+		var queue = [ [start_i, start_j] ];
+
+		while (queue.length != 0){
+			var i = queue[0][0],
+			    j = queue[0][1];
+
+			if (field[i][j].visited){
+				queue = queue.slice(1, queue.length);
+				continue
+			}
+			if (field[i][j].mark == 'stop'){
+				field[i][j].pathLen = '!';
+				return field
+			}
+
+			var pathLen = field[i][j].pathLen;
+			field[i][j].visited = true;
+			queue = queue.slice(1, queue.length);
+
+
+				// For every cell in Von Neumann neighborhood we check whether 
+				// is existed and hasn't shorter path to it
+				if (i-1 >= lowLimit){
+					if (field[i-1][j].passable && !field[i-1][j].visited){
+						// Set new pathLen if we wasn't in this point before
+						field[i-1][j].pathLen = pathLen+1;
+						queue.push([i-1, j]);
+
+					}
+				}
+				if (i+1 <= hightLimit){
+					if (field[i+1][j].passable && !field[i+1][j].visited){
+						field[i+1][j].pathLen = pathLen+1;
+						queue.push([i+1, j]);
+					}
+				}
+				if (j-1 >= lowLimit){
+					if (field[i][j-1].passable && !field[i][j-1].visited){
+						field[i][j-1].pathLen = pathLen+1;
+						queue.push([i, j-1]);
+					}
+				}
+				if (j+1 <= hightLimit){
+					if (field[i][j+1].passable && !field[i][j+1].visited){
+						field[i][j+1].pathLen = pathLen+1;
+						queue.push([i, j+1]);
+					}
+				}		
+			
+		
+		}
+		return field
+
+
 
 		return [toX, toY]
 	}
 
+}
+
+var fld = md.shortestStepTo(require('../media/map.json'), 154, 280,  177, 176);
+
+for (var i=0; i<fld.length; i++){
+	var outStr = '';
+	for (var j=0; j<fld[0].length; j++){
+		/*
+		switch (fld[j][i].mark){
+			case 'start':
+				var out = 'M';break;
+			case 'stop':
+				var out = 'U';break;
+			case 'block':
+				var out = (fld[j][i].passable)? '+':'-';break;
+		}*/
+		var out = (fld[j][i].pathLen == Infinity)? '0':fld[j][i].pathLen;
+		//out = (fld[j][i].visited == true)? '+' : '-';
+		outStr += ', ' + out;
+		//out = '(('
+	}
+	console.log('[' + outStr + '],');
 }

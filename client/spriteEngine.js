@@ -18,10 +18,11 @@ window.app.sprites = {
 			console.log('newUnit on ['+data.x+', '+data.y+']');
 			app.sprites.coords.push(data);
 			app.sprites.drawViewportSprites();
+
 		});
 
 		socket.on('moveUnit', function(data){
-			console.log('moveUnit message');
+			//console.log('moveUnit message');
 			app.sprites.moving.updateCoords(data);
 		});
 		
@@ -45,8 +46,13 @@ window.app.sprites = {
 
 	moving: {
 
+
+		/**
+		Calls at moveUnit, dethUnit and etc. events. Changes unit's coordinate array
+		@method updateCoords
+		@param event {Array} JSON object with data about happening
+		*/
 		updateCoords: function(event) {
-			/* Called at moveUnit, dethUnit and etc. events */
 			var arr = app.sprites.coords;
 			for (var i=0; i<arr.length; i++){
 				
@@ -55,7 +61,8 @@ window.app.sprites = {
 
 						case 'move':
 							arr[i].moving.need2Move = true;
-							console.log(event.dx, ' -- ', event.dy);
+							arr[i].abs_x += event.dx;
+							arr[i].abs_y += event.dy;
 							arr[i].moving.need2MoveX += event.dx;
 							arr[i].moving.need2MoveY += event.dy;
 							break;
@@ -75,8 +82,8 @@ window.app.sprites = {
 
 			for (var i=0; i<toMove.length; i++){
 				if (toMove[i].moving.need2Move) {
-					/* Moves are creating on server side. Serves using
-					   A* (on plan) algorithm and send next move when
+					/* Moves are creating on server side. Server uses
+					   Lee Algorithm and sends next move when
 					   actual move is finished. */
 
 					// Speed in blocks/s, x in blocks
@@ -89,7 +96,7 @@ window.app.sprites = {
 						// Moving one axis
 						//console.log(Math.abs(toMove[i].moving.need2MoveX), '  ' ,Math.abs(toMove[i].moving.need2MoveY));
 
-						if (Math.abs(toMove[i].moving.need2MoveX) > Math.abs(toMove[i].moving.need2MoveY)){
+						if (Math.abs(toMove[i].moving.need2MoveX) >= Math.abs(toMove[i].moving.need2MoveY)){
 
 							if (toMove[i].moving.need2MoveX > 0){
 								toMove[i].moving.need2MoveX -= dS;
@@ -153,9 +160,12 @@ window.app.sprites = {
 		}
 	},
 
+
+	/**
+	Called at viewport move 
+	@method getViewportSprites
+	@return unitsInViewport {Array} Array of Objects - units representation*/
 	getViewportSprites: function() {
-		/* Called at viewport move 
-		   Returns array of Objects - units*/
 		var inViewport  = [];
 		var arr = app.sprites.coords;
 		for (var i = 0; i < app.sprites.coords.length; i++){

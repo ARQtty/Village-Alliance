@@ -20,7 +20,7 @@ window.app.building = {
 	@todo Set the cursor image as a selected texture
 	*/
 	prepare2Build: function() {
-		app.graphics.canvas.addEventListener('mouseup', app.building.build, false);
+		app.graphics.canvas.addEventListener('mouseup', app.building.verifyBuild, false);
 		// Build process will be aborted
 		app.building.cancelButton.addEventListener('mousedown', app.building.abortBuild, false);
 	},
@@ -32,7 +32,7 @@ window.app.building = {
 	*/
 	abortBuild: function() {
 		app.building.cancelButton.removeEventListener('mousedown', this);
-		app.graphics.canvas.removeEventListener('mouseup', app.building.build);
+		app.graphics.canvas.removeEventListener('mouseup', app.building.verifyBuild);
 		document.getElementById(app.building.buildingModel+'Button').classList.remove("buildButtonChecked");
 	},
 
@@ -72,7 +72,7 @@ window.app.building = {
 	@method build
 	@param event {Event} A mouse event
 	*/
-	build: function(event){
+	verifyBuild: function(event){
 		// Unset after click
 		app.graphics.canvas.removeEventListener('mouseup', app.building.build);
 		document.getElementById(app.building.buildingModel+'Button').classList.remove("buildButtonChecked");
@@ -86,12 +86,17 @@ window.app.building = {
 		if (app.building.buildingKey == cellValue) {
 			console.warn('Такое здание уже стоит на этом месте');
 		}else{
-			// Placing object on the map
-			app.graphics.fillCellWithTexture(cellY, cellX, app.building.buildingKey);
 			app.network.socket.emit('verifyBuild', {x: cellX, 
 	                                                y: cellY, 
 	                                                structureID: app.building.buildingKey});
 		}
+	},
+
+
+	placeStructure(x, y, structureCode){
+		// Placing object on the map
+		console.log('Someone calls me!');
+		app.graphics.fillCellWithTexture(y, x, structureCode);
 	}
 
 }})

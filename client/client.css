@@ -116,9 +116,9 @@ html, body{
 /* Minimap */
 #mapDecorator{
 	position: absolute; 
-	width: 25vh; 
+	width: 25vw; 
 	height: 25vh; 
-	background: url('/media/map.bmp');
+	background: url('/media/map.png');
 	-webkit-transform(rotate(90deg));
 	-moz-transform(rotate(90deg));
 	ms-transform(rotate(90deg)); 
@@ -130,7 +130,7 @@ html, body{
 }
 #minimap{
 	position: relative;
-	width: 25vh; 
+	width: 25vw; 
 	height: 25vh;
 }
 #viewport{

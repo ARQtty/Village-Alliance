@@ -10,25 +10,54 @@ window.onload = function() {
 
 
 	function getTextureDescription(event) {
-		var coords = app.environment.getCellCoords;
+		//var coords = app.environment.getCellCoords();
 		var cellValue = app.environment.getCellByPosition(event.layerX, event.layerY);
 		var informative = (cellValue == 0) ? false : true; // grass is not informative
 		
-		// if we click on the monster
-		if ([coords[0], coords[1]] in app.sprites.coords) {
-			var monster = app.sprites.coords[[coords[0], coords[1]]];
-			description = monster.description;
-		
-		}else if (cellValue < 4) {
-			if (informative) {
-				showDescription(app.graphics.textures.descriptors.terrain[cellValue]);
-			}else{
-				selectPanel.style.display = 'none';
+		if (!getSpriteDescription(event)){
+			if (cellValue < 4) {
+				if (informative) {
+					showTextureDescr(app.graphics.textures.descriptors.terrain[cellValue]);
+				}else{
+					selectPanel.style.display = 'none';
+				}
 			}
 		}
-	}
+	};
 
-	function showDescription(desc) {
+	function getSpriteDescription(event) {
+		var coords = app.environment.getCellCoords(event.layerX, event.layerY);
+		// Get absolute values
+		coords[0] += app.graphics.x1;
+		coords[1] += app.graphics.y1;
+		console.log('Touch ['+coords[0]+', '+coords[1]+']');
+		var sprites = app.sprites.coords;
+		for (var i=0; i<sprites.length; i++){
+			console.log(sprites[i].id+' x:'+sprites[i].abs_x+', y:'+sprites[i].abs_y);
+			if (sprites[i].abs_x == coords[0] && sprites[i].abs_y== coords[1]){
+				console.log("ohhh... Senpai, press me more!");
+				showSpriteDescr(sprites[i]);
+				// Bool for getTextureDescription. If true, is wouldn't start
+				return true
+			}
+		}
+		return false
+	};
+
+
+	function showSpriteDescr(sprite) {
+		selectPanel.style.display = 'block';
+		s_avatar.innerHTML = '<img src="/media/textures/'+sprite['info']['avatar']+'" style="width: 5vw;"/>';
+		s_name.innerHTML = '<b>Name</b>: '+sprite['info']['Name'];
+		s_description.innerHTML = '<b>It is</b> '+sprite['info']['description'];
+		s_HP.innerHTML = '<b>HP</b>: '+sprite['characts']['HP'];
+		s_XP.innerHTML = '<b>XP</b>: '+sprite['characts']['XP'];
+		s_Gold.innerHTML = '<b>Gold for destroy</b>: '+sprite['characts']['Reward']
+	};
+
+
+
+	function showTextureDescr(desc) {
 		// TODO -> Make a crop from sprites
 		//      -> don't show null descriptions
 		selectPanel.style.display = 'block';
@@ -38,7 +67,7 @@ window.onload = function() {
 		s_HP.innerHTML = '<b>HP</b>: '+desc['HP'];
 		s_XP.innerHTML = '<b>XP</b>: '+desc['XP'];
 		s_Gold.innerHTML = '<b>Gold for destroy</b>: '+desc['Reward']
-	}
+	};
 
 
 	document.body.addEventListener('mousedown', getTextureDescription, false);

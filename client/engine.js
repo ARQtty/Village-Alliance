@@ -250,7 +250,6 @@ window.app = {
 		@param x {Integer} X-index of cell in world map array
 		@param y {Integer} Y-index of cell in world map array
 		@param textureId {Integer} Code of object which be written to world map
-		@todo Send building event to server
 		*/
 		fillCellWithTexture: function(x, y, textureId) {
 			app.environment.map.data[y + app.graphics.x1][x + app.graphics.y1] = textureId;
@@ -352,6 +351,12 @@ window.app = {
 			socket.on('chat', function (data) {
 				app.chat.message(data.name, data.message);
 			});
+
+			socket.on('newBuild', function(data) {
+				app.building.placeStructure(data.x, 
+					                        data.y, 
+					                        data.code);
+			})
 		}
 	},
 
@@ -390,8 +395,8 @@ window.app = {
 				app.moveViewport.moveLeft();
 				e.preventDefault();
 
-			}else if (e.keyCode == 192){
-				// ` key
+			}else if (e.keyCode == 192 || e.keyCode == 0){
+				// ` or ё key
 				e.preventDefault();
 				app.moveViewport.displayMap()
 

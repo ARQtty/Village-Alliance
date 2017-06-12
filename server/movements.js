@@ -7,7 +7,7 @@ Server side sprites engine. Controls unit's moves
 var immoveableTextureCodes = [2, 3];
 var playerUnitCodes = [1];
 
-var md = module.exports = {
+module.exports = {
 
 	/**
 	Check whether it is possible to pass through the territory
@@ -50,26 +50,33 @@ var md = module.exports = {
 
 
 	/**
-	Checks the presence of a unit within a radius of P from a monster 
+	Checks the presence of a unit within a radius of R from a monster 
 	and finds it's coordinates
 	@method unitIsNear
 	@param unitsMap {Array} Analog of world map. Element of this is 0 or code of unit
 	@param x {Integer} X coordinate of monster
 	@param y {Integer} Y coordinate of monster
 	@param R {Integer} Radius in which monster will search for units
-	@return array {Array} First element is boolean - presence of a unit. The 2nd element \
-	is array of 2 elements - x and y of this unit. Else empty array.
+	@return array {Array} First element is boolean - presence of a unit. 
+	The 2nd element	is array of 2 elements - x and y of this unit. Else empty array.
 	*/
 	unitIsNear: function(unitsMap, x, y, R){
-		for (var i= -R; i<=R; i++){
-			for (var j= -R; j<=R; j++){
-				if ((i!=0 && j!=0) && (Math.abs(i) + Math.abs(j) <= R)){
-
+		for (var i=0; i<=R; i++){
+			for (var j=0; j<=R; j++){
+				if ((i!=0 || j!=0) && (i + j <= R) && (x+i < unitsMap.length && y+j < unitsMap[0].length && x-i >=0  && y-j >= 0)){
+					
 					for (var k=0; k<playerUnitCodes.length; k++){
-						if (unitsMap[i][j] == playerUnitCodes[k]){
-							return [true, [i, j]]
+						if (unitsMap[x+i][y+j] == playerUnitCodes[k]){
+							console.log("[MOVEMENTS] IS NEAR {"+i+', '+j+"}");
+							return [true, [x+i, y+j]]
+						}else if (x-i >= 0 && y-j >= 0){
+							if (unitsMap[x-i][y-j] == playerUnitCodes[k]){
+								console.log("[MOVEMENTS] IS NEAR dx:",-i,', dy:',-j);
+								return [true, [x-i, y-j]]
+							}
 						}
 					}
+
 				}
 			}
 		}
@@ -86,28 +93,28 @@ var md = module.exports = {
 	@param monsterY {Integer} Y coordinate of a monster
 	@param unitX {Integer} X coordinate of a target unit
 	@param unitY {Integer} Y coordinate of a target unit
-	@return point {Array}
+	@return delta {Array} dx and dy of the shortest step to unit or Infinities
+	if unit is unreachable
 	*/
 	shortestStepTo: function(map, monsterX, monsterY, unitX, unitY){
-		
 		// Create a field within which we search
 		var field = [],
 			xDistance = Math.abs(monsterX - unitX),
 			yDistance = Math.abs(monsterY - unitY),
-		    distance = xDistance + yDistance;
-		    //fieldSize = 2*distance + 1;
-		console.log("Distance between {"+monsterX+','+monsterY+'} and {'+unitX+','+unitY+'} is '+distance);
+		    distance = xDistance + yDistance,
+		    fieldSize = 2*distance + 1;
 
-		for (var i=0; i<map.length; i++){
+		for (var i=0; i<Math.min(fieldSize, 300); i++){
 			field.push([]);
-			console.log(i);
-			for (var j=0; j<map[0].length; j++){
+			for (var j=0; j<Math.min(fieldSize, 300); j++){
 				
 				// Is monster
-				if (i == distance && j == distance){
+				if (i-distance == 0 && j-distance == 0){
 					field[i][j] = {mark: 'start',
 					               x: monsterX,
 					               y: monsterY,
+					               i: i,
+					               j: j,
 					               passable: true,
 					               visited: false,
 					               pathLen: 0};
@@ -119,13 +126,16 @@ var md = module.exports = {
 					field[i][j] = {mark: 'stop',
 				                   x: unitX,
 				                   y: unitY,
+				                   i: i,
+				                   j: j,
 				                   passable: true,
 				                   visited: false,
 				                   pathLen: Infinity};
+				    var stop_i = i,
+				        stop_j = j;
 				
 				// Is block
 				}else{
-
 					// Define passability
 					if (this.isMoveable(map, monsterX+i-distance, monsterY+j-distance)){
 						// Is passable block
@@ -134,26 +144,25 @@ var md = module.exports = {
 						// Is impassable block
 						passability = false
 					}
-
 					field[i][j] = {mark: 'block',
 				                   x: monsterX + i - xDistance,
 				                   y: monsterY + j - yDistance,
+				                   i: i,
+				                   j: j,
 				                   passable: passability,
 				                   visited: false,
 				                   pathLen: Infinity};
 				}
-				
 			}
 		}
-		console.log("Field shapes are: "+field.length, field[0].length);
 
 		// Field created. Approach Lee algorithm
 		
 		// Mark the lengths of the shortest paths to each cell
 		var lowLimit = 0,
-		    hightLimit = field.length;
-		var queue = [ [start_i, start_j] ];
-
+		    hightLimit = field.length-1,
+		    queue = [ [start_i, start_j] ],
+		    destinate = false;
 		while (queue.length != 0){
 			var i = queue[0][0],
 			    j = queue[0][1];
@@ -162,9 +171,9 @@ var md = module.exports = {
 				queue = queue.slice(1, queue.length);
 				continue
 			}
+
 			if (field[i][j].mark == 'stop'){
-				field[i][j].pathLen = '!';
-				return field
+				destinate = true
 			}
 
 			var pathLen = field[i][j].pathLen;
@@ -172,64 +181,85 @@ var md = module.exports = {
 			queue = queue.slice(1, queue.length);
 
 
-				// For every cell in Von Neumann neighborhood we check whether 
-				// is existed and hasn't shorter path to it
-				if (i-1 >= lowLimit){
-					if (field[i-1][j].passable && !field[i-1][j].visited){
-						// Set new pathLen if we wasn't in this point before
-						field[i-1][j].pathLen = pathLen+1;
-						queue.push([i-1, j]);
+			// For every cell in Von Neumann neighborhood we check whether 
+			// is existed and hasn't shorter path to it
+			if (i-1 >= lowLimit){
+				if (field[i-1][j].passable && !field[i-1][j].visited){
+					// Set new pathLen if we wasn't in this point before
+					field[i-1][j].pathLen = pathLen+1;
+					queue.push([i-1, j]);
+				}
+			}
+			if (i+1 <= hightLimit){
+				if (field[i+1][j].passable && !field[i+1][j].visited){
+					field[i+1][j].pathLen = pathLen+1;
+					queue.push([i+1, j]);
+				}
+			}
+			if (j-1 >= lowLimit){
+				if (field[i][j-1].passable && !field[i][j-1].visited){
+					field[i][j-1].pathLen = pathLen+1;
+					queue.push([i, j-1]);
+				}
+			}
+			if (j+1 <= hightLimit){
+				if (field[i][j+1].passable && !field[i][j+1].visited){
+					field[i][j+1].pathLen = pathLen+1;
+					queue.push([i, j+1]);
+				}
+			}	
+		}
 
+		// Field is marked. We have try to find shortest path. If we did that,
+		// let's go backward and find shortestStep
+		if (destinate){
+			var actualPathLen = fieldSize+2; // Start val
+			var queue = [ [stop_i, stop_j] ];
+
+			while (queue.length != 0){
+				var i = queue[0][0],
+				    j = queue[0][1];
+
+				if (field[i][j].pathLen == 2){
+					console.log('[MOVEMENTS] monsterij: ', start_i, start_j);
+					console.log('[MOVEMENTS] unitij: ',stop_i,stop_j);
+					return [i - start_i, j - start_j]
+				}
+
+				var pathLen = field[i][j].pathLen;
+				queue = queue.slice(1, queue.length);
+				field[i][j].visited = false;
+
+				if (i-1 >= lowLimit){
+					if (field[i-1][j].visited && field[i-1][j].pathLen < actualPathLen){
+						field[i-1][j].visited = false;
+						actualPathLen = field[i-1][j].pathLen;
+						queue.push([i-1, j]);
 					}
 				}
 				if (i+1 <= hightLimit){
-					if (field[i+1][j].passable && !field[i+1][j].visited){
-						field[i+1][j].pathLen = pathLen+1;
+					if (field[i+1][j].visited && field[i+1][j].pathLen < actualPathLen){
+						field[i+1][j].visited = false;
+						actualPathLen = field[i+1][j].pathLen;
 						queue.push([i+1, j]);
 					}
 				}
 				if (j-1 >= lowLimit){
-					if (field[i][j-1].passable && !field[i][j-1].visited){
-						field[i][j-1].pathLen = pathLen+1;
-						queue.push([i, j-1]);
+					if (field[i][j-1].visited && field[i][j-1].pathLen < actualPathLen){
+						field[i][j-1].visited = false;
+						actualPathLen = field[i][j-1].pathLen;
+						queue.push([i, j-1]);	
 					}
 				}
 				if (j+1 <= hightLimit){
-					if (field[i][j+1].passable && !field[i][j+1].visited){
-						field[i][j+1].pathLen = pathLen+1;
+					if (field[i][j+1].visited && field[i][j+1].pathLen < actualPathLen){
+						field[i][j+1].visited = false;
+						actualPathLen = field[i][j+1].pathLen;
 						queue.push([i, j+1]);
 					}
-				}		
-			
-		
+				}
+			}
 		}
-		return field
-
-
-
-		return [toX, toY]
+		return [Infinity, Infinity]
 	}
-
-}
-
-var fld = md.shortestStepTo(require('../media/map.json'), 154, 280,  177, 176);
-
-for (var i=0; i<fld.length; i++){
-	var outStr = '';
-	for (var j=0; j<fld[0].length; j++){
-		/*
-		switch (fld[j][i].mark){
-			case 'start':
-				var out = 'M';break;
-			case 'stop':
-				var out = 'U';break;
-			case 'block':
-				var out = (fld[j][i].passable)? '+':'-';break;
-		}*/
-		var out = (fld[j][i].pathLen == Infinity)? '0':fld[j][i].pathLen;
-		//out = (fld[j][i].visited == true)? '+' : '-';
-		outStr += ', ' + out;
-		//out = '(('
-	}
-	console.log('[' + outStr + '],');
 }

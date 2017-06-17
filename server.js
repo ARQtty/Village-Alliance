@@ -2,16 +2,17 @@
 
 'use strict';
 
-var fs            = require("fs"),
-    express 	  = require("express"),
-    app 		  = express(),
-    server		  = require('http').createServer(app),
-    io            = require('socket.io').listen(server, {log: false}),
+var fs      = require("fs"),
+    express = require("express"),
+    app     = express(),
+    server  = require('http').createServer(app),
+    io      = require('socket.io').listen(server, {log: false}),
 
     map = require('./media/map.json'),
+    _   = require("underscore"),
     movements     = require("./server/movements.js"),
     playerActions = require("./server/playerActions.js"),
-    anySocket = null;
+    anySocket     = null;
 
 /******** Requests *************/
 server.listen(8000);
@@ -34,9 +35,9 @@ app.get('/media/*', function (req, res) {
 
 /******** Variables ************/
 function createMonster(){
-	var coords = [Math.ceil(Math.random() * 360), Math.ceil(Math.random() * 720)];
-	var HP = Math.round(Math.random()*250);
-	if (Math.random() > 0.5) {
+	var coords = [_.random(0, 360), _.random(0, 720)];
+	var HP = _.random(100, 300);
+	if (_.random(0, 1)) {
 		var textureType = 0,
 		    unitCode = 2,
 		    Name = 'Zombie',
@@ -44,7 +45,7 @@ function createMonster(){
 		    description = 'smelly decayed zombie. It can infect you',
 		    speed = 32;
 	}else{
-            textureType = 1,
+        textureType = 1,
 		    unitCode = 1,
 		    Name = 'Snake',
 		    avatar = 'snake.png',
@@ -55,7 +56,7 @@ function createMonster(){
 	            y: coords[1],
 	            abs_x: coords[0],
 	            abs_y: coords[1],
-	            id: Math.ceil(Math.random() * 10000),
+	            id: _.random(10000, 50000),
 	            textureType: textureType,
 	            unitCode: unitCode,
 	            info: {
@@ -64,9 +65,9 @@ function createMonster(){
 	            	description: description
 	            },
 	            characts: {
-	            	HP: 100 + HP,
+	            	HP: HP,
 	            	XP: Math.ceil(0.35 * HP),
-	            	Reward: HP - 100
+	            	Reward: HP - 70
 	            },
 	            moving: {
 	            	speed: speed, // px/s
@@ -88,7 +89,8 @@ for (var i=0; i<map.length; i++){
 	}
 }
 unitsMap[12][11] = 3;
-var ENEMIES_SEARCH_RADIUS = 6;
+var ENEMIES_SEARCH_RADIUS = 6,
+    MONSTERS_LIMIT = 2000;
 /*******************************/
 
 /* Monsters AI */
@@ -97,7 +99,7 @@ setInterval(function(){
 	{
 
 	// Chance to generate new unit
-	if (Math.random() > 0.7) {
+	if (maxMonsters < MONSTERS_LIMIT) {
 		for (var i=0; i<200; i++){
 			var unit = createMonster()
 			anySocket.emit('newUnit', unit);
@@ -120,9 +122,9 @@ setInterval(function(){
 			var attackedUnitX = unitIsNear_[1][0],
 			    attackedUnitY = unitIsNear_[1][1];
 			var dxdy = movements.shortestStepTo(map,
-						                        units[i].x, 
-						                        units[i].y, 
-						                        attackedUnitX, 
+						                        units[i].x,
+						                        units[i].y,
+						                        attackedUnitX,
 						                        attackedUnitY);
 			//console.log('Monster {',units[i].x,',',units[i].y,'} attacks unit {',attackedUnitX,',',attackedUnitY,'}');
 			//console.log('dxdy is ', dxdy);
@@ -130,8 +132,8 @@ setInterval(function(){
 			    dy = dxdy[1];
 			if (dx == Infinity && dy == Infinity){
 				// Random move
-				var x = Math.ceil(Math.random()*3 - 2);
-				var y = (x == 0) ? (Math.ceil(Math.random()*3 - 2)) : 0;
+				var x = _.random(-1, 1);
+				var y = (x == 0) ? _.random(-1, 1) : 0;
 
 				if (movements.isMoveable(map, units[i].x + x, units[i].y + y)){
 					io.sockets.emit('moveUnit', {
@@ -142,9 +144,9 @@ setInterval(function(){
 					console.log('[SERVER] Send random moveUnit '+units[i].id+' dx: '+x+' dy: '+y);
 					unitsMap = movements.verifyUnitMove(unitsMap,
 						                                units[i].x,
-						                                units[i].y, 
-						                                units[i].x + x, 
-						                                units[i].y + y, 
+						                                units[i].y,
+						                                units[i].x + x,
+						                                units[i].y + y,
 						                                units[i].unitCode);
 					units[i].x += x;
 					units[i].y += y;
@@ -160,11 +162,11 @@ setInterval(function(){
 										 id: units[i].id,
 										 dx: dx, // blocks
 										 dy: dy});
-			unitsMap = movements.verifyUnitMove(unitsMap, 
+			unitsMap = movements.verifyUnitMove(unitsMap,
 				                                units[i].x,
-				                                units[i].y, 
-				                                units[i].x + dx, 
-				                                units[i].y + dy, 
+				                                units[i].y,
+				                                units[i].x + dx,
+				                                units[i].y + dy,
 				                                units[i].unitCode);
 			units[i].x += dx;
 			units[i].y += dy;
@@ -174,8 +176,8 @@ setInterval(function(){
 
 		}else{
 			// Random move
-			var x = Math.ceil(Math.random()*3 - 2);
-			var y = (x == 0) ? (Math.ceil(Math.random()*3 - 2)) : 0;
+			var x = _.random(-1, 1);
+			var y = (x == 0) ? _.random(-1, 1) : 0;
 
 			if (movements.isMoveable(map, units[i].x + x, units[i].y + y)){
 				io.sockets.emit('moveUnit', {
@@ -186,9 +188,9 @@ setInterval(function(){
 				console.log('[SERVER] Send random moveUnit '+units[i].id+' dx: '+x+' dy: '+y);
 				unitsMap = movements.verifyUnitMove(unitsMap,
 					                                units[i].x,
-					                                units[i].y, 
-					                                units[i].x + x, 
-					                                units[i].y + y, 
+					                                units[i].y,
+					                                units[i].x + x,
+					                                units[i].y + y,
 					                                units[i].unitCode);
 				units[i].x += x;
 				units[i].y += y;

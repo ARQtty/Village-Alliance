@@ -4,24 +4,28 @@ Server side sprites engine. Controls unit's moves
 */
 'use strict';
 
+var mapSizeX = 720,
+    mapSizeY = 360;
 var immoveableTextureCodes = [2, 3];
-var playerUnitCodes = [1];
+var playerUnitCodes = []; // For agressive
 
 module.exports = {
 
 	/**
 	Check whether it is possible to pass through the territory
 	@method isMoveable
-	@param map {Array} Array representation of world map
+	@param worldMap {Array} Array representation of world map
+	@param unitsMap {Array} Array representation of units position on the map
 	@param x {Integer} X coordinate of checkable territory
 	@param y {Integer} Y coordinate of checkable territory
 	@return {Boolean} Passability of the territory
 	*/
-	isMoveable: function (map, x, y){
-		if (x < 0 || y < 0) return false;
-
+	isMoveable: function (worldMap, unitsMap, x, y){
+		if (x < 0 || y < 0 || x > mapSizeX || y > mapSizeY) return false;
+		
 		for (var i=0; i<immoveableTextureCodes.length; i++){
-			if (map[x][y] == immoveableTextureCodes[i]){
+			if (worldMap[x][y] == immoveableTextureCodes[i] ||
+				unitsMap[x][y] != 0){
 				return false
 			}
 		}
@@ -89,6 +93,7 @@ module.exports = {
 	Based on Lee Algorithm (Wave algorithm).
 	@method shortestStepTo
 	@param map {Array} World map. Used for detect impossible territories for move
+	@param unitsMap {Array} Array representation of units position on the map
 	@param monsterX {Integer} X coordinate of a monster
 	@param monsterY {Integer} Y coordinate of a monster
 	@param unitX {Integer} X coordinate of a target unit
@@ -96,7 +101,7 @@ module.exports = {
 	@return delta {Array} dx and dy of the shortest step to unit or Infinities
 	if unit is unreachable
 	*/
-	shortestStepTo: function(map, monsterX, monsterY, unitX, unitY){
+	shortestStepTo: function(map, unitsMap, monsterX, monsterY, unitX, unitY){
 		// Create a field within which we search
 		var field = [],
 			xDistance = Math.abs(monsterX - unitX),
@@ -137,7 +142,7 @@ module.exports = {
 				// Is block
 				}else{
 					// Define passability
-					if (this.isMoveable(map, monsterX+i-distance, monsterY+j-distance)){
+					if (this.isMoveable(map, unitsMap, monsterX+i-distance, monsterY+j-distance)){
 						// Is passable block
 						var passability = true
 					}else{
@@ -220,9 +225,7 @@ module.exports = {
 				var i = queue[0][0],
 				    j = queue[0][1];
 
-				if (field[i][j].pathLen == 2){
-					console.log('[MOVEMENTS] monsterij: ', start_i, start_j);
-					console.log('[MOVEMENTS] unitij: ',stop_i,stop_j);
+				if (field[i][j].pathLen == 1){
 					return [i - start_i, j - start_j]
 				}
 

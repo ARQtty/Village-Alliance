@@ -54,21 +54,21 @@ module.exports = {
 
 
 	/**
-	Checks the presence of a unit within a radius of R from a monster 
+	Checks the presence of a unit within a radius of R from a monster
 	and finds it's coordinates
 	@method unitIsNear
 	@param unitsMap {Array} Analog of world map. Element of this is 0 or code of unit
 	@param x {Integer} X coordinate of monster
 	@param y {Integer} Y coordinate of monster
 	@param R {Integer} Radius in which monster will search for units
-	@return array {Array} First element is boolean - presence of a unit. 
+	@return array {Array} First element is boolean - presence of a unit.
 	The 2nd element	is array of 2 elements - x and y of this unit. Else empty array.
 	*/
 	unitIsNear: function(unitsMap, x, y, R){
 		for (var i=0; i<=R; i++){
 			for (var j=0; j<=R; j++){
 				if ((i!=0 || j!=0) && (i + j <= R) && (x+i < unitsMap.length && y+j < unitsMap[0].length && x-i >=0  && y-j >= 0)){
-					
+
 					for (var k=0; k<playerUnitCodes.length; k++){
 						if (unitsMap[x+i][y+j] == playerUnitCodes[k]){
 							console.log("[MOVEMENTS] IS NEAR {"+i+', '+j+"}");
@@ -112,7 +112,7 @@ module.exports = {
 		for (var i=0; i<Math.min(fieldSize, 300); i++){
 			field.push([]);
 			for (var j=0; j<Math.min(fieldSize, 300); j++){
-				
+
 				// Is monster
 				if (i-distance == 0 && j-distance == 0){
 					field[i][j] = {mark: 'start',
@@ -138,7 +138,7 @@ module.exports = {
 				                   pathLen: Infinity};
 				    var stop_i = i,
 				        stop_j = j;
-				
+
 				// Is block
 				}else{
 					// Define passability
@@ -162,7 +162,7 @@ module.exports = {
 		}
 
 		// Field created. Approach Lee algorithm
-		
+
 		// Mark the lengths of the shortest paths to each cell
 		var lowLimit = 0,
 		    hightLimit = field.length-1,
@@ -186,7 +186,7 @@ module.exports = {
 			queue = queue.slice(1, queue.length);
 
 
-			// For every cell in Von Neumann neighborhood we check whether 
+			// For every cell in Von Neumann neighborhood we check whether
 			// is existed and hasn't shorter path to it
 			if (i-1 >= lowLimit){
 				if (field[i-1][j].passable && !field[i-1][j].visited){
@@ -212,7 +212,7 @@ module.exports = {
 					field[i][j+1].pathLen = pathLen+1;
 					queue.push([i, j+1]);
 				}
-			}	
+			}
 		}
 
 		// Field is marked. We have try to find shortest path. If we did that,
@@ -251,7 +251,7 @@ module.exports = {
 					if (field[i][j-1].visited && field[i][j-1].pathLen < actualPathLen){
 						field[i][j-1].visited = false;
 						actualPathLen = field[i][j-1].pathLen;
-						queue.push([i, j-1]);	
+						queue.push([i, j-1]);
 					}
 				}
 				if (j+1 <= hightLimit){

@@ -12,7 +12,7 @@ var fs      = require("fs"),
     _   = require("underscore"),
     movements     = require("./server/movements.js"),
     playerActions = require("./server/playerActions.js"),
-    anySocket = null;
+    anySocket     = null;
 
 /******** Requests *************/
 server.listen(8000);
@@ -45,7 +45,7 @@ function createMonster(){
 		    description = 'smelly decayed zombie. It can infect you',
 		    speed = 32;
 	}else{
-            textureType = 1,
+        textureType = 1,
 		    unitCode = 1,
 		    Name = 'Snake',
 		    avatar = 'snake.png',
@@ -56,7 +56,7 @@ function createMonster(){
 	            y: coords[1],
 	            abs_x: coords[0],
 	            abs_y: coords[1],
-	            id: _.random(1000, 100000),
+	            id: _.random(10000, 50000),
 	            textureType: textureType,
 	            unitCode: unitCode,
 	            info: {
@@ -128,7 +128,7 @@ setInterval(function(){
 				                                unitsMap,
 						                        units[i].x, 
 						                        units[i].y, 
-						                        attackedUnitX, 
+						                        attackedUnitX,
 						                        attackedUnitY);
 			var dx = dxdy[0],
 			    dy = dxdy[1];
@@ -145,9 +145,9 @@ setInterval(function(){
 												 dy: y});
 					unitsMap = movements.verifyUnitMove(unitsMap,
 						                                units[i].x,
-						                                units[i].y, 
-						                                units[i].x + x, 
-						                                units[i].y + y, 
+						                                units[i].y,
+						                                units[i].x + x,
+						                                units[i].y + y,
 						                                units[i].unitCode);
 					units[i].x += x;
 					units[i].y += y;
@@ -161,11 +161,11 @@ setInterval(function(){
 										 id: units[i].id,
 										 dx: dx, // blocks
 										 dy: dy});
-			unitsMap = movements.verifyUnitMove(unitsMap, 
+			unitsMap = movements.verifyUnitMove(unitsMap,
 				                                units[i].x,
-				                                units[i].y, 
-				                                units[i].x + dx, 
-				                                units[i].y + dy, 
+				                                units[i].y,
+				                                units[i].x + dx,
+				                                units[i].y + dy,
 				                                units[i].unitCode);
 			units[i].x += dx;
 			units[i].y += dy;
@@ -187,9 +187,9 @@ setInterval(function(){
 				//console.log('[SERVER] Send random moveUnit ' + units[i].info.Name, units[i].id+' dx: '+x+' dy: '+y);
 				unitsMap = movements.verifyUnitMove(unitsMap,
 					                                units[i].x,
-					                                units[i].y, 
-					                                units[i].x + x, 
-					                                units[i].y + y, 
+					                                units[i].y,
+					                                units[i].x + x,
+					                                units[i].y + y,
 					                                units[i].unitCode);
 				units[i].x += x;
 				units[i].y += y;

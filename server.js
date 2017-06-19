@@ -12,7 +12,9 @@ var fs      = require("fs"),
     _   = require("underscore"),
     movements     = require("./server/movements.js"),
     playerActions = require("./server/playerActions.js"),
-    anySocket     = null;
+    anySocket     = null,
+    users = [];
+
 
 /******** Requests *************/
 server.listen(8000);
@@ -50,7 +52,7 @@ function createMonster(){
 		    Name = 'Snake',
 		    avatar = 'snake.png',
 		    description = 'slippery, creeping fucking creature. Poisonous',
-		    speed = 32;
+		    speed = 64;
 	}
 	var unit = {x: coords[0],
 	            y: coords[1],
@@ -79,8 +81,40 @@ function createMonster(){
 	return unit
 }
 
+function createHero(){
+	var coords = [_.random(10, 10), _.random(14, 14)];
+	var HP = _.random(100, 350);
+	var hero = {x: coords[0],
+	            y: coords[1],
+	            abs_x: coords[0],
+	            abs_y: coords[1],
+	            id: _.random(60000, 90000),
+	            textureType: 2,
+	            unitCode: 2,
+	            owner: "ARQ",
+	            info: {
+	            	Name: "Knight",
+	            	avatar: "Knight.png",
+	            	description: "the hero which comes to destroy evil creatures"
+	            },
+	            characts: {
+	            	HP: HP,
+	            	XP: Math.ceil(0.65 * HP),
+	            	Reward: HP + 50
+	            },
+	            moving: {
+	            	speed: 64, // px/s
+	            	need2Move: false,
+	            	need2MoveX: 0,
+	            	need2MoveY: 0
+	            }
+	        }
+	return hero
+}
+
 var maxMonsters = 0;
-var units = [createMonster(), createMonster()];
+var units = [];
+var playersUnitsMoving = [];
 var unitsMap = [];
 for (var i=0; i<map.length; i++){
 	unitsMap.push([]);
@@ -90,17 +124,17 @@ for (var i=0; i<map.length; i++){
 }
 unitsMap[12][11] = 3;
 var ENEMIES_SEARCH_RADIUS = 6,
-    MONSTERS_LIMIT = 900;
+    MONSTERS_LIMIT = 0;
 /*******************************/
 
 /* Monsters AI */
 setInterval(function(){
-	if (anySocket)
+	if (users.length)
 	{
 
 	// Chance to generate new unit
 	if (maxMonsters < MONSTERS_LIMIT) {
-		for (var i=0; i<200; i++){
+		for (var i=0; i<MONSTERS_LIMIT; i++){
 			var unit = createMonster()
 			if (map[unit.x][unit.y] != 2 && map[unit.x][unit.y] != 3 && unitsMap[unit.x][unit.y] == 0){
 				unitsMap[unit.x][unit.y] = unit.unitCode;
@@ -119,93 +153,110 @@ setInterval(function(){
 		// arr[0] = true/false
 		// arr[1] = [x, y] if arr[0] is true. Else empty array
 		var unitIsNear_ = movements.unitIsNear(unitsMap, units[i].x, units[i].y, ENEMIES_SEARCH_RADIUS);
-
+		/*
 		if (unitIsNear_[0]){
 			console.log('[SERVER] Go to target');
 			var attackedUnitX = unitIsNear_[1][0],
-			    attackedUnitY = unitIsNear_[1][1];
-			var dxdy = movements.shortestStepTo(map,
-				                                unitsMap,
-						                        units[i].x, 
-						                        units[i].y, 
-						                        attackedUnitX,
-						                        attackedUnitY);
-			var dx = dxdy[0],
+			    attackedUnitY = unitIsNear_[1][1],
+			    path = movements.shortestPathTo(map, unitsMap, units[i].x, units[i].y, attackedUnitX, attackedUnitY);
+			var dxdy = path[0],
+			    dx = dxdy[0],
 			    dy = dxdy[1];
-			if (dx == Infinity && dy == Infinity){
-				// Random move
-				var x = _.random(-1, 1);
-				var y = (x == 0) ? _.random(-1, 1) : 0;
 
-				if (movements.isMoveable(map, unitsMap, units[i].x + x, units[i].y + y)){
-					io.sockets.emit('moveUnit', {
-												 action: 'move',
-												 id: units[i].id,
-												 dx: x, // blocks
-												 dy: y});
-					unitsMap = movements.verifyUnitMove(unitsMap,
-						                                units[i].x,
-						                                units[i].y,
-						                                units[i].x + x,
-						                                units[i].y + y,
-						                                units[i].unitCode);
-					units[i].x += x;
-					units[i].y += y;
-					units[i].abs_x += x;
-					units[i].abs_y += y;
-				}
-				continue
-			}
-			io.sockets.emit('moveUnit', {
-										 action: 'move',
-										 id: units[i].id,
-										 dx: dx, // blocks
-										 dy: dy});
-			unitsMap = movements.verifyUnitMove(unitsMap,
-				                                units[i].x,
-				                                units[i].y,
-				                                units[i].x + dx,
-				                                units[i].y + dy,
-				                                units[i].unitCode);
-			units[i].x += dx;
-			units[i].y += dy;
-			units[i].abs_x += x;
-			units[i].abs_y += y;
-			unitsMap[12][11] = 3;
-
-		}else{
-			// Random move
-			var x = _.random(-1, 1);
-			var y = (x == 0) ? _.random(-1, 1) : 0;
-
-			if (movements.isMoveable(map, unitsMap, units[i].x + x, units[i].y + y)){
+			if (dx != 0 && dy != 0){
 				io.sockets.emit('moveUnit', {
 											 action: 'move',
 											 id: units[i].id,
-											 dx: x, // blocks
-											 dy: y});
-				//console.log('[SERVER] Send random moveUnit ' + units[i].info.Name, units[i].id+' dx: '+x+' dy: '+y);
-				unitsMap = movements.verifyUnitMove(unitsMap,
-					                                units[i].x,
-					                                units[i].y,
-					                                units[i].x + x,
-					                                units[i].y + y,
-					                                units[i].unitCode);
-				units[i].x += x;
-				units[i].y += y;
+											 dx: dx, // blocks
+											 dy: dy});
+				unitsMap = movements.verifyUnitMove(unitsMap, units[i].x, units[i].y, units[i].x + dx, units[i].y + dy, units[i].unitCode);
+				units[i].x += dx;
+				units[i].y += dy;
 				units[i].abs_x += x;
 				units[i].abs_y += y;
+				continue;
 			}
 		}
+
+		// Random move
+		var x = _.random(-1, 1);
+		var y = (x == 0) ? _.random(-1, 1) : 0;
+
+		if (movements.isMoveable(map, unitsMap, units[i].x + x, units[i].y + y)){
+			io.sockets.emit('moveUnit', {
+										 action: 'move',
+										 id: units[i].id,
+										 dx: x, // blocks
+										 dy: y});
+			unitsMap = movements.verifyUnitMove(unitsMap, units[i].x, units[i].y, units[i].x + x, units[i].y + y, units[i].unitCode);
+			units[i].x += x;
+			units[i].y += y;
+			units[i].abs_x += x;
+			units[i].abs_y += y;
+		}
+		*/
 	}
+	// Now do a step for all units which be sent off by player
+	for (var i=0; i<playersUnitsMoving.length; i++){
+		var toX = playersUnitsMoving[i].targetX,
+		    toY = playersUnitsMoving[i].targetY,
+		    fromX = playersUnitsMoving[i].unitX,
+		    fromY = playersUnitsMoving[i].unitY;
+
+		// Pop unit which destinates target
+		if (Math.abs(fromX - toX) + Math.abs(fromY - toY) == 0){
+			playersUnitsMoving = playersUnitsMoving.slice(0, i).concat(playersUnitsMoving.slice(i+1, playersUnitsMoving.length));
+			console.log('Deleted');
+			i--;
+			continue;
+		}
+
+		console.log('Search path from ',fromX,fromY,' to ', toX, toY);
+		var path = movements.shortestPathTo(map, unitsMap, fromX, fromY, toX, toY);
+		var dxdy = path[0],
+		    dottedLine = path[1];
+
+		// UPDATE UNITSMAP
+
+		if (dxdy[0] != 0 || dxdy[1] != 0){
+			// If we have a path, we send it to owner of unit. Path will be
+			// displayed as dotted line
+			for (var j=0; j<users.length; j++){
+    			// Elements are sockets
+    			if (users[j].id == playersUnitsMoving[i].ownerSocketID){
+    				//console.log('Emit dottedLine:', dottedLine);
+    				users[j].emit('dottedPathLine', dottedLine);
+    				break;
+    			}
+    		}
+    	}else{
+    		playersUnitsMoving = playersUnitsMoving.slice(0, i).concat(playersUnitsMoving.slice(i+1, playersUnitsMoving.length));
+			console.log('Dropped');
+			i--;
+			continue;
+    	}
+    	// And send move actually
+        io.sockets.emit('moveUnit', {action: 'move',
+                                     id: playersUnitsMoving[i].unitID,
+                                     dx: dxdy[0],
+                                     dy: dxdy[1]});
+        console.log('Was ',playersUnitsMoving[i].unitX, playersUnitsMoving[i].unitY);
+		playersUnitsMoving[i].unitX += dxdy[0];
+		playersUnitsMoving[i].unitY += dxdy[1];
+		console.log('Now ',playersUnitsMoving[i].unitX, playersUnitsMoving[i].unitY);
 	}
-}, 2000);
+
+}}, 2000);
 
 
 /* Clients */
 io.sockets.on('connection', function(socket){
+	//socket.emit('socketName', socket.id);
+	users.push(socket);
 	anySocket = socket;
 	console.log('[SERVER] +1 client');
+
+
 	socket.emit('chat', {
 		name: 'Server',
 		message: 'Socket Established',
@@ -214,6 +265,7 @@ io.sockets.on('connection', function(socket){
     for (var i=0; i<units.length; i++) {
     socket.emit('newUnit', units[i])
     }
+    socket.emit('newUnit', createHero());
 
 
     socket.on('chat', function (data) {
@@ -221,9 +273,9 @@ io.sockets.on('connection', function(socket){
 			name: data.name,
 			message: data.message
 		});
-
         console.log("[CHAT] User "+ data.name + " sad '" + data.message + "'");
 	});
+
 
 	socket.on('verifyBuild', function(data){
 		map = playerActions.verifyBuild(map, socket, data.x, data.y, data.structureID);
@@ -231,9 +283,22 @@ io.sockets.on('connection', function(socket){
 		fs.writeFileSync('media/map.json', JSON.stringify(map));
 	});
 
+
+	socket.on('sendOffUnit', function(data){
+		playersUnitsMoving.push(data);
+	});
+
+
 	socket.on('disconnect', function() {
 		console.log('[SERVER] Client disconnected');
-		console.log(maxMonsters);
-		anySocket = null;
+		// Delete socket from users
+		for (var i=0; i<users.length; i++){
+			if (users[i].id == socket.id){
+				users = users.slice(0, i).concat(users.slice(i+1, users.length));
+			}
+		}
+		if (!users.length){
+			anySocket = null;
+		}
 	})
 })

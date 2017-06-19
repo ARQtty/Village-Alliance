@@ -5,7 +5,7 @@ Sprite logic of the app
 $(function() {
 window.app.sprites = {
 	sprCanvas: document.getElementById('monstersGameField'),
-	fps: 50,
+	fps: 30,
 
 
 	/**
@@ -18,13 +18,14 @@ window.app.sprites = {
 			console.log('newUnit on ['+data.x+', '+data.y+']');
 			app.sprites.coords.push(data);
 			app.sprites.drawViewportSprites();
-
 		});
 
 		socket.on('moveUnit', function(data){
-			//console.log('moveUnit message');
 			app.sprites.moving.updateCoords(data);
 		});
+		socket.on('dottedPathLine', function(data){
+			app.graphics.dottedLine = data;
+		})
 		
 		socket.on('hitUnit', function(data){
 			console.log('hitUnit message');
@@ -50,25 +51,26 @@ window.app.sprites = {
 		/**
 		Calls at moveUnit, dethUnit and etc. events. Changes unit's coordinate array
 		@method updateCoords
-		@param event {Array} JSON object with data about happening
+		@param message {Array} JSON object with data about happening
 		*/
-		updateCoords: function(event) {
+		updateCoords: function(message) {
+			console.log(message);
 			var arr = app.sprites.coords;
 			for (var i=0; i<arr.length; i++){
 				
-				if (arr[i].id == event.id){
-					switch (event.action){
+				if (arr[i].id == message.id){
+					switch (message.action){
 
 						case 'move':
 							arr[i].moving.need2Move = true;
-							arr[i].abs_x += event.dx;
-							arr[i].abs_y += event.dy;
-							arr[i].moving.need2MoveX += event.dx;
-							arr[i].moving.need2MoveY += event.dy;
+							arr[i].abs_x += message.dx;
+							arr[i].abs_y += message.dy;
+							arr[i].moving.need2MoveX += message.dx;
+							arr[i].moving.need2MoveY += message.dy;
 							break;
 
 						default:
-							console.log('"'+event.action+'"')
+							console.log('"'+message.action+'"')
 					}
 				}
 			}
@@ -86,7 +88,7 @@ window.app.sprites = {
 					   Lee Algorithm and sends next move when
 					   actual move is finished. */
 
-					// Speed in blocks/s, x in blocks
+					// Speed in px/s, x in blocks
 					var dS = toMove[i].moving.speed / 1000;
 
 					// Should we moving sprite?
@@ -94,7 +96,6 @@ window.app.sprites = {
 						Math.abs(toMove[i].moving.need2MoveY) > dS){
 						
 						// Moving one axis
-						//console.log(Math.abs(toMove[i].moving.need2MoveX), '  ' ,Math.abs(toMove[i].moving.need2MoveY));
 
 						if (Math.abs(toMove[i].moving.need2MoveX) >= Math.abs(toMove[i].moving.need2MoveY)){
 
@@ -142,7 +143,7 @@ window.app.sprites = {
 	drawViewportSprites: function() {
 		context = window.app.graphics.canvas.getContext('2d');
 		var sprites2draw = app.sprites.getViewportSprites();
-		var cSize = app.graphics.cellSize;
+		    cSize = app.graphics.cellSize;
 		
 		for (var i = 0; i < sprites2draw.length; i++){
 			x1 = sprites2draw[i].x - app.graphics.x1;

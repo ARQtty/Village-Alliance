@@ -175,6 +175,9 @@ window.app = {
 		},
 
 
+		
+
+
 		/**
 		Cuts a piece of the world map array that is in the visibility zone on the screen
 		@method getViewport
@@ -240,6 +243,31 @@ window.app = {
 										  cSize);			// dHeight
 					}
 				}
+			}
+
+			// Draw select squares or goHereCross
+			for (var i=0; i<app.unitsControl.drawSquareOrCross.length; i++){
+				var x = app.unitsControl.drawSquareOrCross[i].x, 
+				    y = app.unitsControl.drawSquareOrCross[i].y;
+
+				if (app.unitsControl.drawSquareOrCross[i].type == 'square'){
+					app.unitsControl.visual.drawGreenSquare(x, y);
+				}else{
+					app.unitsControl.visual.drawCross(x, y);
+				}
+			}
+
+			// Draw dotted line
+			var dtl = app.graphics.dottedLine;
+			if (dtl){
+				context.lineWidth = 2;
+				context.setLineDash([5, 15]);
+				context.strokeStyle = '#ff0000';
+				context.moveTo(dtl[0][0] * cSize + cSize/2, dtl[0][1] * cSize + cSize/2);
+				for (var i=1; i<dtl.length; i++){
+					context.lineTo(dtl[i][0] * cSize + cSize/2, dtl[i][1] * cSize + cSize/2);
+				}
+				context.stroke();
 			}
 		},
 
@@ -323,6 +351,8 @@ window.app = {
 	*/
 	network: {
 		socket: null,
+		socketName: null,
+
 
 		/**
 		Creates socket object.
@@ -350,6 +380,10 @@ window.app = {
 
 			socket.on('chat', function (data) {
 				app.chat.message(data.name, data.message);
+			});
+
+			socket.on('socketName', function (name) {
+				app.network.socketName = name;
 			});
 
 			socket.on('newBuild', function(data) {

@@ -33,9 +33,13 @@ window.onload = function() {
 		console.log('Touch ['+coords[0]+', '+coords[1]+']');
 		var sprites = app.sprites.coords;
 		for (var i=0; i<sprites.length; i++){
-			console.log(sprites[i].id+' x:'+sprites[i].abs_x+', y:'+sprites[i].abs_y);
 			if (sprites[i].abs_x == coords[0] && sprites[i].abs_y== coords[1]){
 				console.log("ohhh... Senpai, press me more!");
+
+				// Scheme for determining the player's unit's worth:
+                // Cookies -> owner name -> Compare %sprites[i].owner% with %owner name%
+				if (sprites[i].owner == "ARQ") app.unitsControl.selectUnit(sprites[i]);
+				
 				showSpriteDescr(sprites[i]);
 				// Bool for getTextureDescription. If true, is wouldn't start
 				return true
@@ -70,5 +74,18 @@ window.onload = function() {
 	};
 
 
-	document.body.addEventListener('mousedown', getTextureDescription, false);
+	function which(event){
+		// Change one of 3 buttons of mouse
+		switch(event.which){
+			case 1:
+				getTextureDescription(event);break;
+			case 3:
+				app.unitsControl.pointClick(event);break;
+			default:
+				console.log('Middle mouse button pressed?');break
+		}
+	};
+
+
+	document.body.addEventListener('mousedown', which, false);
 }

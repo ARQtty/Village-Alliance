@@ -91,69 +91,68 @@ module.exports = {
 	/**
 	Finds the shortest step (one-cell movement) to target unit.
 	Based on Lee Algorithm (Wave algorithm).
-	@method shortestStepTo
+	@method shortestPathTo
 	@param map {Array} World map. Used for detect impossible territories for move
 	@param unitsMap {Array} Array representation of units position on the map
-	@param monsterX {Integer} X coordinate of a monster
-	@param monsterY {Integer} Y coordinate of a monster
-	@param unitX {Integer} X coordinate of a target unit
-	@param unitY {Integer} Y coordinate of a target unit
-	@return delta {Array} dx and dy of the shortest step to unit or Infinities
-	if unit is unreachable
+	@param startX {Integer} X coordinate of start cell
+	@param startY {Integer} Y coordinate of start cell
+	@param stopX {Integer} X coordinate of target cell
+	@param stopX {Integer} Y coordinate of start cell
+	@return path {Array} First element is [dx, dy] of the shortest step to unit or Infinities
+	if unit is unreachable (else 1 elem array with elem [0, 0]). The second element is array 
+	of coords in path to target
 	*/
-	shortestStepTo: function(map, unitsMap, monsterX, monsterY, unitX, unitY){
+	shortestPathTo: function(map, unitsMap, startX, startY, stopX, stopY){
 		// Create a field within which we search
 		var field = [],
-			xDistance = Math.abs(monsterX - unitX),
-			yDistance = Math.abs(monsterY - unitY),
-		    distance = xDistance + yDistance,
+		    distance = Math.abs(startX - stopX) + Math.abs(startY - stopY),
 		    fieldSize = 2*distance + 1;
 
+		// Creating empty field
 		for (var i=0; i<Math.min(fieldSize, 300); i++){
 			field.push([]);
 			for (var j=0; j<Math.min(fieldSize, 300); j++){
+				field[i][j] = 0;
+			}
+		}
+
+		for (var j=0; j<Math.min(fieldSize, 300); j++){
+			for (var i=0; i<Math.min(fieldSize, 300); i++){
 
 				// Is monster
 				if (i-distance == 0 && j-distance == 0){
-					field[i][j] = {mark: 'start',
-					               x: monsterX,
-					               y: monsterY,
-					               i: i,
-					               j: j,
+					field[j][i] = {mark: 'start',
+					               x: startX, y: startY,
+					               i: j, j: i,
 					               passable: true,
 					               visited: false,
 					               pathLen: 0};
-					var start_i = i,
-					    start_j = j;
+					var start_i = j,
+					    start_j = i;
 
 				// Is unit
-				}else if (monsterX+i-distance == unitX && monsterY+j-distance == unitY){
-					field[i][j] = {mark: 'stop',
-				                   x: unitX,
-				                   y: unitY,
-				                   i: i,
-				                   j: j,
+				}else if (startX+i-distance == stopX && startY+j-distance == stopY){
+					field[j][i] = {mark: 'stop',
+				                   x: stopX, y: stopY,
+				                   i: j, j: i,
 				                   passable: true,
 				                   visited: false,
 				                   pathLen: Infinity};
-				    var stop_i = i,
-				        stop_j = j;
+				    var stop_i = j,
+				        stop_j = i;
 
 				// Is block
 				}else{
 					// Define passability
-					if (this.isMoveable(map, unitsMap, monsterX+i-distance, monsterY+j-distance)){
-						// Is passable block
-						var passability = true
+					if (this.isMoveable(map, unitsMap, startX+i-distance, startY+j-distance)){
+						var passability = true  // Is passable block
 					}else{
-						// Is impassable block
-						passability = false
+						passability = false  // Is impassable block
 					}
-					field[i][j] = {mark: 'block',
-				                   x: monsterX + i - xDistance,
-				                   y: monsterY + j - yDistance,
-				                   i: i,
-				                   j: j,
+					field[j][i] = {mark: 'block',
+				                   x: startX + i - distance,
+				                   y: startY + j - distance,
+				                   i: j, j: i,
 				                   passable: passability,
 				                   visited: false,
 				                   pathLen: Infinity};
@@ -177,14 +176,11 @@ module.exports = {
 				continue
 			}
 
-			if (field[i][j].mark == 'stop'){
-				destinate = true
-			}
+			if (field[i][j].mark == 'stop')	destinate = true;
 
 			var pathLen = field[i][j].pathLen;
 			field[i][j].visited = true;
 			queue = queue.slice(1, queue.length);
-
 
 			// For every cell in Von Neumann neighborhood we check whether
 			// is existed and hasn't shorter path to it
@@ -214,55 +210,100 @@ module.exports = {
 				}
 			}
 		}
+		
 
 		// Field is marked. We have try to find shortest path. If we did that,
 		// let's go backward and find shortestStep
 		if (destinate){
 			var actualPathLen = fieldSize+2; // Start val
 			var queue = [ [stop_i, stop_j] ];
+			var returnedPath = [];
 
 			while (queue.length != 0){
 				var i = queue[0][0],
 				    j = queue[0][1];
 
-				if (field[i][j].pathLen == 1){
-					return [i - start_i, j - start_j]
+				// Return if found start point
+				if (field[i][j].pathLen == 0){
+					// Convert +-dxdy path format to coords
+					var stopX = field[stop_i][stop_j].x,
+					    stopY = field[stop_i][stop_j].y,
+					    dx = 0, dy = 0,
+					    firstStepdx = returnedPath[returnedPath.length-1][1],
+					    firstStepdy = returnedPath[returnedPath.length-1][0];
+
+					returnedPath = returnedPath.reverse();
+					for (var i=0; i<returnedPath.length; i++){
+						console.log(returnedPath[i]);
+						dx += returnedPath[i][1];
+						dy += returnedPath[i][0];
+						returnedPath[i] = [startX + dx, startY + dy];
+					} 
+					console.log('send move', [firstStepdx, firstStepdy]);
+					return [[firstStepdx, firstStepdy], returnedPath.reverse()]
 				}
 
 				var pathLen = field[i][j].pathLen;
 				queue = queue.slice(1, queue.length);
-				field[i][j].visited = false;
 
+
+				function isGoodCell(cell){
+					if (cell.passable &&  
+						cell.x >= 0 && cell.x <= 300 &&   // Rewrite with hight limit
+						cell.y >= 0 && cell.y <= 300){
+						return true
+					}else{
+						return false
+					}
+				}
+
+				// Check every cell in Von Neumann neighborhood (4 cells)
+				var vars = [];
 				if (i-1 >= lowLimit){
-					if (field[i-1][j].visited && field[i-1][j].pathLen < actualPathLen){
-						field[i-1][j].visited = false;
-						actualPathLen = field[i-1][j].pathLen;
-						queue.push([i-1, j]);
-					}
-				}
+					if (isGoodCell(field[i-1][j])){
+						vars.push(field[i-1][j].pathLen)
+					}else{ vars.push(Infinity) }
+				}else{ vars.push(Infinity) }
+				
 				if (i+1 <= hightLimit){
-					if (field[i+1][j].visited && field[i+1][j].pathLen < actualPathLen){
-						field[i+1][j].visited = false;
-						actualPathLen = field[i+1][j].pathLen;
-						queue.push([i+1, j]);
-					}
-				}
+					if (isGoodCell(field[i+1][j])){
+						vars.push(field[i+1][j].pathLen)
+					}else{ vars.push(Infinity) }
+				}else{ vars.push(Infinity) }
+				
 				if (j-1 >= lowLimit){
-					if (field[i][j-1].visited && field[i][j-1].pathLen < actualPathLen){
-						field[i][j-1].visited = false;
-						actualPathLen = field[i][j-1].pathLen;
-						queue.push([i, j-1]);
-					}
-				}
+					if (isGoodCell(field[i][j-1])){
+						vars.push(field[i][j-1].pathLen)
+					}else{ vars.push(Infinity) }
+				}else{ vars.push(Infinity) }
+				
 				if (j+1 <= hightLimit){
-					if (field[i][j+1].visited && field[i][j+1].pathLen < actualPathLen){
-						field[i][j+1].visited = false;
-						actualPathLen = field[i][j+1].pathLen;
-						queue.push([i, j+1]);
-					}
+					if (isGoodCell(field[i][j+1])){
+						vars.push(field[i][j+1].pathLen)
+					}else{ vars.push(Infinity) }
+				}else{ vars.push(Infinity) }
+				
+				// Find least path lenght in this 4 cells
+				var minPathLen = Math.min.apply(Math, vars);
+				var direction = vars.indexOf(minPathLen);
+
+				// Return if there is no path
+				if (vars[direction] == Infinity) return [[0, 0]];
+
+				actualPathLen = minPathLen;
+				switch(direction){
+					case 0:
+						queue.push([i-1, j]);returnedPath.push([1, 0]);break;
+					case 1:
+						queue.push([i+1, j]);returnedPath.push([-1,0]);break;
+					case 2:
+						queue.push([i, j-1]);returnedPath.push([0, 1]);break;
+					case 3:
+						queue.push([i, j+1]);returnedPath.push([0, -1]);break;
 				}
 			}
 		}
-		return [Infinity, Infinity]
+		// Return zeros if we don't find path
+		return [[0, 0]]
 	}
 }

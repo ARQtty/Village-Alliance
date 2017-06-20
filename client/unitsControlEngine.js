@@ -79,6 +79,24 @@ window.app.unitsControl = {
 				}
 			}
 			
+			// Check if unit is moving now
+			app.network.socket.emit('stopMoveUnit', {unitID: unit.id});
+			if (unit.moving.need2Move){
+				console.log('It need2move');
+				// Find it in all units and stop it's move
+				for (var i=0; i<app.sprites.coords.length; i++){
+					if (app.sprites.coords[i].id == unit.id){
+						app.sprites.coords[i].need2Move = false;
+						app.sprites.coords[i].need2MoveX = 0;
+						app.sprites.coords[i].need2MoveY = 0;
+						app.sprites.coords[i].x = app.sprites.coords[i].abs_x;
+						app.sprites.coords[i].y = app.sprites.coords[i].abs_y;
+						break;
+					}
+				}
+			}
+			
+
 			app.unitsControl.visual.selectSquares.push({x: unit.abs_x,
 				                                        y: unit.abs_y,
 				                                        id: unit.id,
@@ -91,7 +109,7 @@ window.app.unitsControl = {
 	removeSelect: function(){
 		app.unitsControl.visual.selectSquares = [];
 	},
-	
+
 
 	/**
 	Sends units to cell with click coords

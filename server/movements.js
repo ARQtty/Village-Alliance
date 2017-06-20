@@ -104,7 +104,7 @@ module.exports = {
 		// Create a field within which we search
 		var field = [],
 		    distance = Math.abs(startX - stopX) + Math.abs(startY - stopY),
-		    fieldSize = 4*distance + 1;
+		    fieldSize = Math.ceil(2.3*distance) + 1;
 
 		// Creating empty field
 		for (var i=0; i<Math.min(fieldSize, 300); i++){
@@ -226,7 +226,6 @@ module.exports = {
 
 					returnedPath = returnedPath.reverse();
 					for (var i=0; i<returnedPath.length; i++){
-						console.log(returnedPath[i]);
 						dx += returnedPath[i][1];
 						dy += returnedPath[i][0];
 						returnedPath[i] = [startX + dx, startY + dy];

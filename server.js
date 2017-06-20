@@ -72,6 +72,8 @@ function createMonster(){
 	            	Reward: HP - 50
 	            },
 	            moving: {
+	            	direction: 1,
+	            	dirVariant: 0,
 	            	speed: speed, // px/s
 	            	need2Move: false,
 	            	need2MoveX: 0,
@@ -103,6 +105,8 @@ function createHero(){
 	            	Reward: HP + 50
 	            },
 	            moving: {
+	            	direction: 4,
+	            	dirVariant: 0,
 	            	speed: 64, // px/s
 	            	need2Move: false,
 	            	need2MoveX: 0,
@@ -142,14 +146,12 @@ function sendDropUnitMove(unitsMove){
 			break;
 		}
 	}
-	console.log('[sendDropUnitMove]', unitsMove);
 
 	// Send mimic message
 	if (!thisSocket) return;
 	thisSocket.emit('dottedPathLine', {moveID: unitsMove.moveID,
                                        color: "#000000",
-    				                   points: [[unitsMove.toX, unitsMove.toY]]});
-	console.log('OK')
+    				                   points: [[unitsMove.targetX, unitsMove.targetY]]});
 }
 
 var maxMonsters = 0;
@@ -164,14 +166,13 @@ for (var i=0; i<map.length; i++){
 }
 unitsMap[12][11] = 3;
 var ENEMIES_SEARCH_RADIUS = 6,
-    MONSTERS_LIMIT = 0;
+    MONSTERS_LIMIT = 500;
 /*******************************/
 
 /* Monsters AI */
 setInterval(function(){
 	if (users.length)
 	{
-	/*
 	// Chance to generate new unit
 	if (maxMonsters < MONSTERS_LIMIT) {
 		for (var i=0; i<MONSTERS_LIMIT; i++){
@@ -234,7 +235,7 @@ setInterval(function(){
 			units[i].abs_x += x;
 			units[i].abs_y += y;
 		}
-	}*/
+	}
 
 	// Now do a step for all units which be sent off by player
 	for (var i=0; i<playersUnitsMoving.length; i++){
@@ -312,7 +313,7 @@ setInterval(function(){
 		//console.log('Now ',playersUnitsMoving[i].unitX, playersUnitsMoving[i].unitY);
 	}
 
-}}, 1000);
+}}, 2000);
 
 
 /* Clients */
@@ -331,10 +332,9 @@ io.sockets.on('connection', function(socket){
     for (var i=0; i<units.length; i++) {
     socket.emit('newUnit', units[i])
     }
-    socket.emit('newUnit', createHero());
-    socket.emit('newUnit', createHero());
-    socket.emit('newUnit', createHero());
-
+    for (var i=0; i<15; i++){
+	    socket.emit('newUnit', createHero());
+    }
 
     socket.on('chat', function (data) {
 		socket.broadcast.emit('chat', {
@@ -357,6 +357,18 @@ io.sockets.on('connection', function(socket){
 		data.lineColor = randomRed();
 		playersUnitsMoving.push(data);
 	});
+
+
+	socket.on('stopMoveUnit', function(data){
+		console.log('[stopMoveUnit] -->', data);
+		for (var i=0; i<playersUnitsMoving.length; i++){
+			if (data.unitID == playersUnitsMoving[i].unitID){
+				console.log('Catched!');
+				sendDropUnitMove(playersUnitsMoving[i]);
+				playersUnitsMoving = playersUnitsMoving.slice(0, i).concat(playersUnitsMoving.slice(i+1, playersUnitsMoving.length));
+			}
+		}
+	})
 
 
 	socket.on('disconnect', function() {

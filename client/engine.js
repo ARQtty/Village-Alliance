@@ -285,7 +285,7 @@ window.app = {
 					// Del cross
 					for (var j=0; j<crosses.length; j++){
 						var lastInd = dtl[i].points.length - 1;
-						if (crosses[j].x == dtl[i].points[lastInd][0] && 
+						if (crosses[j].x == dtl[i].points[lastInd][0] &&
 							crosses[j].y == dtl[i].points[lastInd][1]){
 							app.unitsControl.visual.crosses = crosses.slice(0, j).concat(crosses.slice(j+1, crosses.length));
 							break;

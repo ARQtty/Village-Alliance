@@ -43,8 +43,6 @@ module.exports = {
 	@param newY {Integer} New y coordinate of unit
 	@param unitID {Integer} Unit's map code
 	@return unitsMap {Array} Changed units map
-
-	@todo Broadcast changes?
 	*/
 	verifyUnitMove: function(unitsMap, oldX, oldY, newX, newY, unitID){
 		unitsMap[oldX][oldY] = 0;
@@ -106,7 +104,7 @@ module.exports = {
 		// Create a field within which we search
 		var field = [],
 		    distance = Math.abs(startX - stopX) + Math.abs(startY - stopY),
-		    fieldSize = 2*distance + 1;
+		    fieldSize = 4*distance + 1;
 
 		// Creating empty field
 		for (var i=0; i<Math.min(fieldSize, 300); i++){
@@ -119,7 +117,7 @@ module.exports = {
 		for (var j=0; j<Math.min(fieldSize, 300); j++){
 			for (var i=0; i<Math.min(fieldSize, 300); i++){
 
-				// Is monster
+				// Is start point
 				if (i-distance == 0 && j-distance == 0){
 					field[j][i] = {mark: 'start',
 					               x: startX, y: startY,
@@ -130,7 +128,7 @@ module.exports = {
 					var start_i = j,
 					    start_j = i;
 
-				// Is unit
+				// Is stop point
 				}else if (startX+i-distance == stopX && startY+j-distance == stopY){
 					field[j][i] = {mark: 'stop',
 				                   x: stopX, y: stopY,
@@ -143,17 +141,11 @@ module.exports = {
 
 				// Is block
 				}else{
-					// Define passability
-					if (this.isMoveable(map, unitsMap, startX+i-distance, startY+j-distance)){
-						var passability = true  // Is passable block
-					}else{
-						passability = false  // Is impassable block
-					}
 					field[j][i] = {mark: 'block',
 				                   x: startX + i - distance,
 				                   y: startY + j - distance,
 				                   i: j, j: i,
-				                   passable: passability,
+				                   passable: (this.isMoveable(map, unitsMap, startX+i-distance, startY+j-distance))? true : false,
 				                   visited: false,
 				                   pathLen: Infinity};
 				}
@@ -239,7 +231,6 @@ module.exports = {
 						dy += returnedPath[i][0];
 						returnedPath[i] = [startX + dx, startY + dy];
 					} 
-					console.log('send move', [firstStepdx, firstStepdy]);
 					return [[firstStepdx, firstStepdy], returnedPath.reverse()]
 				}
 

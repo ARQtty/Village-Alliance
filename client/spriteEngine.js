@@ -24,14 +24,25 @@ window.app.sprites = {
 			app.sprites.moving.updateCoords(data);
 		});
 		socket.on('dottedPathLine', function(data){
-			app.graphics.dottedLine = data;
-		})
+			// Check existance of this line (since last step) and
+			// rewrite. Write out if not exists
+			var dtls = app.unitsControl.visual.dottedLines;
+			for (var i=0; i<dtls.length; i++){
+				if (dtls[i].moveID == data.moveID){
+					app.unitsControl.visual.dottedLines[i] = data;
+					return
+				}
+			}
+			app.unitsControl.visual.dottedLines.push(data);
+		});
 		
 		socket.on('hitUnit', function(data){
+
 			console.log('hitUnit message');
 		});
 		
 		socket.on('hurtUnit', function(data){
+
 			console.log('hurtUnit message');
 		});
 		console.info('Okey init listenActions');
@@ -118,18 +129,28 @@ window.app.sprites = {
 							}
 						}
 
-						// Finally, check compleating the movement
+						// Finally, check compleating the movement and correct texture biases
 						if (Math.abs(toMove[i].moving.need2MoveX) < dS &&
 							Math.abs(toMove[i].moving.need2MoveY) < dS){
 							toMove[i].moving.need2Move = false;
 							toMove[i].moving.need2MoveX = 0;
 							toMove[i].moving.need2MoveY = 0;
+							// Search this sprite in array
+							var sprites = app.sprites.coords;
+							for (var j=0; j<sprites.length; j++){
+								if (toMove[i].id == sprites[j].id){
+									sprites[j].x = sprites[j].abs_x;
+									sprites[j].y = sprites[j].abs_y;
+									break;
+								}
+							}
+
 						}
 					}
 				}
 			}
 			// Redraw gamefield after all movements
-			window.app.graphics.fillMap();
+			app.graphics.fillMap();
 			app.sprites.drawViewportSprites();
 		}
 	},
@@ -141,7 +162,7 @@ window.app.sprites = {
 	@return sprites {Array} Array of objects - monsters information
 	*/
 	drawViewportSprites: function() {
-		context = window.app.graphics.canvas.getContext('2d');
+		context = app.graphics.canvas.getContext('2d');
 		var sprites2draw = app.sprites.getViewportSprites();
 		    cSize = app.graphics.cellSize;
 		

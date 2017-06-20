@@ -8,6 +8,12 @@ window.app.unitsControl = {
 	drawSquareOrCross: [],
 
 	visual: {
+
+		dottedLines: [],
+		selectSquares: [],
+		crosses: [],
+
+
 		/**
 		Drawing a square under mouse by click. It displays unit's position
 		@param x {Integer} X coordinate of the cell
@@ -18,14 +24,17 @@ window.app.unitsControl = {
 			    cellSize = app.graphics.cellSize;
 			x = x - app.graphics.x1;
 			y = y - app.graphics.y1;
+			ctx.beginPath();
 			ctx.lineWidth = 2;
+			ctx.setLineDash([]);
+			ctx.strokeStyle = "#5CDE13";
 			ctx.moveTo(x * cellSize,            y * cellSize);
 			ctx.lineTo(x * cellSize + cellSize, y * cellSize);
 			ctx.lineTo(x * cellSize + cellSize, y * cellSize + cellSize);
 			ctx.lineTo(x * cellSize,            y * cellSize + cellSize);
 			ctx.lineTo(x * cellSize,            y * cellSize);
-			ctx.strokeStyle = "#5CDE13";
 			ctx.stroke();
+			
 		},
 
 
@@ -37,12 +46,16 @@ window.app.unitsControl = {
 		drawCross: function(x, y){
 			var ctx = app.graphics.canvas.getContext('2d'),
 			    cellSize = app.graphics.cellSize;
+			x = x - app.graphics.x1;
+			y = y - app.graphics.y1;
+			ctx.beginPath();
 			ctx.lineWidth = 3;
-			ctx.moveTo(x * cellSize,            y * cellSize);
-			ctx.lineTo(x * cellSize + cellSize, y * cellSize + cellSize);
-			ctx.moveTo(x * cellSize,            y * cellSize + cellSize);
-			ctx.lineTo(x * cellSize + cellSize, y * cellSize);
+			ctx.setLineDash([]);
 			ctx.strokeStyle = "#E70C0C";
+			ctx.moveTo(x * cellSize + cellSize/4,    y * cellSize + cellSize/4);
+			ctx.lineTo(x * cellSize + cellSize*0.75, y * cellSize + cellSize*0.75);
+			ctx.moveTo(x * cellSize + cellSize/4,    y * cellSize + cellSize*0.75);
+			ctx.lineTo(x * cellSize + cellSize*0.75, y * cellSize + cellSize/4);
 			ctx.stroke();
 		}
 	},
@@ -55,11 +68,21 @@ window.app.unitsControl = {
 	*/
 	selectUnit: function(unit){
 		(function drawSquare(){
-			app.unitsControl.drawSquareOrCross.push({x: unit.abs_x,
-				                                     y: unit.abs_y,
-				                                     id: unit.id,
-				                                     type: 'square',
-				                                     socketID: app.network.socket.id});
+			// CHECK FOR NEED2MOVE. DONT SELECT MOVING UNITS!!!!!!!!
+
+			// Check for already select of this unit
+			var selected = app.unitsControl.visual.selectSquares;
+			for (var i=0; i<selected.length; i++){
+				if (selected[i].id == unit.id){
+					console.log('Already selected');
+					return
+				}
+			}
+			
+			app.unitsControl.visual.selectSquares.push({x: unit.abs_x,
+				                                        y: unit.abs_y,
+				                                        id: unit.id,
+				                                        socketID: app.network.socket.id});
 			console.log('Selected!');
 		})();
 	},
@@ -75,21 +98,26 @@ window.app.unitsControl = {
 		coords[0] += app.graphics.x1;
 		coords[1] += app.graphics.y1;
 		var sprites = app.sprites.coords;
-		var unitsArr = app.unitsControl.drawSquareOrCross;
+		var selectedUnits = app.unitsControl.visual.selectSquares;
 
-		// CHECK EXISTANCE OF UNITS IN SELECTED CELLS
+		// Don't place cross if we haven't select any heros
+		if (!selectedUnits.length) return;
 
-		for (var i=0; i<unitsArr.length; i++){				
-		    app.network.socket.emit('sendOffUnit', {unitX: unitsArr[i].x,
-		                                            unitY: unitsArr[i].y,
+		// CHECK EXISTANCE OF UNITS IN SELECTED CELLS!!!!!
+
+		for (var i=0; i<selectedUnits.length; i++){				
+		    app.network.socket.emit('sendOffUnit', {unitX: selectedUnits[i].x,
+		                                            unitY: selectedUnits[i].y,
 		                                            targetX: coords[0],
 		                                            targetY: coords[1],
-		                                            unitID: unitsArr[i].id,
+		                                            unitID: selectedUnits[i].id,
+		                                            unitMapCode: selectedUnits[i].unitCode,
 		                                            ownerSocketID: app.network.socket.id});
 		}
-		app.unitsControl.drawSquareOrCross = [{x: coords[0], 
-			                                   y: coords[1],
-			                                   type: 'cross'}];
+		// We have sent off selected units. Removing select and placing cross
+		app.unitsControl.visual.selectSquares = [];
+		app.unitsControl.visual.crosses.push({x: coords[0],
+		                                      y: coords[1]});
 		console.log('Go here!');
 	}
 }})

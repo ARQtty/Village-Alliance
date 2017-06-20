@@ -175,9 +175,6 @@ window.app = {
 		},
 
 
-		
-
-
 		/**
 		Cuts a piece of the world map array that is in the visibility zone on the screen
 		@method getViewport
@@ -245,29 +242,61 @@ window.app = {
 				}
 			}
 
-			// Draw select squares or goHereCross
-			for (var i=0; i<app.unitsControl.drawSquareOrCross.length; i++){
-				var x = app.unitsControl.drawSquareOrCross[i].x, 
-				    y = app.unitsControl.drawSquareOrCross[i].y;
+			
 
-				if (app.unitsControl.drawSquareOrCross[i].type == 'square'){
-					app.unitsControl.visual.drawGreenSquare(x, y);
-				}else{
-					app.unitsControl.visual.drawCross(x, y);
-				}
+			// Draw goHere crosses
+			var crosses = app.unitsControl.visual.crosses;
+			for (var i=0; i<crosses.length; i++){
+				var x = crosses[i].x, 
+				    y = crosses[i].y;
+				app.unitsControl.visual.drawCross(x, y);
 			}
 
-			// Draw dotted line
-			var dtl = app.graphics.dottedLine;
-			if (dtl){
+			// Draw select squares
+			var squares = app.unitsControl.visual.selectSquares;
+			for (var i=0; i<squares.length; i++){
+				var x = squares[i].x, 
+				    y = squares[i].y;
+				app.unitsControl.visual.drawGreenSquare(x, y);
+			}
+
+			// Draw dotted lines
+			var dtl = app.unitsControl.visual.dottedLines;
+			for (var l=0; l<dtl.length; l++){
+				context.beginPath();
 				context.lineWidth = 2;
-				context.setLineDash([5, 15]);
-				context.strokeStyle = '#ff0000';
-				context.moveTo(dtl[0][0] * cSize + cSize/2, dtl[0][1] * cSize + cSize/2);
-				for (var i=1; i<dtl.length; i++){
-					context.lineTo(dtl[i][0] * cSize + cSize/2, dtl[i][1] * cSize + cSize/2);
+				context.setLineDash([7, 17]);
+				context.strokeStyle = dtl[l].color;
+				context.moveTo((dtl[l].points[0][0] - app.graphics.x1) * cSize + cSize/2, 
+					           (dtl[l].points[0][1] - app.graphics.y1) * cSize + cSize/2);
+				
+				for (var i=1; i<dtl[l].points.length; i++){
+					context.lineTo((dtl[l].points[i][0] - app.graphics.x1) * cSize + cSize/2, 
+						           (dtl[l].points[i][1] - app.graphics.y1) * cSize + cSize/2);
 				}
+				
 				context.stroke();
+			}
+			
+
+			// Delete finished pathes and crosses of it
+			for (var i=0; i<dtl.length; i++){    // MAYBE MOVE TO OTHER MODULE
+				if (dtl[i].points.length == 1){
+					// Del cross
+					for (var j=0; j<crosses.length; j++){
+						var lastInd = dtl[i].points.length - 1;
+						if (crosses[j].x == dtl[i].points[lastInd][0] && 
+							crosses[j].y == dtl[i].points[lastInd][1]){
+							app.unitsControl.visual.crosses = crosses.slice(0, j).concat(crosses.slice(j+1, crosses.length));
+							break;
+						}
+					}
+					// Del line
+					console.log('Short line #'+i);
+					app.unitsControl.visual.dottedLines = dtl.slice(0, i).concat(dtl.slice(i+1, dtl.length));
+					i--;
+					dtl = app.unitsControl.visual.dottedLines;
+				}
 			}
 		},
 

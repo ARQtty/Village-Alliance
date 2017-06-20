@@ -10,7 +10,6 @@ window.onload = function() {
 
 
 	function getTextureDescription(event) {
-		//var coords = app.environment.getCellCoords();
 		var cellValue = app.environment.getCellByPosition(event.layerX, event.layerY);
 		var informative = (cellValue == 0) ? false : true; // grass is not informative
 		
@@ -30,16 +29,14 @@ window.onload = function() {
 		// Get absolute values
 		coords[0] += app.graphics.x1;
 		coords[1] += app.graphics.y1;
-		console.log('Touch ['+coords[0]+', '+coords[1]+']');
 		var sprites = app.sprites.coords;
 		for (var i=0; i<sprites.length; i++){
 			if (sprites[i].abs_x == coords[0] && sprites[i].abs_y== coords[1]){
-				console.log("ohhh... Senpai, press me more!");
 
 				// Scheme for determining the player's unit's worth:
                 // Cookies -> owner name -> Compare %sprites[i].owner% with %owner name%
 				if (sprites[i].owner == "ARQ") app.unitsControl.selectUnit(sprites[i]);
-				
+
 				showSpriteDescr(sprites[i]);
 				// Bool for getTextureDescription. If true, is wouldn't start
 				return true

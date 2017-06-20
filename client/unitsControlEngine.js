@@ -88,6 +88,11 @@ window.app.unitsControl = {
 	},
 
 
+	removeSelect: function(){
+		app.unitsControl.visual.selectSquares = [];
+	},
+	
+
 	/**
 	Sends units to cell with click coords
 	@method pointClick

@@ -65,7 +65,6 @@ window.app.sprites = {
 		@param message {Array} JSON object with data about happening
 		*/
 		updateCoords: function(message) {
-			console.log(message);
 			var arr = app.sprites.coords;
 			for (var i=0; i<arr.length; i++){
 				
@@ -90,7 +89,7 @@ window.app.sprites = {
 
 		gameLoop: function() {
 			/* Drawing unit's moves - updating canvas */
-			var toMove = app.sprites.getViewportSprites();
+			var toMove = app.sprites.coords;
 			var dt = app.sprites.fps;
 
 			for (var i=0; i<toMove.length; i++){
@@ -184,7 +183,7 @@ window.app.sprites = {
 
 
 	/**
-	Called at viewport move 
+	Returns array of sprites which are in viewport
 	@method getViewportSprites
 	@return unitsInViewport {Array} Array of Objects - units representation*/
 	getViewportSprites: function() {

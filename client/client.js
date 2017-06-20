@@ -14,6 +14,7 @@ window.onload = function() {
 		var informative = (cellValue == 0) ? false : true; // grass is not informative
 		
 		if (!getSpriteDescription(event)){
+			app.unitsControl.removeSelect();
 			if (cellValue < 4) {
 				if (informative) {
 					showTextureDescr(app.graphics.textures.descriptors.terrain[cellValue]);
@@ -36,6 +37,7 @@ window.onload = function() {
 				// Scheme for determining the player's unit's worth:
                 // Cookies -> owner name -> Compare %sprites[i].owner% with %owner name%
 				if (sprites[i].owner == "ARQ") app.unitsControl.selectUnit(sprites[i]);
+				else app.unitsControl.removeSelect();
 
 				showSpriteDescr(sprites[i]);
 				// Bool for getTextureDescription. If true, is wouldn't start

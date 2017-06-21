@@ -100,6 +100,7 @@ window.app.unitsControl = {
 			app.unitsControl.visual.selectSquares.push({x: unit.abs_x,
 				                                        y: unit.abs_y,
 				                                        id: unit.id,
+				                                        unitCode: unit.unitCode,
 				                                        socketID: app.network.socket.id});
 			console.log('Selected!');
 		})();
@@ -128,7 +129,8 @@ window.app.unitsControl = {
 
 		// CHECK EXISTANCE OF UNITS IN SELECTED CELLS!!!!!
 
-		for (var i=0; i<selectedUnits.length; i++){				
+		for (var i=0; i<selectedUnits.length; i++){
+			console.log(selectedUnits[i]);
 		    app.network.socket.emit('sendOffUnit', {unitX: selectedUnits[i].x,
 		                                            unitY: selectedUnits[i].y,
 		                                            targetX: coords[0],

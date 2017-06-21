@@ -12,6 +12,7 @@ var fs      = require("fs"),
     _   = require("underscore"),
     movements     = require("./server/movements.js"),
     playerActions = require("./server/playerActions.js"),
+    dataGenerators= require("./server/dataGenerators.js"),
     anySocket     = null,
     users = [];
 
@@ -36,103 +37,6 @@ app.get('/media/*', function (req, res) {
 
 
 /******** Variables ************/
-function createMonster(){
-	var coords = [_.random(0, 720), _.random(0, 360)];
-	var HP = _.random(100, 350);
-	if (_.random(0, 1)) {
-		var textureType = 0,
-		    unitCode = 2,
-		    Name = 'Zombie',
-		    avatar = 'zombie.png',
-		    description = 'smelly decayed zombie. It can infect you',
-		    speed = 32;
-	}else{
-        textureType = 1,
-		    unitCode = 1,
-		    Name = 'Snake',
-		    avatar = 'snake.png',
-		    description = 'slippery, creeping fucking creature. Poisonous',
-		    speed = 64;
-	}
-	var unit = {x: coords[0],
-	            y: coords[1],
-	            abs_x: coords[0],
-	            abs_y: coords[1],
-	            id: _.random(10000, 50000),
-	            textureType: textureType,
-	            unitCode: unitCode,
-	            info: {
-	            	Name: Name,
-	            	avatar: avatar,
-	            	description: description
-	            },
-	            characts: {
-	            	HP: HP,
-	            	XP: Math.ceil(0.35 * HP),
-	            	Reward: HP - 50
-	            },
-	            moving: {
-	            	direction: 1,
-	            	dirVariant: 0,
-	            	speed: speed, // px/s
-	            	need2Move: false,
-	            	need2MoveX: 0,
-	            	need2MoveY: 0
-	            }
-	        }
-	return unit
-}
-
-function createHero(){
-	var coords = [_.random(5, 16), _.random(10, 19)];
-	var HP = _.random(100, 350);
-	var hero = {x: coords[0],
-	            y: coords[1],
-	            abs_x: coords[0],
-	            abs_y: coords[1],
-	            id: _.random(60000, 90000),
-	            textureType: 2,
-	            unitCode: 2,
-	            owner: "ARQ",
-	            info: {
-	            	Name: "Knight",
-	            	avatar: "Knight.png",
-	            	description: "the hero which comes to destroy evil creatures"
-	            },
-	            characts: {
-	            	HP: HP,
-	            	XP: Math.ceil(0.65 * HP),
-	            	Reward: HP + 50
-	            },
-	            moving: {
-	            	direction: 4,
-	            	dirVariant: 0,
-	            	speed: 64, // px/s
-	            	need2Move: false,
-	            	need2MoveX: 0,
-	            	need2MoveY: 0
-	            }
-	        }
-	return hero
-}
-
-function randomRed(){
-	var firstLetter = 'abcdef',
-	    secondSymb = '6789abcdef',
-	    third = '123456789',
-	    forth = '123456789bcd',
-	    fifth = '123456789',
-	    six   = '123456789abcd',
-	    color = '#';
-	color += firstLetter[_.random(0, firstLetter.length-1)] +
-	          secondSymb[_.random(0, secondSymb.length-1)] +
-	               third[_.random(0, third.length-1)] +
-	               forth[_.random(0, forth.length-1)] +
-	               fifth[_.random(0, fifth.length-1)] +
-	                 six[_.random(0, six.length-1)];
-	return color;
-}
-
 function sendDropUnitMove(unitsMove){
 	// Func for destroy dotted line at client side. Line would be
 	// destroyed if length of it will be 1. Cross will be destroyed if
@@ -164,20 +68,20 @@ for (var i=0; i<map.length; i++){
 		unitsMap[i][j] = 0;
 	}
 }
-unitsMap[12][11] = 3;
 var ENEMIES_SEARCH_RADIUS = 6,
-    MONSTERS_LIMIT = 500;
+    MONSTERS_LIMIT = 5;
 /*******************************/
 
 /* Monsters AI */
 setInterval(function(){
 	if (users.length)
 	{
+	/******* Monsters part *********/
 	// Chance to generate new unit
 	if (maxMonsters < MONSTERS_LIMIT) {
 		for (var i=0; i<MONSTERS_LIMIT; i++){
-			var unit = createMonster()
-			if (map[unit.x][unit.y] != 2 && map[unit.x][unit.y] != 3 && unitsMap[unit.x][unit.y] == 0){
+			var unit = dataGenerators.createMonster();
+			if (movements.isMoveable(map, unitsMap, unit.x, unit.y)){
 				unitsMap[unit.x][unit.y] = unit.unitCode;
 				anySocket.emit('newUnit', unit);
 				units.push(unit);
@@ -196,20 +100,27 @@ setInterval(function(){
 		var unitIsNear_ = movements.unitIsNear(unitsMap, units[i].x, units[i].y, ENEMIES_SEARCH_RADIUS);
 		
 		if (unitIsNear_[0]){
-			console.log('[SERVER] Go to target');
+			console.log('[SERVER] Go to target'+unitIsNear_[1][0]+' '+unitIsNear_[1][1]);
 			var attackedUnitX = unitIsNear_[1][0],
 			    attackedUnitY = unitIsNear_[1][1],
 			    path = movements.shortestPathTo(map, unitsMap, units[i].x, units[i].y, attackedUnitX, attackedUnitY);
+			console.log('Attack ',attackedUnitX, attackedUnitY);
 			var dxdy = path[0],
 			    dx = dxdy[0],
-			    dy = dxdy[1];
+			    dy = dxdy[1],
+			    dottedLine = path[1];
 
-			if (dx != 0 && dy != 0){
+			if (dx != 0 || dy != 0){
 				io.sockets.emit('moveUnit', {
 											 action: 'move',
 											 id: units[i].id,
 											 dx: dx, // blocks
 											 dy: dy});
+				console.log('Send dtl');
+				io.sockets.emit('dottedPathLine', {moveID: units[i].id, // id uses for moveID only here
+					                               color: dataGenerators.randomRed(),
+					                               points: dottedLine});
+
 				unitsMap = movements.verifyUnitMove(unitsMap, units[i].x, units[i].y, units[i].x + dx, units[i].y + dy, units[i].unitCode);
 				units[i].x += dx;
 				units[i].y += dy;
@@ -237,6 +148,8 @@ setInterval(function(){
 		}
 	}
 
+
+	/******* Units part ********/
 	// Now do a step for all units which be sent off by player
 	for (var i=0; i<playersUnitsMoving.length; i++){
 		var toX = playersUnitsMoving[i].targetX,
@@ -270,7 +183,6 @@ setInterval(function(){
 			continue;
 		}
 
-		//console.log('Search path from ',fromX,fromY,' to ', toX, toY);
 		var path = movements.shortestPathTo(map, unitsMap, fromX, fromY, toX, toY);
 		var dxdy = path[0],
 		    dottedLine = path[1];
@@ -281,7 +193,6 @@ setInterval(function(){
 			for (var j=0; j<users.length; j++){
     			// Elements are sockets
     			if (users[j].id == playersUnitsMoving[i].ownerSocketID){
-    				//console.log('Emit dottedLine:', dottedLine);
     				users[j].emit('dottedPathLine', {moveID: playersUnitsMoving[i].moveID,
     					                             color: playersUnitsMoving[i].lineColor,
     					                             points: dottedLine});
@@ -301,7 +212,7 @@ setInterval(function(){
                                      id: playersUnitsMoving[i].unitID,
                                      dx: dxdy[0],
                                      dy: dxdy[1]});
-        //console.log('Was ',playersUnitsMoving[i].unitX, playersUnitsMoving[i].unitY);
+
         unitsMap = movements.verifyUnitMove(unitsMap, 
         	                                playersUnitsMoving[i].unitX, 
         	                                playersUnitsMoving[i].unitY, 
@@ -310,7 +221,6 @@ setInterval(function(){
         	                                playersUnitsMoving[i].unitMapCode);
 		playersUnitsMoving[i].unitX += dxdy[0];
 		playersUnitsMoving[i].unitY += dxdy[1];
-		//console.log('Now ',playersUnitsMoving[i].unitX, playersUnitsMoving[i].unitY);
 	}
 
 }}, 2000);
@@ -318,7 +228,6 @@ setInterval(function(){
 
 /* Clients */
 io.sockets.on('connection', function(socket){
-	//socket.emit('socketName', socket.id);
 	users.push(socket);
 	anySocket = socket;
 	console.log('[SERVER] +1 client');
@@ -332,8 +241,11 @@ io.sockets.on('connection', function(socket){
     for (var i=0; i<units.length; i++) {
     socket.emit('newUnit', units[i])
     }
-    for (var i=0; i<15; i++){
-	    socket.emit('newUnit', createHero());
+    for (var i=0; i<2; i++){
+    	var hero = dataGenerators.createHero();
+    	unitsMap[hero.x][hero.y] = hero.unitCode;
+    	console.log('Create hero '+hero.x+' '+hero.y);
+	    socket.emit('newUnit', hero);
     }
 
     socket.on('chat', function (data) {
@@ -354,7 +266,7 @@ io.sockets.on('connection', function(socket){
 
 	socket.on('sendOffUnit', function(data){
 		data.moveID = _.random(1000, 9000);
-		data.lineColor = randomRed();
+		data.lineColor = dataGenerators.randomRed();
 		playersUnitsMoving.push(data);
 	});
 

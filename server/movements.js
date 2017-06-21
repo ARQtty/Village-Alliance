@@ -6,10 +6,12 @@ Server side sprites engine. Controls unit's moves
 
 var mapSizeX = 720,
     mapSizeY = 360;
-var immoveableTextureCodes = [2, 3];
-var playerUnitCodes = []; // For agressive
+var playerUnitCodes = [7]; // For agressive
 
 module.exports = {
+	
+	immoveableTextureCodes: [3],
+
 
 	/**
 	Check whether it is possible to pass through the territory
@@ -23,8 +25,8 @@ module.exports = {
 	isMoveable: function (worldMap, unitsMap, x, y){
 		if (x < 0 || y < 0 || x > mapSizeX || y > mapSizeY) return false;
 		
-		for (var i=0; i<immoveableTextureCodes.length; i++){
-			if (worldMap[x][y] == immoveableTextureCodes[i] ||
+		for (var i=0; i<this.immoveableTextureCodes.length; i++){
+			if (worldMap[x][y] == this.immoveableTextureCodes[i] ||
 				unitsMap[x][y] != 0){
 				return false
 			}
@@ -63,26 +65,22 @@ module.exports = {
 	The 2nd element	is array of 2 elements - x and y of this unit. Else empty array.
 	*/
 	unitIsNear: function(unitsMap, x, y, R){
-		for (var i=0; i<=R; i++){
-			for (var j=0; j<=R; j++){
-				if ((i!=0 || j!=0) && (i + j <= R) && (x+i < unitsMap.length && y+j < unitsMap[0].length && x-i >=0  && y-j >= 0)){
+		for (var i=-R; i<=R; i++){
+			for (var j=-R; j<=R; j++){
+				if (!(i==0 && j==0) && (Math.abs(i) + Math.abs(j) <= R) &&  // In search field
+					(x+i < unitsMap.length    && x+i >= 0) &&               // x axis defined cells
+					(y+j < unitsMap[0].length && y+j >= 0)){                // y axis defined cells
 
 					for (var k=0; k<playerUnitCodes.length; k++){
 						if (unitsMap[x+i][y+j] == playerUnitCodes[k]){
-							console.log("[MOVEMENTS] IS NEAR {"+i+', '+j+"}");
+							console.log("[MOVEMENTS] IS NEAR {"+(x+i)+', '+(y+j)+"}");
 							return [true, [x+i, y+j]]
-						}else if (x-i >= 0 && y-j >= 0){
-							if (unitsMap[x-i][y-j] == playerUnitCodes[k]){
-								console.log("[MOVEMENTS] IS NEAR dx:",-i,', dy:',-j);
-								return [true, [x-i, y-j]]
-							}
 						}
 					}
-
 				}
 			}
 		}
-		return [false, []]
+		return [false, []];
 	},
 
 

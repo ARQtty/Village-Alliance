@@ -16,7 +16,7 @@ window.app.sprites = {
 	listenActions: function() {
 		socket = app.network.socket;
 		socket.on('newUnit', function(data){
-			data.moving.swapDirVariantCounter = app.sprites.spriteSwapDirFreq; //?????
+			data.moving.swapDirVariantCounter = app.sprites.spriteSwapDirFreq;
 			app.sprites.coords.push(data);
 			app.sprites.drawViewportSprites();
 		});
@@ -181,10 +181,8 @@ window.app.sprites = {
 			var x1 = sprites2draw[i].x - app.graphics.x1,
 			    y1 = sprites2draw[i].y - app.graphics.y1,
 			    dir = sprites2draw[i].moving.direction + sprites2draw[i].moving.dirVariant;
-			    //console.log(dir);
 			context.drawImage(app.graphics.textures.monsters,
-							  // TODO -> "rotate" sprites
-							  dir * cSize, // full-face postion
+							  dir * cSize,
 							  sprites2draw[i].textureType * cSize,
 							  cSize,
 							  cSize,

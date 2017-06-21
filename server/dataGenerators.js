@@ -1,6 +1,7 @@
 var _ = require("underscore");
 
 module.exports = {
+	serverUpdInterval: 1, // seconds
 
 	createMonster: function(){
 		var coords = [_.random(0, 12), _.random(0, 16)];
@@ -15,6 +16,8 @@ module.exports = {
 				    avatar = 'zombie.png',
 				    description = 'smelly decayed zombie. It can infect you',
 				    speed = 32;
+				    untilCounter = 2;
+				    interval = 2;
 				break;
 
 			case 1:
@@ -24,6 +27,8 @@ module.exports = {
 			    avatar = 'snake.png',
 			    description = 'slippery, creeping fucking creature. Poisonous',
 			    speed = 64;
+			    untilCounter = 1;
+			    interval = 1;
 			    break;
 
 			case 2:
@@ -33,7 +38,9 @@ module.exports = {
 				avatar = 'octopus.png',
 				description = 'octopus. Its tentacles will crawl into all your holes',
 				speed = 16,
-				coords = [_.random(18, 30), _.random(23, 30)]
+				coords = [_.random(18, 30), _.random(23, 30)];
+				untilCounter = 4;
+			    interval = 4;
 				break;
 		}
 		var unit = {x: coords[0],
@@ -59,7 +66,11 @@ module.exports = {
 		            	speed: speed, // px/s
 		            	need2Move: false,
 		            	need2MoveX: 0,
-		            	need2MoveY: 0
+		            	need2MoveY: 0,
+		            	serverUpd: {
+		            		untilCounter: untilCounter,
+		            		interval: interval
+		            	}
 		            }
 		        }
 		return unit
@@ -93,7 +104,11 @@ module.exports = {
 		            	speed: 64, // px/s
 		            	need2Move: false,
 		            	need2MoveX: 0,
-		            	need2MoveY: 0
+		            	need2MoveY: 0,
+		            	serverUpd: {
+		            		untilCounter: 1,
+		            		interval: 1
+		            	}
 		            }
 		        }
 		return hero

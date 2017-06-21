@@ -115,6 +115,7 @@ window.app.sprites = {
 
 					// Speed in px/s, x in blocks
 					var dS = toMove[i].moving.speed / 1000;
+					//console.log(dS);
 
 					// Should we moving sprite?
 					if (Math.abs(toMove[i].moving.need2MoveX) > dS ||

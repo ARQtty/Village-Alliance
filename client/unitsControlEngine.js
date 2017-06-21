@@ -101,7 +101,13 @@ window.app.unitsControl = {
 				                                        y: unit.abs_y,
 				                                        id: unit.id,
 				                                        unitCode: unit.unitCode,
-				                                        socketID: app.network.socket.id});
+				                                        socketID: app.network.socket.id,
+				                                        moving: {
+				                                        	serverUpd:{
+				                                        		untilCounter: unit.moving.serverUpd.untilCounter,
+				                                        		interval: unit.moving.serverUpd.interval
+				                                        	}
+				                                        }});
 			console.log('Selected!');
 		})();
 	},
@@ -137,7 +143,13 @@ window.app.unitsControl = {
 		                                            targetY: coords[1],
 		                                            unitID: selectedUnits[i].id,
 		                                            unitMapCode: selectedUnits[i].unitCode,
-		                                            ownerSocketID: app.network.socket.id});
+		                                            ownerSocketID: app.network.socket.id,
+		                                            moving: {
+			                                        	serverUpd:{
+			                                        		untilCounter: selectedUnits[i].moving.serverUpd.untilCounter,
+			                                        		interval: selectedUnits[i].moving.serverUpd.interval
+			                                        	}
+			                                        }});
 		}
 		// We have sent off selected units. Removing select and placing cross
 		app.unitsControl.visual.selectSquares = [];

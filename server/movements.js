@@ -7,10 +7,12 @@ Server side sprites engine. Controls unit's moves
 var mapSizeX = 720,
     mapSizeY = 360;
 var playerUnitCodes = [7]; // For agressive
+var Heap = require('heap');
 
-module.exports = {
+
+var a = module.exports = {
 	
-	immoveableTextureCodes: [3],
+	immoveableTextureCodes: [2, 3],
 
 
 	/**
@@ -23,10 +25,10 @@ module.exports = {
 	@return {Boolean} Passability of the territory
 	*/
 	isMoveable: function (worldMap, unitsMap, x, y){
-		if (x < 0 || y < 0 || x > mapSizeX || y > mapSizeY) return false;
+		if (x < 0 || y < 0 || x >= mapSizeX || y >= mapSizeY) return false;
 		
-		for (var i=0; i<this.immoveableTextureCodes.length; i++){
-			if (worldMap[x][y] == this.immoveableTextureCodes[i] ||
+		for (var i=0; i<a.immoveableTextureCodes.length; i++){
+			if (worldMap[x][y] == a.immoveableTextureCodes[i] ||
 				unitsMap[x][y] != 0){
 				return false
 			}
@@ -85,8 +87,8 @@ module.exports = {
 
 
 	/**
-	Finds the shortest step (one-cell movement) to target unit.
-	Based on Lee Algorithm (Wave algorithm).
+	Finds the shortest path to target cell.
+	Based on A* algorithm.
 	@method shortestPathTo
 	@param map {Array} World map. Used for detect impossible territories for move
 	@param unitsMap {Array} Array representation of units position on the map
@@ -99,199 +101,107 @@ module.exports = {
 	of coords in path to target
 	*/
 	shortestPathTo: function(map, unitsMap, startX, startY, stopX, stopY){
-		// Create a field within which we search
-		var field = [],
-		    distance = Math.abs(startX - stopX) + Math.abs(startY - stopY),
-		    fieldSize = Math.ceil(2.3*distance) + 1;
+		var open = new Heap(function(cellA, cellB){
+			                    return cellA.f - cellB.f
+		                    }),
+		    closed = [],
+		    heuristic = function(currX, currY){ return Math.abs(currX - stopX) + Math.abs(currY - stopY)},
+		    notClosed = function(x, y){
+		    	for (var i=0; i<closed.length; i++){
+		    		if (closed[i].x == x && closed[i].y == y) { 
+		    			return false;
+		    		}
+		    	}
+		    	return true},
+		    notOpened = function(x, y){
+		    	for (var i=0; i<open.nodes.length; i++){
+		    		if (open.nodes[i].x == x && open.nodes[i].y == y) return false;
+		    	}
+		    	return true},
+		   	isExists  = function(x, y){
+		   		if (x >= 0 && x <= mapSizeX && y >= 0 && y <= mapSizeY && 
+		   			a.isMoveable(map, unitsMap, x, y)){
+		   			return true
+		   		}else{
+		   			return false
+		   		}},
+		   	isEndPoint= function(x, y){
+		   		if (x == stopX && y == stopY) return true;
+		   		return false},
+		   	makeCell  = function(x, y){
+		   		return {x: x, 
+		   			    y: y, 
+		   			    h: heuristic(x, y)}
+		   		},
+		    startCell = {x: startX,
+		                 y: startY,
+		                 g: 0,
+		                 h: 0,
+		                 f: 0},
+		    stopCell = {x: stopX,
+		                y: stopY,
+		                },
+		    neighbours, ng, cell;
 
-		// Creating empty field
-		for (var i=0; i<Math.min(fieldSize, 300); i++){
-			field.push([]);
-			for (var j=0; j<Math.min(fieldSize, 300); j++){
-				field[i][j] = 0;
+	    open.push(startCell);
+
+	    while (!open.empty()){
+	    	cell = open.pop();
+	    	closed.push(cell);
+	    	neighbours = [];
+	    	var x = cell.x,
+	    	    y = cell.y;
+
+	    	if (cell.x == stopX && cell.y == stopY){
+	    		var returnedPath = [[cell.x, cell.y]];
+	    		var parent = cell.parent;
+	    		while (parent){
+	    			returnedPath.push([parent.x, parent.y]);
+	    			parent = parent.parent;
+	    		}
+	    		returnedPath = returnedPath.reverse();
+	    		var firstStepdx = returnedPath[1][0] - returnedPath[0][0],
+	    		    firstStepdy = returnedPath[1][1] - returnedPath[0][1];
+	    		return [[firstStepdx, firstStepdy], returnedPath]
+	    	}
+
+	    	// Get neighbours
+	    	if (notClosed(x+1, y)){
+		    	if ((isExists(x+1, y) && notOpened(x+1, y)) || isEndPoint(x+1, y)){
+	    			neighbours.push(makeCell(x+1, y)); 
+	    		}
+	    	}else{closed.push(makeCell(x+1, y))}
+
+	    	if (notClosed(x, y+1)){
+		    	if ((isExists(x, y+1) && notOpened(x, y+1)) || isEndPoint(x, y+1)){
+	    			neighbours.push(makeCell(x, y+1)); 
+	    		}
+	    	}else{closed.push(makeCell(x, y+1))}
+
+	    	if (notClosed(x-1, y)){
+		    	if ((isExists(x-1, y) && notOpened(x-1, y)) || isEndPoint(x-1, y)){
+	    			neighbours.push(makeCell(x-1, y)); 
+	    		}
+	    	}else{closed.push(makeCell(x-1, y))}
+
+	    	if (notClosed(x, y-1)){
+		    	if ((isExists(x, y-1) && notOpened(x, y-1)) || isEndPoint(x, y-1)){
+	    			neighbours.push(makeCell(x, y-1)); 
+	    		}
+	    	}else{closed.push(makeCell(x, y-1))}
+
+	    	for (var i=0; i<neighbours.length; i++){
+	    		var nx = neighbours[i].x,
+	    		    ny = neighbours[i].y,
+    		    ng = 1 + cell.g;
+
+    		    if (ng < neighbours[i].g) neighbours[i].g = ng;
+    		   
+    		    neighbours[i].f = neighbours[i].h;
+    		    neighbours[i].parent = cell;
+    		    open.push(neighbours[i]);
 			}
-		}
-
-		for (var j=0; j<Math.min(fieldSize, 300); j++){
-			for (var i=0; i<Math.min(fieldSize, 300); i++){
-
-				// Is start point
-				if (i-distance == 0 && j-distance == 0){
-					field[j][i] = {mark: 'start',
-					               x: startX, y: startY,
-					               i: j, j: i,
-					               passable: true,
-					               visited: false,
-					               pathLen: 0};
-					var start_i = j,
-					    start_j = i;
-
-				// Is stop point
-				}else if (startX+i-distance == stopX && startY+j-distance == stopY){
-					field[j][i] = {mark: 'stop',
-				                   x: stopX, y: stopY,
-				                   i: j, j: i,
-				                   passable: true,
-				                   visited: false,
-				                   pathLen: Infinity};
-				    var stop_i = j,
-				        stop_j = i;
-
-				// Is block
-				}else{
-					field[j][i] = {mark: 'block',
-				                   x: startX + i - distance,
-				                   y: startY + j - distance,
-				                   i: j, j: i,
-				                   passable: (this.isMoveable(map, unitsMap, startX+i-distance, startY+j-distance))? true : false,
-				                   visited: false,
-				                   pathLen: Infinity};
-				}
-			}
-		}
-
-		// Field created. Approach Lee algorithm
-
-		// Mark the lengths of the shortest paths to each cell
-		var lowLimit = 0,
-		    hightLimit = field.length-1,
-		    queue = [ [start_i, start_j] ],
-		    destinate = false;
-		while (queue.length != 0){
-			var i = queue[0][0],
-			    j = queue[0][1];
-
-			if (field[i][j].visited){
-				queue = queue.slice(1, queue.length);
-				continue
-			}
-
-			if (field[i][j].mark == 'stop')	destinate = true;
-
-			var pathLen = field[i][j].pathLen;
-			field[i][j].visited = true;
-			queue = queue.slice(1, queue.length);
-
-			// For every cell in Von Neumann neighborhood we check whether
-			// is existed and hasn't shorter path to it
-			if (i-1 >= lowLimit){
-				if (field[i-1][j].passable && !field[i-1][j].visited){
-					// Set new pathLen if we wasn't in this point before
-					field[i-1][j].pathLen = pathLen+1;
-					queue.push([i-1, j]);
-				}
-			}
-			if (i+1 <= hightLimit){
-				if (field[i+1][j].passable && !field[i+1][j].visited){
-					field[i+1][j].pathLen = pathLen+1;
-					queue.push([i+1, j]);
-				}
-			}
-			if (j-1 >= lowLimit){
-				if (field[i][j-1].passable && !field[i][j-1].visited){
-					field[i][j-1].pathLen = pathLen+1;
-					queue.push([i, j-1]);
-				}
-			}
-			if (j+1 <= hightLimit){
-				if (field[i][j+1].passable && !field[i][j+1].visited){
-					field[i][j+1].pathLen = pathLen+1;
-					queue.push([i, j+1]);
-				}
-			}
-		}
-		
-
-		// Field is marked. We have try to find shortest path. If we did that,
-		// let's go backward and find shortestStep
-		if (destinate){
-			var actualPathLen = fieldSize+2; // Start val
-			var queue = [ [stop_i, stop_j] ];
-			var returnedPath = [];
-
-			while (queue.length != 0){
-				var i = queue[0][0],
-				    j = queue[0][1];
-
-				// Return if found start point
-				if (field[i][j].pathLen == 0){
-					// Convert +-dxdy path format to coords
-					var stopX = field[stop_i][stop_j].x,
-					    stopY = field[stop_i][stop_j].y,
-					    dx = 0, dy = 0,
-					    firstStepdx = returnedPath[returnedPath.length-1][1],
-					    firstStepdy = returnedPath[returnedPath.length-1][0];
-
-					returnedPath = returnedPath.reverse();
-					for (var i=0; i<returnedPath.length; i++){
-						dx += returnedPath[i][1];
-						dy += returnedPath[i][0];
-						returnedPath[i] = [startX + dx, startY + dy];
-					} 
-					return [[firstStepdx, firstStepdy], returnedPath.reverse()]
-				}
-
-				var pathLen = field[i][j].pathLen;
-				queue = queue.slice(1, queue.length);
-
-
-				function isGoodCell(cell){
-					if (cell.passable &&  
-						cell.x >= 0 && cell.x <= 300 &&   // Rewrite with hight limit
-						cell.y >= 0 && cell.y <= 300){
-						return true
-					}else{
-						return false
-					}
-				}
-
-				// Check every cell in Von Neumann neighborhood (4 cells)
-				var vars = [];
-				if (i-1 >= lowLimit){
-					if (isGoodCell(field[i-1][j])){
-						vars.push(field[i-1][j].pathLen)
-					}else{ vars.push(Infinity) }
-				}else{ vars.push(Infinity) }
-				
-				if (i+1 <= hightLimit){
-					if (isGoodCell(field[i+1][j])){
-						vars.push(field[i+1][j].pathLen)
-					}else{ vars.push(Infinity) }
-				}else{ vars.push(Infinity) }
-				
-				if (j-1 >= lowLimit){
-					if (isGoodCell(field[i][j-1])){
-						vars.push(field[i][j-1].pathLen)
-					}else{ vars.push(Infinity) }
-				}else{ vars.push(Infinity) }
-				
-				if (j+1 <= hightLimit){
-					if (isGoodCell(field[i][j+1])){
-						vars.push(field[i][j+1].pathLen)
-					}else{ vars.push(Infinity) }
-				}else{ vars.push(Infinity) }
-				
-				// Find least path lenght in this 4 cells
-				var minPathLen = Math.min.apply(Math, vars);
-				var direction = vars.indexOf(minPathLen);
-
-				// Return if there is no path
-				if (vars[direction] == Infinity) return [[0, 0]];
-
-				actualPathLen = minPathLen;
-				switch(direction){
-					case 0:
-						queue.push([i-1, j]);returnedPath.push([1, 0]);break;
-					case 1:
-						queue.push([i+1, j]);returnedPath.push([-1,0]);break;
-					case 2:
-						queue.push([i, j-1]);returnedPath.push([0, 1]);break;
-					case 3:
-						queue.push([i, j+1]);returnedPath.push([0, -1]);break;
-				}
-			}
-		}
-		// Return zeros if we don't find path
-		return [[0, 0]]
+    	}
+	    return [[0, 0]]
 	}
 }

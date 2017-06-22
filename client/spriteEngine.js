@@ -213,5 +213,16 @@ window.app.sprites = {
 			}
 		}
 		return inViewport
+	},
+
+
+	unitWithCoords: function(x, y){
+		var units = app.sprites.coords;
+		for (var i=0; i<units.length; i++){
+			if (units[i].abs_x == x && units[i].abs_y == y){
+				return true
+			}
+		}
+		return null
 	}
 }})

@@ -42,6 +42,7 @@ window.app = {
 		app.network.bindEvents();
 		app.sprites.listenActions();
 		app.sprites.initGameLoop();
+		app.building.init();
 	},
 
 

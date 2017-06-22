@@ -6,10 +6,34 @@ The logic of construction of objects on the game space
 $(function() {
 window.app.building = {
 	/* Part for building structures on game field */
+	buildings: [],
 	cancelButton: document.getElementById('cancel'),
 	buildingStructure: null,
 	buildingKey: null,
 	buildingModel: null,
+
+
+	init: function(){
+		var map = app.environment.map.data;
+		for (var i=0; i<map.length; i++){
+			for (var j=0; j<map[0].length; j++){
+				if (map[i][j] == 3){    // home
+					app.building.buildings.push({x: i, y: j})
+				}
+			}
+		}
+	},
+
+
+	buildingWithCoords: function(x, y){
+		var buildings = app.building.buildings;
+		for (var i=0; i<buildings.length; i++){
+			if (buildings[i].x == x && buildings[i].y == y){
+				return true
+			}
+		}
+		return false
+	},
 
 
 	/**
@@ -96,7 +120,9 @@ window.app.building = {
 	placeStructure(x, y, structureCode){
 		// Placing object on the map
 		console.log('Someone calls me!');
+		app.building.buildings.push({x: x, y: y});
 		app.graphics.fillCellWithTexture(y, x, structureCode);
+		console.log(app.building.buildings)
 	}
 
 }})

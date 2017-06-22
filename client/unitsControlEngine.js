@@ -82,7 +82,6 @@ window.app.unitsControl = {
 			// Check if unit is moving now
 			app.network.socket.emit('stopMoveUnit', {unitID: unit.id});
 			if (unit.moving.need2Move){
-				console.log('It need2move');
 				// Find it in all units and stop it's move
 				for (var i=0; i<app.sprites.coords.length; i++){
 					if (app.sprites.coords[i].id == unit.id){
@@ -108,7 +107,6 @@ window.app.unitsControl = {
 				                                        		interval: unit.moving.serverUpd.interval
 				                                        	}
 				                                        }});
-			console.log('Selected!');
 		})();
 	},
 
@@ -129,18 +127,23 @@ window.app.unitsControl = {
 		coords[1] += app.graphics.y1;
 		var sprites = app.sprites.coords;
 		var selectedUnits = app.unitsControl.visual.selectSquares;
+		var attack = false;
 
 		// Don't place cross if we haven't select any heros
 		if (!selectedUnits.length) return;
 
-		// CHECK EXISTANCE OF UNITS IN SELECTED CELLS!!!!!
+		var unitHere = app.sprites.unitWithCoords(coords[0], coords[1]);
+		var buildingHere = app.building.buildingWithCoords(coords[0], coords[1]);
+		console.log(unitHere, buildingHere);
+		if (unitHere || buildingHere) attack = true;
+
 
 		for (var i=0; i<selectedUnits.length; i++){
-			console.log(selectedUnits[i]);
 		    app.network.socket.emit('sendOffUnit', {unitX: selectedUnits[i].x,
 		                                            unitY: selectedUnits[i].y,
 		                                            targetX: coords[0],
 		                                            targetY: coords[1],
+		                                            attack: attack,
 		                                            unitID: selectedUnits[i].id,
 		                                            unitMapCode: selectedUnits[i].unitCode,
 		                                            ownerSocketID: app.network.socket.id,
@@ -153,8 +156,9 @@ window.app.unitsControl = {
 		}
 		// We have sent off selected units. Removing select and placing cross
 		app.unitsControl.visual.selectSquares = [];
-		app.unitsControl.visual.crosses.push({x: coords[0],
-		                                      y: coords[1]});
-		console.log('Go here!');
-	}
+		if (!(unitHere || buildingHere)){
+			app.unitsControl.visual.crosses.push({x: coords[0],
+			                                      y: coords[1]});
+		}
+	}	
 }})

@@ -85,12 +85,11 @@ setInterval(function(){
 				unitsMap[unit.x][unit.y] = unit.unitCode;
 				anySocket.emit('newUnit', unit);
 				units.push(unit);
-				console.log('[SERVER] Create new monster');
 				maxMonsters += 1;
 			}
 		}
 	}
-	console.log('[UNITS]',maxMonsters+playersUnitsMoving.length);
+	//console.log('[UNITS]',maxMonsters+playersUnitsMoving.length);
 
 	// For every unit
 	for (var i=0; i<units.length; i++){
@@ -102,15 +101,14 @@ setInterval(function(){
 			var unitIsNear_ = movements.unitIsNear(unitsMap, units[i].x, units[i].y, ENEMIES_SEARCH_RADIUS);
 			
 			if (unitIsNear_[0]){
-				console.log('[SERVER] Go to target'+unitIsNear_[1][0]+' '+unitIsNear_[1][1]);
 				var attackedUnitX = unitIsNear_[1][0],
 				    attackedUnitY = unitIsNear_[1][1],
 				    path = movements.shortestPathTo(map, unitsMap, units[i].x, units[i].y, attackedUnitX, attackedUnitY);
-				console.log('Attack ',attackedUnitX, attackedUnitY);
 				var dxdy = path[0],
 				    dx = dxdy[0],
 				    dy = dxdy[1],
 				    dottedLine = path[1];
+
 
 				if (dx != 0 || dy != 0){
 					io.sockets.emit('moveUnit', {
@@ -118,12 +116,20 @@ setInterval(function(){
 												 id: units[i].id,
 												 dx: dx, // blocks
 												 dy: dy});
-					console.log('Send dtl');
 					io.sockets.emit('dottedPathLine', {moveID: units[i].id, // id uses for moveID only here
 						                               color: dataGenerators.randomRed(),
 						                               points: dottedLine});
 
 					unitsMap = movements.verifyUnitMove(unitsMap, units[i].x, units[i].y, units[i].x + dx, units[i].y + dy, units[i].unitCode);
+				
+					if (playerActions.isPursued(units[i])){
+						playersUnitsMoving = playerActions.updatePursueTarget(units[i].x, 
+							                                                  units[i].y, 
+							                                                  units[i].x + dx,
+							                                                  units[i].y + dy,
+							                                                  playersUnitsMoving);
+					}
+				
 					units[i].x += dx;
 					units[i].y += dy;
 					units[i].abs_x += x;
@@ -143,6 +149,15 @@ setInterval(function(){
 											 dx: x, // blocks
 											 dy: y});
 				unitsMap = movements.verifyUnitMove(unitsMap, units[i].x, units[i].y, units[i].x + x, units[i].y + y, units[i].unitCode);
+				
+				if (playerActions.isPursued(units[i])){
+					playersUnitsMoving = playerActions.updatePursueTarget(units[i].x, 
+						                                                  units[i].y, 
+						                                                  units[i].x + x,
+						                                                  units[i].y + y,
+						                                                  playersUnitsMoving);
+				}
+
 				units[i].x += x;
 				units[i].y += y;
 				units[i].abs_x += x;
@@ -154,13 +169,13 @@ setInterval(function(){
 	}
 
 
-	/******* Units part ********/
+	/******* Player units part ********/
 	// Now do a step for all units which be sent off by player
 	for (var i=0; i<playersUnitsMoving.length; i++){
 		playersUnitsMoving[i].moving.serverUpd.untilCounter--;
 		if (playersUnitsMoving[i].moving.serverUpd.untilCounter == 0){
 			playersUnitsMoving[i].moving.serverUpd.untilCounter = playersUnitsMoving[i].moving.serverUpd.interval;
-			
+
 			var toX = playersUnitsMoving[i].targetX,
 			    toY = playersUnitsMoving[i].targetY,
 			    fromX = playersUnitsMoving[i].unitX,
@@ -175,7 +190,7 @@ setInterval(function(){
 					toY += end_dy;
 					console.log('Translate end point');
 				}else{
-					console.log('Deleted move with ID', playersUnitsMoving[i].moveID);
+					//console.log('Deleted move with ID', playersUnitsMoving[i].moveID);
 					sendDropUnitMove(playersUnitsMoving[i]);
 					playersUnitsMoving = playersUnitsMoving.slice(0, i).concat(playersUnitsMoving.slice(i+1, playersUnitsMoving.length));
 					i--;
@@ -185,7 +200,7 @@ setInterval(function(){
 
 			// Pop unit which destinates target
 			if (Math.abs(fromX - toX) + Math.abs(fromY - toY) == 0){
-				console.log('Deleted move with ID', playersUnitsMoving[i].moveID);
+				//console.log('Deleted move with ID', playersUnitsMoving[i].moveID);
 				sendDropUnitMove(playersUnitsMoving[i]);
 				playersUnitsMoving = playersUnitsMoving.slice(0, i).concat(playersUnitsMoving.slice(i+1, playersUnitsMoving.length));
 				i--;
@@ -209,14 +224,13 @@ setInterval(function(){
 	    			}
 	    		}
 	    	}else{
-	    		console.log('Dropped move with ID', playersUnitsMoving[i].moveID);
+	    		//console.log('Dropped move with ID', playersUnitsMoving[i].moveID);
 	    		sendDropUnitMove(playersUnitsMoving[i]);
 	    		playersUnitsMoving = playersUnitsMoving.slice(0, i).concat(playersUnitsMoving.slice(i+1, playersUnitsMoving.length));
 				i--;
 				continue;
 	    	}
 	    	// And send move actually
-	    	console.log('send move to '+ playersUnitsMoving[i].unitID);
 	        io.sockets.emit('moveUnit', {action: 'move',
 	                                     id: playersUnitsMoving[i].unitID,
 	                                     dx: dxdy[0],
@@ -253,7 +267,7 @@ io.sockets.on('connection', function(socket){
     for (var i=0; i<units.length; i++) {
     socket.emit('newUnit', units[i])
     }
-    for (var i=0; i<2; i++){
+    for (var i=0; i<3; i++){
     	var hero = dataGenerators.createHero();
     	unitsMap[hero.x][hero.y] = hero.unitCode;
     	console.log('Create hero '+hero.x+' '+hero.y);
@@ -277,8 +291,9 @@ io.sockets.on('connection', function(socket){
 
 
 	socket.on('sendOffUnit', function(data){
-		data.moveID = _.random(1000, 9000);
 		data.lineColor = dataGenerators.randomRed();
+		data.moveID = _.random(1000, 9000);
+		if (data.attack) playerActions.startPursueUnit(data);
 		playersUnitsMoving.push(data);
 	});
 
@@ -287,7 +302,7 @@ io.sockets.on('connection', function(socket){
 		console.log('[stopMoveUnit] -->', data);
 		for (var i=0; i<playersUnitsMoving.length; i++){
 			if (data.unitID == playersUnitsMoving[i].unitID){
-				console.log('Catched!');
+				playerActions.stopPursueUnit(playersUnitsMoving[i].moveID);
 				sendDropUnitMove(playersUnitsMoving[i]);
 				playersUnitsMoving = playersUnitsMoving.slice(0, i).concat(playersUnitsMoving.slice(i+1, playersUnitsMoving.length));
 			}

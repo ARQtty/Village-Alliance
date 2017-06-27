@@ -101,9 +101,7 @@ var a = module.exports = {
 	of coords in path to target
 	*/
 	shortestPathTo: function(map, unitsMap, startX, startY, stopX, stopY){
-		var open = new Heap(function(cellA, cellB){
-			                    return cellA.f - cellB.f
-		                    }),
+		var open = new Heap(function(cellA, cellB){ return cellA.f - cellB.f }),
 		    closed = [],
 		    heuristic = function(currX, currY){ return Math.abs(currX - stopX) + Math.abs(currY - stopY)},
 		    notClosed = function(x, y){
@@ -152,6 +150,7 @@ var a = module.exports = {
 	    	var x = cell.x,
 	    	    y = cell.y;
 
+	    	// target destinated
 	    	if (cell.x == stopX && cell.y == stopY){
 	    		var returnedPath = [[cell.x, cell.y]];
 	    		var parent = cell.parent;
@@ -163,6 +162,11 @@ var a = module.exports = {
 	    		var firstStepdx = returnedPath[1][0] - returnedPath[0][0],
 	    		    firstStepdy = returnedPath[1][1] - returnedPath[0][1];
 	    		return [[firstStepdx, firstStepdy], returnedPath]
+	    	}
+
+	    	// Too long for searching
+	    	if (closed.length > 2000){
+	    		return [[0, 0]]
 	    	}
 
 	    	// Get neighbours

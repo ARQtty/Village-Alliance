@@ -69,7 +69,7 @@ for (var i=0; i<map.length; i++){
 	}
 }
 var ENEMIES_SEARCH_RADIUS = 6,
-    MONSTERS_LIMIT = 5;
+    MONSTERS_LIMIT = 0;
 /*******************************/
 
 /* Monsters AI */
@@ -217,10 +217,13 @@ setInterval(function(){
 				for (var j=0; j<users.length; j++){
 	    			// Elements are sockets
 	    			if (users[j].id == playersUnitsMoving[i].ownerSocketID){
-	    				users[j].emit('dottedPathLine', {moveID: playersUnitsMoving[i].moveID,
-	    					                             color: playersUnitsMoving[i].lineColor,
-	    					                             points: dottedLine});
-	    				break;
+	    				if (dottedLine.length > 2){
+	    				  dottedLine = dottedLine.slice(1, dottedLine.length);
+	    				  users[j].emit('dottedPathLine', {moveID: playersUnitsMoving[i].moveID,
+	    				  	                               color: playersUnitsMoving[i].lineColor,
+	    					                               points: dottedLine});
+	    				  break;
+	    				}
 	    			}
 	    		}
 	    	}else{

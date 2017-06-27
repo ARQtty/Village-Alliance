@@ -23,6 +23,7 @@ window.app.sprites = {
 
 		socket.on('moveUnit', function(data){
 			// Define direction
+			console.log(data);
 			if (data.dx == -1 && data.dy ==  0) data.newDir = 0;
 			if (data.dx ==  0 && data.dy == -1) data.newDir = 2;
 			if (data.dx ==  0 && data.dy ==  1) data.newDir = 4;

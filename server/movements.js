@@ -96,25 +96,28 @@ var a = module.exports = {
 	@param startY {Integer} Y coordinate of start cell
 	@param stopX {Integer} X coordinate of target cell
 	@param stopX {Integer} Y coordinate of start cell
+	@param moveIndex {Integer} Index of movement in server core loop
+	@param callback {Function} Callback for send data or drop movement if there is no moves
 	@return path {Array} First element is [dx, dy] of the shortest step to unit or Infinities
 	if unit is unreachable (else 1 elem array with elem [0, 0]). The second element is array 
 	of coords in path to target
 	*/
-	shortestPathTo: function(map, unitsMap, startX, startY, stopX, stopY){
-		var open = new Heap(function(cellA, cellB){
+	shortestPathTo: function(map, unitsMap, startX, startY, stopX, stopY, moveIndex, callback){
+		let open = new Heap(function(cellA, cellB){
 			                    return cellA.f - cellB.f
 		                    }),
 		    closed = [],
-		    heuristic = function(currX, currY){ return Math.abs(currX - stopX) + Math.abs(currY - stopY)},
+		    heuristic = function(currX, currY){ return Math.abs(currX - stopX)+ Math.abs(currY - stopY)},
+		    fromStart = function(currX, currY){ return Math.abs(currX - startX)+Math.abs(currY - startY)},
 		    notClosed = function(x, y){
-		    	for (var i=0; i<closed.length; i++){
+		    	for (let i=0; i<closed.length; i++){
 		    		if (closed[i].x == x && closed[i].y == y) { 
 		    			return false;
 		    		}
 		    	}
 		    	return true},
 		    notOpened = function(x, y){
-		    	for (var i=0; i<open.nodes.length; i++){
+		    	for (let i=0; i<open.nodes.length; i++){
 		    		if (open.nodes[i].x == x && open.nodes[i].y == y) return false;
 		    	}
 		    	return true},
@@ -149,20 +152,22 @@ var a = module.exports = {
 	    	cell = open.pop();
 	    	closed.push(cell);
 	    	neighbours = [];
-	    	var x = cell.x,
+	    	let x = cell.x,
 	    	    y = cell.y;
 
 	    	if (cell.x == stopX && cell.y == stopY){
-	    		var returnedPath = [[cell.x, cell.y]];
-	    		var parent = cell.parent;
+	    		let returnedPath = [[cell.x, cell.y]];
+	    		let parent = cell.parent;
 	    		while (parent){
 	    			returnedPath.push([parent.x, parent.y]);
 	    			parent = parent.parent;
 	    		}
 	    		returnedPath = returnedPath.reverse();
-	    		var firstStepdx = returnedPath[1][0] - returnedPath[0][0],
+	    		let firstStepdx = returnedPath[1][0] - returnedPath[0][0],
 	    		    firstStepdy = returnedPath[1][1] - returnedPath[0][1];
-	    		return [[firstStepdx, firstStepdy], returnedPath]
+
+	    		//console.log('Return DXDY',firstStepdx, firstStepdy, 'when start {',startX,startY,'} and stop {',stopX,stopY,'}');
+	    		callback([[firstStepdx, firstStepdy], returnedPath], moveIndex);return
 	    	}
 
 	    	// Get neighbours
@@ -190,18 +195,18 @@ var a = module.exports = {
 	    		}
 	    	}else{closed.push(makeCell(x, y-1))}
 
-	    	for (var i=0; i<neighbours.length; i++){
-	    		var nx = neighbours[i].x,
+	    	for (let i=0; i<neighbours.length; i++){
+	    		let nx = neighbours[i].x,
 	    		    ny = neighbours[i].y,
     		    ng = 1 + cell.g;
 
-    		    if (ng < neighbours[i].g) neighbours[i].g = ng;
+    		    neighbours[i].g = ng;
     		   
-    		    neighbours[i].f = neighbours[i].h;
+    		    neighbours[i].f = neighbours[i].h + ng;
     		    neighbours[i].parent = cell;
     		    open.push(neighbours[i]);
 			}
     	}
-	    return [[0, 0]]
+	    callback([[0, 0]], moveIndex);return
 	}
 }

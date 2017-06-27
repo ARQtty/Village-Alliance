@@ -3,17 +3,17 @@ var _ = require("underscore");
 module.exports = {
 	serverUpdInterval: 1, // seconds
 
-	createMonster: function(){
-		var coords = [_.random(0, 12), _.random(0, 16)];
+	createMonster: function(callback){
+		var coords = [_.random(0, 719), _.random(0, 359)];
 		var HP = _.random(100, 350);
-		var randomMob = _.random(0, 2);
+		var randomMob = _.random(0, 3);
 		switch (randomMob) {
 
 			case 0:
 				var textureType = 0,
 				    unitCode = 2,
 				    Name = 'Zombie',
-				    avatar = 'zombie.png',
+				    avatar = 'avatars/zombie.png',
 				    description = 'smelly decayed zombie. It can infect you',
 				    speed = 32;
 				    untilCounter = 2;
@@ -24,7 +24,7 @@ module.exports = {
 			    textureType = 1,
 			    unitCode = 1,
 			    Name = 'Snake',
-			    avatar = 'snake.png',
+			    avatar = 'avatars/snake.png',
 			    description = 'slippery, creeping fucking creature. Poisonous',
 			    speed = 64;
 			    untilCounter = 1;
@@ -35,12 +35,23 @@ module.exports = {
 				textureType = 3,
 				unitCode = 3,
 				Name = 'Octopus',
-				avatar = 'octopus.png',
+				avatar = 'avatars/octopus.png',
 				description = 'octopus. Its tentacles will crawl into all your holes',
 				speed = 16,
 				coords = [_.random(18, 30), _.random(23, 30)];
 				untilCounter = 4;
 			    interval = 4;
+				break;
+
+			case 3:
+				textureType = 4,
+				unitCode = 4,
+				Name = 'Bat',
+				avatar = 'avatars/bat.png',
+				description = 'a bat. Maybe it in relationship with Bruce Wayne',
+				speed = 64;
+				untilCounter = 1,
+				interval = 1;
 				break;
 		}
 		var unit = {x: coords[0],
@@ -73,12 +84,12 @@ module.exports = {
 		            	}
 		            }
 		        }
-		return unit
+		callback(unit);
 	},
 
 
 	createHero: function(){
-		var coords = [_.random(5, 16), _.random(10, 19)];
+		var coords = [_.random(0, 24), _.random(0, 15)];
 		var HP = _.random(100, 350);
 		var hero = {x: coords[0],
 		            y: coords[1],
@@ -90,7 +101,7 @@ module.exports = {
 		            owner: "ARQ",
 		            info: {
 		            	Name: "Knight",
-		            	avatar: "Knight.png",
+		            	avatar: "avatars/Knight.png",
 		            	description: "the hero which comes to destroy evil creatures"
 		            },
 		            characts: {

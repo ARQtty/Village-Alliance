@@ -25,15 +25,26 @@ var a = module.exports = {
 	@return {Boolean} Passability of the territory
 	*/
 	isMoveable: function (worldMap, unitsMap, x, y){
+
+		return (a.isPassable(worldMap, x, y) && !a.isUnit(unitsMap, x, y));
+	},
+
+
+	isPassable: function(worldMap, x, y){
 		if (x < 0 || y < 0 || x >= mapSizeX || y >= mapSizeY) return false;
-		
+
 		for (var i=0; i<a.immoveableTextureCodes.length; i++){
-			if (worldMap[x][y] == a.immoveableTextureCodes[i] ||
-				unitsMap[x][y] != 0){
-				return false
-			}
+			if (worldMap[x][y] == a.immoveableTextureCodes[i]) return false;
 		}
 		return true
+	},
+
+
+	isUnit: function(unitsMap, x, y){
+		if (x < 0 || y < 0 || x >= mapSizeX || y >= mapSizeY) return true;
+		if (unitsMap[x][y] != 0) return true;
+
+		return false
 	},
 
 
@@ -96,14 +107,20 @@ var a = module.exports = {
 	@param startY {Integer} Y coordinate of start cell
 	@param stopX {Integer} X coordinate of target cell
 	@param stopX {Integer} Y coordinate of start cell
+	
+
+	@param 
+
+
 	@return path {Array} First element is [dx, dy] of the shortest step to unit or Infinities
 	if unit is unreachable (else 1 elem array with elem [0, 0]). The second element is array 
 	of coords in path to target
 	*/
-	shortestPathTo: function(map, unitsMap, startX, startY, stopX, stopY){
+	shortestPathTo: function(map, unitsMap, startX, startY, stopX, stopY, stopRange, stopDtlRange){
 		var open = new Heap(function(cellA, cellB){ return cellA.f - cellB.f }),
 		    closed = [],
-		    heuristic = function(currX, currY){ return Math.abs(currX - stopX) + Math.abs(currY - stopY)},
+		    abs = Math.abs,
+		    heuristic = function(currX, currY){ return abs(currX - stopX) + abs(currY - stopY)},
 		    notClosed = function(x, y){
 		    	for (var i=0; i<closed.length; i++){
 		    		if (closed[i].x == x && closed[i].y == y) { 
@@ -117,14 +134,13 @@ var a = module.exports = {
 		    	}
 		    	return true},
 		   	isExists  = function(x, y){
-		   		if (x >= 0 && x <= mapSizeX && y >= 0 && y <= mapSizeY && 
-		   			a.isMoveable(map, unitsMap, x, y)){
+		   		if (x >= 0 && x <= mapSizeX && y >= 0 && y <= mapSizeY && a.isPassable(map, x, y) && !a.isUnit(unitsMap, x, y)) {
 		   			return true
 		   		}else{
 		   			return false
 		   		}},
 		   	isEndPoint= function(x, y){
-		   		if (x == stopX && y == stopY) return true;
+		   		if ((Math.abs(x-stopX)+Math.abs(y-stopY)) <= stopRange && a.isMoveable(map, unitsMap, x, y)) return true;
 		   		return false},
 		   	makeCell  = function(x, y){
 		   		return {x: x, 
@@ -150,8 +166,9 @@ var a = module.exports = {
 	    	var x = cell.x,
 	    	    y = cell.y;
 
-	    	// target destinated
-	    	if (cell.x == stopX && cell.y == stopY){
+	    	
+	    	if ((abs(x-stopX)+abs(y-stopY)) == stopRange)
+	    	{
 	    		var returnedPath = [[cell.x, cell.y]];
 	    		var parent = cell.parent;
 	    		while (parent){
@@ -159,15 +176,30 @@ var a = module.exports = {
 	    			parent = parent.parent;
 	    		}
 	    		returnedPath = returnedPath.reverse();
-	    		var firstStepdx = returnedPath[1][0] - returnedPath[0][0],
-	    		    firstStepdy = returnedPath[1][1] - returnedPath[0][1];
+	    		if (stopDtlRange == 0){
+	    			returnedPath.push([stopX, stopY])
+	    		}
+
+	    		if (returnedPath.length > 1){
+		    		var firstStepdx = returnedPath[1][0] - startX,
+		    		    firstStepdy = returnedPath[1][1] - startY;
+	    		}else{
+	    			firstStepdx = 0;
+	    			firstStepdy = 0;
+	    		}
 	    		return [[firstStepdx, firstStepdy], returnedPath]
 	    	}
 
 	    	// Too long for searching
 	    	if (closed.length > 2000){
+	    		console.log('Too long');
 	    		return [[0, 0]]
 	    	}
+
+
+	    	//console.log('isExists endPoint: '+isExists(stopX, stopY)+' notOpened: '+notOpened(stopX, stopY)+' isEndPoint: '+isEndPoint(stopX,stopY));
+	    	//console.log('stopRange:',stopRange);
+	    	//console.log('isEndPoint: '+isEndPoint(stopX, stopY));return;
 
 	    	// Get neighbours
 	    	if (notClosed(x+1, y)){

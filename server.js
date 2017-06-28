@@ -58,10 +58,15 @@ function sendDropUnitMove(unitsMove){
     				                   points: [[unitsMove.targetX, unitsMove.targetY]]});
 }
 
+function dropIndex(arr, i){
+	return arr.slice(0, i).concat(arr.slice(i+1, arr.length))
+}
+
 var maxMonsters = 0;
 var units = [];
 var playersUnitsMoving = [];
 var unitsMap = [];
+var abs = Math.abs;
 for (var i=0; i<map.length; i++){
 	unitsMap.push([]);
 	for (var j=0; j<map[i].length; j++){
@@ -69,7 +74,7 @@ for (var i=0; i<map.length; i++){
 	}
 }
 var ENEMIES_SEARCH_RADIUS = 6,
-    MONSTERS_LIMIT = 0;
+    MONSTERS_LIMIT = 1;
 /*******************************/
 
 /* Monsters AI */
@@ -91,7 +96,7 @@ setInterval(function(){
 	}
 	//console.log('[UNITS]',maxMonsters+playersUnitsMoving.length);
 
-	// For every unit
+	// For every monster
 	for (var i=0; i<units.length; i++){
 		units[i].moving.serverUpd.untilCounter--;
 		if (units[i].moving.serverUpd.untilCounter == 0){
@@ -103,7 +108,7 @@ setInterval(function(){
 			if (unitIsNear_[0]){
 				var attackedUnitX = unitIsNear_[1][0],
 				    attackedUnitY = unitIsNear_[1][1],
-				    path = movements.shortestPathTo(map, unitsMap, units[i].x, units[i].y, attackedUnitX, attackedUnitY);
+				    path = movements.shortestPathTo(map, unitsMap, units[i].x, units[i].y, attackedUnitX, attackedUnitY, 1, 1);
 				var dxdy = path[0],
 				    dx = dxdy[0],
 				    dy = dxdy[1],
@@ -179,35 +184,54 @@ setInterval(function(){
 			var toX = playersUnitsMoving[i].targetX,
 			    toY = playersUnitsMoving[i].targetY,
 			    fromX = playersUnitsMoving[i].unitX,
-			    fromY = playersUnitsMoving[i].unitY;
-
+			    fromY = playersUnitsMoving[i].unitY,
+			    attack = playersUnitsMoving[i].attack,
+			    attackedType = playersUnitsMoving[i].attackedType,
+			    stopRange, stopDottedLineRange;
+			
 			// Translate end point around Moor neighborhood
-			if (!movements.isMoveable(map, unitsMap, toX, toY) && Math.abs(toX-fromX)+Math.abs(toY-fromY) <= 2){
+			if (!movements.isMoveable(map, unitsMap, toX, toY) && (Math.abs(toX-fromX)+Math.abs(toY-fromY)) <= stopRange){  // Maybe not need 
 				var end_dx = _.random(-1, 1);
 				var end_dy = (end_dx == 0)? _.random(-1, 1) : 0;
 				if (movements.isMoveable(map, unitsMap, toX+end_dx, toY+end_dy)){
 					toX += end_dx;
 					toY += end_dy;
 					console.log('Translate end point');
-				}else{
-					//console.log('Deleted move with ID', playersUnitsMoving[i].moveID);
 					sendDropUnitMove(playersUnitsMoving[i]);
-					playersUnitsMoving = playersUnitsMoving.slice(0, i).concat(playersUnitsMoving.slice(i+1, playersUnitsMoving.length));
+				}else{
+					console.log('Deleted move with ID', playersUnitsMoving[i].moveID);
+					sendDropUnitMove(playersUnitsMoving[i]);
+					playersUnitsMoving = dropIndex(playersUnitsMoving, i);
 					i--;
 					continue;
 				}
 			}
-
+			
+			
 			// Pop unit which destinates target
-			if (Math.abs(fromX - toX) + Math.abs(fromY - toY) == 0){
+			if (((abs(fromX - toX) + abs(fromY - toY)) == 0 && !attack) ||
+				((abs(fromX - toX) + abs(fromY - toY)) == 1 &&  attack))
+			{
 				//console.log('Deleted move with ID', playersUnitsMoving[i].moveID);
 				sendDropUnitMove(playersUnitsMoving[i]);
-				playersUnitsMoving = playersUnitsMoving.slice(0, i).concat(playersUnitsMoving.slice(i+1, playersUnitsMoving.length));
+				playerActions.stopPursueUnit(playersUnitsMoving[i].moveID);
+				playersUnitsMoving = dropIndex(playersUnitsMoving, i);
 				i--;
 				continue;
 			}
 
-			var path = movements.shortestPathTo(map, unitsMap, fromX, fromY, toX, toY);
+			if (!attack){
+				stopRange = 0;
+				stopDottedLineRange = 0;
+			}else if (attack && attackedType == 'unit'){
+				stopRange = 1;
+				stopDottedLineRange = 0;
+			}else if (attack && attackedType == 'building'){
+				stopRange = 1;			
+				stopDottedLineRange = 1;
+			}
+
+			var path = movements.shortestPathTo(map, unitsMap, fromX, fromY, toX, toY, stopRange, stopDottedLineRange);
 			var dxdy = path[0],
 			    dottedLine = path[1];
 
@@ -226,27 +250,43 @@ setInterval(function(){
 	    				}
 	    			}
 	    		}
+
+	    		if (playerActions.isPursued(playersUnitsMoving[i])){
+					playersUnitsMoving = playerActions.updatePursueTarget(playersUnitsMoving[i].unitX, 
+						                                                  playersUnitsMoving[i].unitY, 
+						                                                  playersUnitsMoving[i].unitX + dxdy[0],
+						                                                  playersUnitsMoving[i].unitY + dxdy[1],
+						                                                  playersUnitsMoving);
+				}
+				
+
+	    		// And send move actually
+		        io.sockets.emit('moveUnit', {action: 'move',
+		                                     id: playersUnitsMoving[i].unitID,
+		                                     dx: dxdy[0],
+		                                     dy: dxdy[1]});
+
+		        unitsMap = movements.verifyUnitMove(unitsMap, 
+		        	                                playersUnitsMoving[i].unitX, 
+		        	                                playersUnitsMoving[i].unitY, 
+		        	                                playersUnitsMoving[i].unitX + dxdy[0], 
+		        	                                playersUnitsMoving[i].unitY + dxdy[1], 
+		        	                                playersUnitsMoving[i].unitMapCode);
+
+				playersUnitsMoving[i].unitX += dxdy[0];
+				playersUnitsMoving[i].unitY += dxdy[1];
+	    	
 	    	}else{
-	    		//console.log('Dropped move with ID', playersUnitsMoving[i].moveID);
+	    		// If we haven't path
+	    		console.log('Dropped move with ID', playersUnitsMoving[i].moveID, 'cause of dxdy=0');
+	    		if (playerActions.isPursued(playersUnitsMoving[i])){
+	    			playerActions.stopPursueUnit(playersUnitsMoving[i].moveID);
+	    		}
 	    		sendDropUnitMove(playersUnitsMoving[i]);
-	    		playersUnitsMoving = playersUnitsMoving.slice(0, i).concat(playersUnitsMoving.slice(i+1, playersUnitsMoving.length));
+	    		playersUnitsMoving = dropIndex(playersUnitsMoving, i);
 				i--;
 				continue;
 	    	}
-	    	// And send move actually
-	        io.sockets.emit('moveUnit', {action: 'move',
-	                                     id: playersUnitsMoving[i].unitID,
-	                                     dx: dxdy[0],
-	                                     dy: dxdy[1]});
-
-	        unitsMap = movements.verifyUnitMove(unitsMap, 
-	        	                                playersUnitsMoving[i].unitX, 
-	        	                                playersUnitsMoving[i].unitY, 
-	        	                                playersUnitsMoving[i].unitX + dxdy[0], 
-	        	                                playersUnitsMoving[i].unitY + dxdy[1], 
-	        	                                playersUnitsMoving[i].unitMapCode);
-			playersUnitsMoving[i].unitX += dxdy[0];
-			playersUnitsMoving[i].unitY += dxdy[1];
 		}else{
 			continue;
 		}
@@ -296,7 +336,7 @@ io.sockets.on('connection', function(socket){
 	socket.on('sendOffUnit', function(data){
 		data.lineColor = dataGenerators.randomRed();
 		data.moveID = _.random(1000, 9000);
-		if (data.attack) playerActions.startPursueUnit(data);
+		playerActions.startPursueUnit(data);
 		playersUnitsMoving.push(data);
 	});
 

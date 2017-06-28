@@ -27,10 +27,9 @@ module.exports = {
 
 
 	startPursueUnit: function(moveData){
-		pursuedUnitsCoords.push({x: moveData.targetX, 
+		pursuedUnitsCoords.push({x: moveData.targetX,
 			                     y: moveData.targetY,
 			                     moveID: moveData.moveID});
-		console.log('[PL_ACTIONS]', pursuedUnitsCoords)
 	},
 
 
@@ -46,7 +45,9 @@ module.exports = {
 
 	isPursued: function(unit){
 		for (var i=0; i<pursuedUnitsCoords.length; i++){
-			if (unit.x == pursuedUnitsCoords[i].x && unit.y == pursuedUnitsCoords[i].y){
+			if ((unit.x       == pursuedUnitsCoords[i].x && unit.y       == pursuedUnitsCoords[i].y) ||       // For monster -> something
+			    (unit.targetX == pursuedUnitsCoords[i].x && unit.targetY == pursuedUnitsCoords[i].y))         // For unit    -> something   
+			{
 				return true
 			}
 		}
@@ -59,7 +60,6 @@ module.exports = {
 				pursuedUnitsCoords[i].x = newTargetX;
 				pursuedUnitsCoords[i].y = newTargetY;
 				console.log('[PL_ACTIONS] Okey update pursuedUnitsCoords', pursuedUnitsCoords);
-				break;
 			}
 		}
 
@@ -68,11 +68,11 @@ module.exports = {
 
 				pursuers[i].targetX = newTargetX;
 				pursuers[i].targetY = newTargetY;
-				console.log('[PL_ACTIONS] Okey update pursuers');
-				return pursuers;
-
+				console.log('[PL_ACTIONS] Okey update pursuers ',pursuers);
 			}
 		}
-		throw new Error('Cannot find pursue with target {'+oldTargetX+','+oldTargetY+'} in updatePursueTarget');
+		return pursuers
+
+		//throw new Error('Cannot find pursue with target {'+oldTargetX+','+oldTargetY+'} in updatePursueTarget');
 	}
-}
+} 

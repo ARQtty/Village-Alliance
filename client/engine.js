@@ -36,6 +36,7 @@ window.app = {
 	},
 
 	intialize: function() {
+		app.graphics.viewportCells = app.graphics.getViewport();
 		app.graphics.intialize();
 		app.keyBinds.init();
 		app.network.connectSocket();
@@ -141,6 +142,7 @@ window.app = {
 		y1: 0,
 		x2: Math.ceil(document.body.clientWidth  / 32),
 		y2: Math.ceil(document.body.clientHeight / 32),
+		viewportCells: [],
 		cells: [],
 		
 		cellsInRow: Math.ceil(document.body.clientWidth  / 32),
@@ -184,9 +186,9 @@ window.app = {
 		getViewport: function() {
 			var viewCells = [];
 
-			for (var x = app.graphics.x1; x < app.graphics.x2; x++){
+			for (var x = app.graphics.x1; x<app.graphics.x2; x++){
 				viewCells.push([]);
-				for (var y = app.graphics.y1; y < app.graphics.y2; y++){
+				for (var y=app.graphics.y1; y<app.graphics.y2; y++){
 					viewCells[viewCells.length - 1].push(app.environment.map.data[x][y]);
 				}
 			}
@@ -201,13 +203,14 @@ window.app = {
 		@todo Need only a pattern for grass and road is needed?
 		*/
 		fillMap: function() {
+			console.log('fillMap!');
 			/* terrain drawing */
 			var context = app.graphics.canvas.getContext('2d');
 			
 			app.graphics.canvas.width = document.body.clientWidth;
 			app.graphics.canvas.height = document.body.clientHeight;
 			// Cells representation
-			var cells = app.graphics.getViewport();
+			var cells = app.graphics.viewportCells;
 			var cSize = app.graphics.cellSize;
 
 			// Most popular patterns

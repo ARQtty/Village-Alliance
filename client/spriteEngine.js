@@ -5,7 +5,7 @@ Sprite logic of the app
 $(function() {
 window.app.sprites = {
 	sprCanvas: document.getElementById('monstersGameField'),
-	fps: 30,
+	fps: 34,
 	spriteSwapDirFreq: 20,
 
 
@@ -59,6 +59,7 @@ window.app.sprites = {
 
 	initGameLoop: function() {
 		setInterval(app.sprites.moving.gameLoop, app.sprites.fps);
+		setInterval(function(){console.log('1 sec')}, 1000);
 		console.info('Okey init game loop')
 	},
 
@@ -105,7 +106,7 @@ window.app.sprites = {
 		gameLoop: function() {
 			/* Drawing unit's moves - updating canvas */
 			var toMove = app.sprites.coords;
-			var dt = app.sprites.fps;
+			var fps = app.sprites.fps;
 
 			for (var i=0; i<toMove.length; i++){
 				if (toMove[i].moving.need2Move) {

@@ -127,7 +127,8 @@ window.app.unitsControl = {
 		coords[1] += app.graphics.y1;
 		var sprites = app.sprites.coords;
 		var selectedUnits = app.unitsControl.visual.selectSquares;
-		var attack = false;
+		var attack = false,
+		    attackedType;
 
 		// Don't place cross if we haven't select any heros
 		if (!selectedUnits.length) return;
@@ -135,8 +136,13 @@ window.app.unitsControl = {
 		var unitHere = app.sprites.unitWithCoords(coords[0], coords[1]);
 		var buildingHere = app.building.buildingWithCoords(coords[0], coords[1]);
 		console.log(unitHere, buildingHere);
-		if (unitHere || buildingHere) attack = true;
-
+		if (unitHere){
+			attack = true;
+			attackedType = 'unit';
+		}else if (buildingHere){
+		    attack = true;
+		    attackedType = 'building';	
+		}
 
 		for (var i=0; i<selectedUnits.length; i++){
 		    app.network.socket.emit('sendOffUnit', {unitX: selectedUnits[i].x,
@@ -144,6 +150,7 @@ window.app.unitsControl = {
 		                                            targetX: coords[0],
 		                                            targetY: coords[1],
 		                                            attack: attack,
+		                                            attackedType: attackedType,
 		                                            unitID: selectedUnits[i].id,
 		                                            unitMapCode: selectedUnits[i].unitCode,
 		                                            ownerSocketID: app.network.socket.id,
@@ -156,7 +163,7 @@ window.app.unitsControl = {
 		}
 		// We have sent off selected units. Removing select and placing cross
 		app.unitsControl.visual.selectSquares = [];
-		if (!(unitHere || buildingHere)){
+		if (!attack){
 			app.unitsControl.visual.crosses.push({x: coords[0],
 			                                      y: coords[1]});
 		}

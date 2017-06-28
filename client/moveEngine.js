@@ -20,6 +20,7 @@ window.app.moveViewport = {
 			app.graphics.y1 = 0;
 			app.graphics.y2 = app.graphics.cellsInColumn;
 		}
+		app.graphics.viewportCells = app.graphics.getViewport();
 		app.graphics.fillMap();
 		app.moveViewport.drawMinimapViewport();
 	},
@@ -37,6 +38,7 @@ window.app.moveViewport = {
 			app.graphics.x2 = app.environment.map.sizeX;
 			console.log('Can\'t move right');
 		}
+		app.graphics.viewportCells = app.graphics.getViewport();
 		app.graphics.fillMap();
 		app.moveViewport.drawMinimapViewport();
 	},
@@ -57,6 +59,7 @@ window.app.moveViewport = {
 			app.graphics.y1 = app.environment.map.sizeY - app.graphics.cellsInColumn;
 			console.log('Can\'t move down')
 		}
+		app.graphics.viewportCells = app.graphics.getViewport();
 		app.graphics.fillMap();
 		app.moveViewport.drawMinimapViewport();
 	},
@@ -74,6 +77,7 @@ window.app.moveViewport = {
 			app.graphics.x2 = app.graphics.cellsInRow;
 			console.log('Can\'t move left');
 		}
+		app.graphics.viewportCells = app.graphics.getViewport();
 		app.graphics.fillMap();
 		app.moveViewport.drawMinimapViewport();
 	},

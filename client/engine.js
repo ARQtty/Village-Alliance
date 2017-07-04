@@ -40,6 +40,7 @@ window.app = {
       app.sprites.listenActions();
       app.sprites.initGameLoop();
       app.building.init();
+      app.moveViewport.drawMinimapViewport();
    },
 
 
@@ -198,7 +199,6 @@ window.app = {
       @todo Need only a pattern for grass and road is needed?
       */
       fillMap: function() {
-         console.log('fillMap!');
          /* terrain drawing */
          var context = app.graphics.canvas.getContext('2d');
          
@@ -303,6 +303,7 @@ window.app = {
       */
       fillCellWithTexture: function(x, y, textureId) {
          app.environment.map.data[y + app.graphics.x1][x + app.graphics.y1] = textureId;
+         app.graphics.viewportCells = app.graphics.getViewport();
          app.graphics.fillMap()
       },
 
@@ -410,9 +411,9 @@ window.app = {
 
          socket.on('newBuild', function(data) {
             app.building.placeStructure(data.x, 
-                                       data.y, 
-                                       data.code);
-         })
+                                        data.y, 
+                                        data.code);
+         });
       }
    },
 

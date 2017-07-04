@@ -57,7 +57,8 @@ window.app.building = {
    abortBuild: function() {
       app.building.cancelButton.removeEventListener('mousedown', this);
       app.graphics.canvas.removeEventListener('mouseup', app.building.verifyBuild);
-      document.getElementById(app.building.buildingModel+'Button').classList.remove("buildButtonChecked");
+      document.getElementById(app.building.buildingModel+'ButtonImg').classList.remove("buildDivChecked");
+      document.getElementById(app.building.buildingModel+'ButtonTxt').classList.remove("buildDivChecked");
    },
 
 
@@ -72,7 +73,8 @@ window.app.building = {
       app.building.buildingModel = model;
       app.building.prepare2Build();
       // Allot button with color
-      document.getElementById(model+'Button').classList.add("buildButtonChecked");
+      document.getElementById(model+'ButtonImg').classList.add("buildDivChecked");
+      document.getElementById(model+'ButtonTxt').classList.add("buildDivChecked");
 
       switch (model) {
          case 'house':
@@ -86,6 +88,9 @@ window.app.building = {
          case 'water':
             app.building.buildingKey = 2;
             break;
+
+         case 'knight':
+            app.building.buildingKey = 27;
       }
    },
 
@@ -99,20 +104,26 @@ window.app.building = {
    verifyBuild: function(event){
       // Unset after click
       app.graphics.canvas.removeEventListener('mouseup', app.building.build);
-      document.getElementById(app.building.buildingModel+'Button').classList.remove("buildButtonChecked");
+      document.getElementById(app.building.buildingModel+'ButtonImg').classList.remove("buildDivChecked");
+      document.getElementById(app.building.buildingModel+'ButtonTxt').classList.remove("buildDivChecked");
       
       var cellValue = app.environment.getCellByPosition(event.layerX, event.layerY);
       var cellUnderCursor = app.environment.getCellCoords(event.layerX, event.layerY);
       var cellX = cellUnderCursor[0];
       var cellY = cellUnderCursor[1];
       
-      console.log('Хочу строить на '+cellX+', '+cellY);
       if (app.building.buildingKey == cellValue) {
          console.warn('Такое здание уже стоит на этом месте');
+      }else if (app.building.buildingKey > 25){
+         console.log('Хочу создать юнита на '+cellX+', '+cellY);
+         app.network.socket.emit('verifyUnit',  {x: cellX,
+                                                 y: cellY,
+                                                 unitID: app.building.buildingKey});
       }else{
+         console.log('Хочу строить на '+cellX+', '+cellY);
          app.network.socket.emit('verifyBuild', {x: cellX, 
-                                                   y: cellY, 
-                                                   structureID: app.building.buildingKey});
+                                                 y: cellY, 
+                                                 structureID: app.building.buildingKey});
       }
    },
 
@@ -122,7 +133,6 @@ window.app.building = {
       console.log('Someone calls me!');
       app.building.buildings.push({x: x, y: y});
       app.graphics.fillCellWithTexture(y, x, structureCode);
-      console.log(app.building.buildings)
    }
 
 }})

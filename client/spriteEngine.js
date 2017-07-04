@@ -59,7 +59,6 @@ window.app.sprites = {
 
    initGameLoop: function() {
       setInterval(app.sprites.moving.gameLoop, app.sprites.fps);
-      setInterval(function(){console.log('1 sec')}, 1000);
       console.info('Okey init game loop')
    },
 

@@ -12,6 +12,7 @@
    <script type="text/javascript" src="/client/client.js"></script>
    <link rel="stylesheet" type="text/css" href="/client/client.css">
    <script type="text/javascript">
+      // Right click uses for send off units
       document.addEventListener("contextmenu", function(event){
          event.preventDefault();
       }, false);
@@ -37,18 +38,21 @@
    <div id="resourcesPanel" class="panel beautyBorder"></div>
 
 
-   <div id="buildPanel" class="panel beautyBorder">
-         
-      <input id="houseButton" class="buildButton" type="button" value="house" onclick="window.app.building.chooseStruct(this.value);">
-      <br><br>
-
-      <input id="roadButton" class="buildButton" type="button" value="road" onclick="window.app.building.chooseStruct(this.value);">
-      <br><br>
-
-      <input id="waterButton" class="buildButton" type="button" value="water" onclick="window.app.building.chooseStruct(this.value);">
-
+   <div id="buildPanel" class="panel beautyBorder" >   
+      <div id="houseButton" value="house" class="buildDiv" onclick="window.app.building.chooseStruct('house')";>
+         <div id="houseButtonImg" class="buildButton buildButtonImage" style="background-image: url('../media/textures/house.png');"></div>
+         <div id="houseButtonTxt" class="buildButton buildButtonText">HOUSE</div>
+      </div>
+      <div id="roadButton" value="road" class="buildDiv" onclick="window.app.building.chooseStruct('road')";>
+         <div id="roadButtonImg" class="buildButton buildButtonImage" style="background-image: url('../media/textures/road.png');"></div>
+         <div id="roadButtonTxt" class="buildButton buildButtonText">ROAD</div>
+      </div>
       <input id="cancel" class="buildButton cancel" type="button" value="cancel" onclick="window.app.building.abortBuild();">
 
+      <div id="knightButton" value="knight" class="buildDiv" onclick="window.app.building.chooseStruct('knight')";>
+         <div id="knightButtonImg" class="buildButton buildButtonImage" style="background-image: url('../media/textures/Knight.png');"></div>
+         <div id="knightButtonTxt" class="buildButton buildButtonText">KNIGHT</div>
+      </div>
    </div>
 
 

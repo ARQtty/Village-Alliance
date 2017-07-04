@@ -77,8 +77,9 @@ module.exports = {
    },
 
 
-   createHero: function(){
+   createHero: function(x, y){
       var coords = [_.random(0, 20), _.random(0, 20)];
+      if (x !== undefined && y !== undefined) coords = [x, y];
       var HP = _.random(100, 350);
       var hero = {x: coords[0],
                   y: coords[1],

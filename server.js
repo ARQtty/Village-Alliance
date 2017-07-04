@@ -2,367 +2,471 @@
 
 'use strict';
 
-var fs      = require("fs"),
-    express = require("express"),
-    app     = express(),
-    server  = require('http').createServer(app),
-    io      = require('socket.io').listen(server, {log: false}),
+var fs            = require("fs"),
+    express       = require("express"),
+    app           = express(),
+    server        = require('http').createServer(app),
+    io            = require('socket.io').listen(server, {log: false}),
 
-    map = require('./media/map.json'),
-    _   = require("underscore"),
+    kernel        = require("./server/kernel.js"),
     movements     = require("./server/movements.js"),
-    playerActions = require("./server/playerActions.js"),
+    pursue        = require("./server/pursue.js"),
     dataGenerators= require("./server/dataGenerators.js"),
-    anySocket     = null,
+
+    map           = require('./media/map.json'),
+    _             = require("underscore"),
+    
+    anySocket = null,
     users = [];
 
 
 /******** Requests *************/
-server.listen(8000);
-console.log('Wait for clients...');
+   server.listen(8000);
+   console.log('Wait for clients...');
 
-app.use('/client', express.static(__dirname + '/client'));
-app.use('/js', express.static(__dirname + '/js'));
-app.use('/media', express.static(__dirname + '/media'));
+   app.use('/client', express.static(__dirname + '/client'));
+   app.use('/js', express.static(__dirname + '/js'));
+   app.use('/media', express.static(__dirname + '/media'));
 
 
-app.get('/', function (req, res) {
-	res.sendfile(__dirname + '/client/client.html')
-});
+   app.get('/', function (req, res) {
+      res.sendfile(__dirname + '/client/client.html')
+   });
 
-app.get('/media/*', function (req, res) {
-    res.sendfile(__dirname + 'media/' + req.params[0]);
-});
+   app.get('/media/*', function (req, res) {
+       res.sendfile(__dirname + 'media/' + req.params[0]);
+   });
 /*******************************/
 
 
 /******** Variables ************/
 function sendDropUnitMove(unitsMove){
-	// Func for destroy dotted line at client side. Line would be
-	// destroyed if length of it will be 1. Cross will be destroyed if
-	// his coords are equal with target coords. So we will send mimic message
+   // Func for destroy dotted line at client side. Line would be
+   // destroyed if length of it will be 1. Cross will be destroyed if
+   // his coords are equal with target coords. So we will send mimic message
 
-	// At first, choose user's socket
-	var thisSocket;
-	for (var i=0; i<users.length; i++){
-		if (users[i].id == unitsMove.ownerSocketID){
-			thisSocket = users[i];
-			break;
-		}
-	}
+   // At first, choose user's socket
+   var thisSocket;
+   for (var i=0; i<users.length; i++){
+      if (users[i].id == unitsMove.ownerSocketID){
+         thisSocket = users[i];
+         break;
+      }
+   }
 
-	// Send mimic message
-	if (!thisSocket) return;
-	thisSocket.emit('dottedPathLine', {moveID: unitsMove.moveID,
-                                       color: "#000000",
-    				                   points: [[unitsMove.targetX, unitsMove.targetY]]});
+   // Send mimic message
+   if (!thisSocket) return;
+   thisSocket.emit('dottedPathLine', {moveID: unitsMove.moveID,
+                                      color: "#000000",
+                                      points: [[unitsMove.targetX, unitsMove.targetY]]});
 }
 
 function dropIndex(arr, i){
-	return arr.slice(0, i).concat(arr.slice(i+1, arr.length))
+   return arr.slice(0, i)
+          .concat(arr.slice(i+1, arr.length))
 }
 
-var maxMonsters = 0;
-var units = [];
-var playersUnitsMoving = [];
-var unitsMap = [];
-var abs = Math.abs;
+var monsters = [],
+    playersUnitsMoving = [],
+    unitsMap = [],
+    abs = Math.abs,
+    ENEMIES_SEARCH_RADIUS = 9,
+    MONSTERS_LIMIT = 3,
+    UNITS_LIMIT = 2,
+    hitPairs = [];
+
 for (var i=0; i<map.length; i++){
-	unitsMap.push([]);
-	for (var j=0; j<map[i].length; j++){
-		unitsMap[i][j] = 0;
-	}
+   unitsMap.push([]);
+   for (var j=0; j<map[i].length; j++){
+      unitsMap[i][j] = 0;
+   }
 }
-var ENEMIES_SEARCH_RADIUS = 6,
-    MONSTERS_LIMIT = 1;
 /*******************************/
 
 /* Monsters AI */
 setInterval(function(){
-	if (users.length)
-	{
-	/******* Monsters part *********/
-	// Chance to generate new unit
-	if (maxMonsters < MONSTERS_LIMIT) {
-		for (var i=0; i<MONSTERS_LIMIT; i++){
-			var unit = dataGenerators.createMonster();
-			if (movements.isMoveable(map, unitsMap, unit.x, unit.y)){
-				unitsMap[unit.x][unit.y] = unit.unitCode;
-				anySocket.emit('newUnit', unit);
-				units.push(unit);
-				maxMonsters += 1;
-			}
-		}
-	}
-	//console.log('[UNITS]',maxMonsters+playersUnitsMoving.length);
+   if (users.length)
+   {
 
-	// For every monster
-	for (var i=0; i<units.length; i++){
-		units[i].moving.serverUpd.untilCounter--;
-		if (units[i].moving.serverUpd.untilCounter == 0){
-			units[i].moving.serverUpd.untilCounter = units[i].moving.serverUpd.interval;
-			// arr[0] = true/false
-			// arr[1] = [x, y] if arr[0] is true. Else empty array
-			var unitIsNear_ = movements.unitIsNear(unitsMap, units[i].x, units[i].y, ENEMIES_SEARCH_RADIUS);
-			
-			if (unitIsNear_[0]){
-				var attackedUnitX = unitIsNear_[1][0],
-				    attackedUnitY = unitIsNear_[1][1],
-				    path = movements.shortestPathTo(map, unitsMap, units[i].x, units[i].y, attackedUnitX, attackedUnitY, 1, 1);
-				var dxdy = path[0],
-				    dx = dxdy[0],
-				    dy = dxdy[1],
-				    dottedLine = path[1];
+   // Generate new monster
+   if (monsters.length < MONSTERS_LIMIT) {
+      for (var i=0; i<MONSTERS_LIMIT; i++){
+         var monster = dataGenerators.createMonster();
+         if (kernel.isMoveable(map, unitsMap, monster.x, monster.y)){
+            unitsMap[monster.x][monster.y] = monster.unitCode;
+            console.log('okey new M');
+            anySocket.emit('newUnit', monster);
+            monsters.push(monster);
+         }
+      }
+   }
+
+   /*********** Monsters' AI *********/
+   for (var i=0; i<monsters.length; i++){
+      monsters[i].moving.serverUpd.untilCounter--;
+      // If monster has finished his move and ready for move now
+      if (monsters[i].moving.serverUpd.untilCounter == 0){
+         monsters[i].moving.serverUpd.untilCounter = monsters[i].moving.serverUpd.interval;
+         
+         var unitIsNear     = movements.unitIsNear(unitsMap, monsters[i].x, monsters[i].y, ENEMIES_SEARCH_RADIUS),
+             buildingIsNear  = movements.buildingIsNear(map, monsters[i].x, monsters[i].y, ENEMIES_SEARCH_RADIUS),
+             somethingCoords= ['_', '_'], 
+             somethingIsNear;
+         let stopRange, stopDottedLineRange;
+
+         // Following units is priority
+         if ((unitIsNear.instance && buildingIsNear.instance) || (unitIsNear.instance && !buildingIsNear.instance)){
+            somethingIsNear = true;
+            somethingCoords = [unitIsNear.x, unitIsNear.y];
+            stopRange = 1;
+            stopDottedLineRange = 1;  // 0 here is a root of the evil. It makes overlap monster on unit.
+         }else if (!unitIsNear.instance && buildingIsNear.instance){
+            somethingIsNear = true;
+            somethingCoords = [buildingIsNear.x, buildingIsNear.y];
+            stopRange = 1;
+            stopDottedLineRange = 1;
+         }else{
+            somethingIsNear = false;
+            stopRange = 0;
+            stopDottedLineRange = 0;
+         }
+
+         if (somethingIsNear){
+            var attackedUnitX = somethingCoords[0],
+                attackedUnitY = somethingCoords[1],
+                path = kernel.shortestPathTo(map, unitsMap, monsters[i].x, monsters[i].y, attackedUnitX, attackedUnitY, stopRange, stopDottedLineRange);
+
+            let dxdy = path[0],
+                dx = dxdy[0],
+                dy = dxdy[1],
+                dottedLine = path[1];
+
+            if (dx != 0 || dy != 0){
+              io.sockets.emit('moveUnit', {action: 'move',
+                                           id: monsters[i].id,
+                                           dx: dx, // blocks
+                                           dy: dy});
+              io.sockets.emit('dottedPathLine', {moveID: monsters[i].id, // id uses for moveID only here
+                                                 color: dataGenerators.randomRed(),
+                                                 points: dottedLine.slice(1, path[1].length)});
+
+              unitsMap = movements.verifyUnitMove(unitsMap, monsters[i].x, monsters[i].y, monsters[i].x + dx, monsters[i].y + dy, monsters[i].unitCode);
+
+              
+              // If monter is pursued and makes a step, we update his pursuers target coords
+              // (Update his (he is a target to some creatures) coords)
+              if (pursue.instance.pursued(monsters[i])){
+                playersUnitsMoving = pursue.update.pursuersTarget(monsters[i].x, 
+                                                                  monsters[i].y, 
+                                                                  monsters[i].x + dx,
+                                                                  monsters[i].y + dy,
+                                                                  playersUnitsMoving);
+              }
+              /*
+              // If monster pursue something and makes a step, we update his (pursuer) self coords
+              // Maybe M pursued building, and now it sees a unit, and start follow it
+              if (pursue.instance.pursuer(monsters[i])){
+                pursue.update.pursuerCoords(monsters[i].x,
+                                            monsters[i].y,
+                                            monsters[i].x+dx,
+                                            monsters[i].y+dy);
+              }else{
+                pursue.start.bePursuer({x: monsters[i].x+dx,
+                                        y: monsters[i].y+dy,
+                                        owner: 'no one'})
+              }
+              */
+
+              // If target is buildinga and isn't pursued, monster starts doing it
+              if (!pursue.instance.pursued({x: attackedUnitX, y: attackedUnitY}) &&
+                  buildingIsNear.instance){
+                   pursue.start.pursueBuilding({targetX: attackedUnitX,
+                                                targetY: attackedUnitY,
+                                                moveID: monsters[i].id,
+                                                owner: 'ARQ_Build'})
+
+              }
+
+            }else{   // Dxdy == 0!
+               // If path finding algorithm returns dxdy 0, it means that we are near 
+               // the target or we can't destinate it. Anyway, we haven't display dtl 
+               // for user (-> drop dtl)
+               sendDropUnitMove({targetX: monsters[i].x,
+                                 targetY: monsters[i].y,
+                                 moveID: monsters[i].id});
+               if (dottedLine){
+                  // So, we can't move closer to target, process next monster
+               }else{
+                  // Or we can't destinate target
+                  pursue.stop.bePursuer(monsters[i].x, monsters[i].y);
+               }
+            }
+
+            monsters[i].x += dx;
+            monsters[i].y += dy;
+            monsters[i].abs_x += dx;
+            monsters[i].abs_y += dy;
+            continue; // Process next monster
+            
+         }else{   // No one is near!
+            // If there is no unit nearby, maybe we lost it. So, this monster
+            // doesn't pursue anyone now
+            pursue.stop.bePursuer(monsters[i].x, monsters[i].y);
+            sendDropUnitMove({targetX: monsters[i].x,                      // Maybe bug with cross is here!
+                              targetY: monsters[i].y,
+                              moveID: monsters[i].id})
+
+            // Random move
+            let dx = _.random(-1, 1);
+            let dy = (dx == 0) ? _.random(-1, 1) : 0;
+
+            if (kernel.isMoveable(map, unitsMap, monsters[i].x + dx, monsters[i].y + dy)){
+               io.sockets.emit('moveUnit', {
+                                     action: 'move',
+                                     id: monsters[i].id,
+                                     dx: dx, // blocks
+                                     dy: dy});
+               unitsMap = movements.verifyUnitMove(unitsMap, monsters[i].x, monsters[i].y, monsters[i].x + dx, monsters[i].y + dy, monsters[i].unitCode);
+               
+               if (pursue.instance.pursued(monsters[i])){
+                  playersUnitsMoving = pursue.update.pursuersTarget(monsters[i].x, 
+                                                                    monsters[i].y, 
+                                                                    monsters[i].x + dx,
+                                                                    monsters[i].y + dy,
+                                                                    playersUnitsMoving);
+               }
+
+               monsters[i].x += dx;
+               monsters[i].y += dy;
+               monsters[i].abs_x += dx;
+               monsters[i].abs_y += dy;
+            }
+         }
+      }else{   // Monster is moving slowly and there isn't time for move it now
+         continue;
+      }
+   }
 
 
-				if (dx != 0 || dy != 0){
-					io.sockets.emit('moveUnit', {
-												 action: 'move',
-												 id: units[i].id,
-												 dx: dx, // blocks
-												 dy: dy});
-					io.sockets.emit('dottedPathLine', {moveID: units[i].id, // id uses for moveID only here
-						                               color: dataGenerators.randomRed(),
-						                               points: dottedLine});
+   /******* Player units part ********/
+   // Now do a step for all units which be sent off by player
+   for (var i=0; i<playersUnitsMoving.length; i++){
+      playersUnitsMoving[i].moving.serverUpd.untilCounter--;
+      if (playersUnitsMoving[i].moving.serverUpd.untilCounter == 0){
+         playersUnitsMoving[i].moving.serverUpd.untilCounter = playersUnitsMoving[i].moving.serverUpd.interval;
 
-					unitsMap = movements.verifyUnitMove(unitsMap, units[i].x, units[i].y, units[i].x + dx, units[i].y + dy, units[i].unitCode);
-				
-					if (playerActions.isPursued(units[i])){
-						playersUnitsMoving = playerActions.updatePursueTarget(units[i].x, 
-							                                                  units[i].y, 
-							                                                  units[i].x + dx,
-							                                                  units[i].y + dy,
-							                                                  playersUnitsMoving);
-					}
-				
-					units[i].x += dx;
-					units[i].y += dy;
-					units[i].abs_x += x;
-					units[i].abs_y += y;
-					continue;
-				}
-			}
+         var toX = playersUnitsMoving[i].targetX,
+             toY = playersUnitsMoving[i].targetY,
+             fromX = playersUnitsMoving[i].unitX,
+             fromY = playersUnitsMoving[i].unitY,
+             attack = playersUnitsMoving[i].attack,
+             attackedType = playersUnitsMoving[i].attackedType,
+             stopRange, stopDottedLineRange;
 
-			// Random move
-			var x = _.random(-1, 1);
-			var y = (x == 0) ? _.random(-1, 1) : 0;
+         if (!attack){
+            stopRange = 0;
+            stopDottedLineRange = 0;
+         }else if (attack && attackedType == 'unit'){
+            stopRange = 1;
+            stopDottedLineRange = 0;
+         }else if (attack && attackedType == 'building'){
+            stopRange = 1;         
+            stopDottedLineRange = 1;
+         }
+         
+         // Translate end point around Moor neighborhood
+         if (!kernel.isMoveable(map, unitsMap, toX, toY) && (Math.abs(toX-fromX)+Math.abs(toY-fromY)) <= stopRange){  // Maybe not need 
+            sendDropUnitMove(playersUnitsMoving[i]);
+            continue;   
+         }
+            /*var end_dx = _.random(-1, 1);
+            var end_dy = (end_dx == 0)? _.random(-1, 1) : 0;
+            if (kernel.isMoveable(map, unitsMap, toX+end_dx, toY+end_dy)){
+               sendDropUnitMove(playersUnitsMoving[i]);
+               toX += end_dx;
+               toY += end_dy;
+               console.log('Translate end point');
+            }else{
+               console.log('Deleted move with ID', playersUnitsMoving[i].moveID);
+               sendDropUnitMove(playersUnitsMoving[i]);
+               //playersUnitsMoving = dropIndex(playersUnitsMoving, i);
+               i--;
+               continue;
+            }
+         }*/
+         
+         
+         // Pop unit which destinates target
+         if (((abs(fromX - toX) + abs(fromY - toY)) == 0 && !attack) ||
+            ((abs(fromX - toX) + abs(fromY - toY)) <= stopRange &&  attack))
+         {
+            //console.log('Deleted move with ID', playersUnitsMoving[i].moveID);
+            sendDropUnitMove(playersUnitsMoving[i]);
+            playersUnitsMoving = dropIndex(playersUnitsMoving, i);
+            i--;
+            continue;
+         }
 
-			if (movements.isMoveable(map, unitsMap, units[i].x + x, units[i].y + y)){
-				io.sockets.emit('moveUnit', {
-											 action: 'move',
-											 id: units[i].id,
-											 dx: x, // blocks
-											 dy: y});
-				unitsMap = movements.verifyUnitMove(unitsMap, units[i].x, units[i].y, units[i].x + x, units[i].y + y, units[i].unitCode);
-				
-				if (playerActions.isPursued(units[i])){
-					playersUnitsMoving = playerActions.updatePursueTarget(units[i].x, 
-						                                                  units[i].y, 
-						                                                  units[i].x + x,
-						                                                  units[i].y + y,
-						                                                  playersUnitsMoving);
-				}
+         var path = kernel.shortestPathTo(map, unitsMap, fromX, fromY, toX, toY, stopRange, stopDottedLineRange);
+         var dxdy = path[0],
+             dottedLine = path[1];
 
-				units[i].x += x;
-				units[i].y += y;
-				units[i].abs_x += x;
-				units[i].abs_y += y;
-			}
-		}else{
-			continue;
-		}
-	}
+         if (dxdy[0] != 0 || dxdy[1] != 0){
+            // If we have a path, we send it to owner of unit. Path will be
+            // displayed as dotted line
+            for (var j=0; j<users.length; j++){
+                // Elements are sockets
+                if (users[j].id == playersUnitsMoving[i].ownerSocketID){
+                   if (dottedLine.length > 2){
+                     dottedLine = dottedLine.slice(1, dottedLine.length);
+                     users[j].emit('dottedPathLine', {moveID: playersUnitsMoving[i].moveID,
+                                                      color: playersUnitsMoving[i].lineColor,
+                                                      points: dottedLine});
+                     break;
+                   }
+                }
+             }
+
+             if (pursue.instance.pursued(playersUnitsMoving[i])){
+               playersUnitsMoving = pursue.update.pursuersTarget(playersUnitsMoving[i].unitX, 
+                                                                 playersUnitsMoving[i].unitY, 
+                                                                 playersUnitsMoving[i].unitX + dxdy[0],
+                                                                 playersUnitsMoving[i].unitY + dxdy[1],
+                                                                 playersUnitsMoving);
+            }
+            if (pursue.instance.pursuer(playersUnitsMoving[i])){
+               console.log('some pursuer');
+               pursue.update.pursuerCoords(playersUnitsMoving[i].unitX,
+                                           playersUnitsMoving[i].unitY,
+                                           playersUnitsMoving[i].unitX+dxdy[0],
+                                           playersUnitsMoving[i].unitY+dxdy[1])
+            }
+            
+
+             // And send move actually
+              io.sockets.emit('moveUnit', {action: 'move',
+                                           id: playersUnitsMoving[i].unitID,
+                                           dx: dxdy[0],
+                                           dy: dxdy[1]});
+
+              unitsMap = movements.verifyUnitMove(unitsMap, 
+                                                  playersUnitsMoving[i].unitX, 
+                                                  playersUnitsMoving[i].unitY, 
+                                                  playersUnitsMoving[i].unitX + dxdy[0], 
+                                                  playersUnitsMoving[i].unitY + dxdy[1], 
+                                                  playersUnitsMoving[i].unitMapCode);
+
+            playersUnitsMoving[i].unitX += dxdy[0];
+            playersUnitsMoving[i].unitY += dxdy[1];
+          
+          }else{
+             // If we haven't path
+             console.log('Dropped move with ID', playersUnitsMoving[i].moveID, 'cause of dxdy=0');
+             if (pursue.instance.pursuer(playersUnitsMoving[i])){
+                pursue.stop.bePursuer(playersUnitsMoving[i].unitX, playersUnitsMoving[i].unitY);
+             }
+             sendDropUnitMove(playersUnitsMoving[i]);
+             playersUnitsMoving = dropIndex(playersUnitsMoving, i);
+            i--;
+            continue;
+          }
+      }else{
+         continue;
+      }
+   }
 
 
-	/******* Player units part ********/
-	// Now do a step for all units which be sent off by player
-	for (var i=0; i<playersUnitsMoving.length; i++){
-		playersUnitsMoving[i].moving.serverUpd.untilCounter--;
-		if (playersUnitsMoving[i].moving.serverUpd.untilCounter == 0){
-			playersUnitsMoving[i].moving.serverUpd.untilCounter = playersUnitsMoving[i].moving.serverUpd.interval;
-
-			var toX = playersUnitsMoving[i].targetX,
-			    toY = playersUnitsMoving[i].targetY,
-			    fromX = playersUnitsMoving[i].unitX,
-			    fromY = playersUnitsMoving[i].unitY,
-			    attack = playersUnitsMoving[i].attack,
-			    attackedType = playersUnitsMoving[i].attackedType,
-			    stopRange, stopDottedLineRange;
-			
-			// Translate end point around Moor neighborhood
-			if (!movements.isMoveable(map, unitsMap, toX, toY) && (Math.abs(toX-fromX)+Math.abs(toY-fromY)) <= stopRange){  // Maybe not need 
-				var end_dx = _.random(-1, 1);
-				var end_dy = (end_dx == 0)? _.random(-1, 1) : 0;
-				if (movements.isMoveable(map, unitsMap, toX+end_dx, toY+end_dy)){
-					toX += end_dx;
-					toY += end_dy;
-					console.log('Translate end point');
-					sendDropUnitMove(playersUnitsMoving[i]);
-				}else{
-					console.log('Deleted move with ID', playersUnitsMoving[i].moveID);
-					sendDropUnitMove(playersUnitsMoving[i]);
-					playersUnitsMoving = dropIndex(playersUnitsMoving, i);
-					i--;
-					continue;
-				}
-			}
-			
-			
-			// Pop unit which destinates target
-			if (((abs(fromX - toX) + abs(fromY - toY)) == 0 && !attack) ||
-				((abs(fromX - toX) + abs(fromY - toY)) == 1 &&  attack))
-			{
-				//console.log('Deleted move with ID', playersUnitsMoving[i].moveID);
-				sendDropUnitMove(playersUnitsMoving[i]);
-				playerActions.stopPursueUnit(playersUnitsMoving[i].moveID);
-				playersUnitsMoving = dropIndex(playersUnitsMoving, i);
-				i--;
-				continue;
-			}
-
-			if (!attack){
-				stopRange = 0;
-				stopDottedLineRange = 0;
-			}else if (attack && attackedType == 'unit'){
-				stopRange = 1;
-				stopDottedLineRange = 0;
-			}else if (attack && attackedType == 'building'){
-				stopRange = 1;			
-				stopDottedLineRange = 1;
-			}
-
-			var path = movements.shortestPathTo(map, unitsMap, fromX, fromY, toX, toY, stopRange, stopDottedLineRange);
-			var dxdy = path[0],
-			    dottedLine = path[1];
-
-			if (dxdy[0] != 0 || dxdy[1] != 0){
-				// If we have a path, we send it to owner of unit. Path will be
-				// displayed as dotted line
-				for (var j=0; j<users.length; j++){
-	    			// Elements are sockets
-	    			if (users[j].id == playersUnitsMoving[i].ownerSocketID){
-	    				if (dottedLine.length > 2){
-	    				  dottedLine = dottedLine.slice(1, dottedLine.length);
-	    				  users[j].emit('dottedPathLine', {moveID: playersUnitsMoving[i].moveID,
-	    				  	                               color: playersUnitsMoving[i].lineColor,
-	    					                               points: dottedLine});
-	    				  break;
-	    				}
-	    			}
-	    		}
-
-	    		if (playerActions.isPursued(playersUnitsMoving[i])){
-					playersUnitsMoving = playerActions.updatePursueTarget(playersUnitsMoving[i].unitX, 
-						                                                  playersUnitsMoving[i].unitY, 
-						                                                  playersUnitsMoving[i].unitX + dxdy[0],
-						                                                  playersUnitsMoving[i].unitY + dxdy[1],
-						                                                  playersUnitsMoving);
-				}
-				
-
-	    		// And send move actually
-		        io.sockets.emit('moveUnit', {action: 'move',
-		                                     id: playersUnitsMoving[i].unitID,
-		                                     dx: dxdy[0],
-		                                     dy: dxdy[1]});
-
-		        unitsMap = movements.verifyUnitMove(unitsMap, 
-		        	                                playersUnitsMoving[i].unitX, 
-		        	                                playersUnitsMoving[i].unitY, 
-		        	                                playersUnitsMoving[i].unitX + dxdy[0], 
-		        	                                playersUnitsMoving[i].unitY + dxdy[1], 
-		        	                                playersUnitsMoving[i].unitMapCode);
-
-				playersUnitsMoving[i].unitX += dxdy[0];
-				playersUnitsMoving[i].unitY += dxdy[1];
-	    	
-	    	}else{
-	    		// If we haven't path
-	    		console.log('Dropped move with ID', playersUnitsMoving[i].moveID, 'cause of dxdy=0');
-	    		if (playerActions.isPursued(playersUnitsMoving[i])){
-	    			playerActions.stopPursueUnit(playersUnitsMoving[i].moveID);
-	    		}
-	    		sendDropUnitMove(playersUnitsMoving[i]);
-	    		playersUnitsMoving = dropIndex(playersUnitsMoving, i);
-				i--;
-				continue;
-	    	}
-		}else{
-			continue;
-		}
-	}
+   /********** Process hits **********/
+   let pursuers         = pursue.get.pursuers(),
+       pursuedBuildings = pursue.get.pursuedBuildings(),
+       pursuedCreatures = pursue.get.pursuedCreatures();
+   hitPairs = kernel.processHits(Math.abs,
+                                 pursuers,
+                                 pursuedBuildings,
+                                 pursuedCreatures);
 
 }}, 1000);
 
 
-/* Clients */
+/************** Network **************/
 io.sockets.on('connection', function(socket){
-	users.push(socket);
-	anySocket = socket;
-	console.log('[SERVER] +1 client');
+   users.push(socket);
+   anySocket = socket;
+   console.log('[SERVER] +1 client');
 
 
-	socket.emit('chat', {
-		name: 'Server',
-		message: 'Socket Established',
+   socket.emit('chat', {
+      name: 'Server',
+      message: 'Socket Established',
     });
-    // All units
-    for (var i=0; i<units.length; i++) {
-    socket.emit('newUnit', units[i])
+    // All monsters
+    for (var i=0; i<monsters.length; i++) {
+    socket.emit('newUnit', monsters[i])
     }
-    for (var i=0; i<3; i++){
-    	var hero = dataGenerators.createHero();
-    	unitsMap[hero.x][hero.y] = hero.unitCode;
-    	console.log('Create hero '+hero.x+' '+hero.y);
-	    socket.emit('newUnit', hero);
+    for (var i=0; i<UNITS_LIMIT; i++){
+       var hero = dataGenerators.createHero();
+       unitsMap[hero.x][hero.y] = hero.unitCode;
+       console.log('Create hero '+hero.x+' '+hero.y);
+       socket.emit('newUnit', hero);
     }
 
     socket.on('chat', function (data) {
-		socket.broadcast.emit('chat', {
-			name: data.name,
-			message: data.message
-		});
+      socket.broadcast.emit('chat', {
+         name: data.name,
+         message: data.message
+      });
         console.log("[CHAT] User "+ data.name + " sad '" + data.message + "'");
-	});
+   });
 
 
-	socket.on('verifyBuild', function(data){
-		map = playerActions.verifyBuild(map, socket, data.x, data.y, data.structureID);
-		// Save map
-		fs.writeFileSync('media/map.json', JSON.stringify(map));
-	});
+   socket.on('verifyBuild', function(data){
+      map = movements.verifyBuild(map, socket, data.x, data.y, data.structureID);
+      // Save map
+      fs.writeFileSync('media/map.json', JSON.stringify(map));
+   });
 
 
-	socket.on('sendOffUnit', function(data){
-		data.lineColor = dataGenerators.randomRed();
-		data.moveID = _.random(1000, 9000);
-		playerActions.startPursueUnit(data);
-		playersUnitsMoving.push(data);
-	});
+   socket.on('sendOffUnit', function(data){
+      data.lineColor = dataGenerators.randomRed();
+      data.moveID = data.unitID;
+      
+      if (data.attack){
+      
+         if (data.attackedType == 'building'){
+            pursue.start.pursueBuilding(data);
+         }else{  // Attacks unit
+            pursue.start.pursueCreature(data)
+         }
+      pursue.start.bePursuer(data);
+      }
+      playersUnitsMoving.push(data);
+   });
 
 
-	socket.on('stopMoveUnit', function(data){
-		console.log('[stopMoveUnit] -->', data);
-		for (var i=0; i<playersUnitsMoving.length; i++){
-			if (data.unitID == playersUnitsMoving[i].unitID){
-				playerActions.stopPursueUnit(playersUnitsMoving[i].moveID);
-				sendDropUnitMove(playersUnitsMoving[i]);
-				playersUnitsMoving = playersUnitsMoving.slice(0, i).concat(playersUnitsMoving.slice(i+1, playersUnitsMoving.length));
-			}
-		}
-	})
+   socket.on('stopMoveUnit', function(data){
+      console.log('[stopMoveUnit] -->', data);
+      for (var i=0; i<playersUnitsMoving.length; i++){
+         if (data.unitID == playersUnitsMoving[i].unitID){
+            pursue.stop.pursueCreature(playersUnitsMoving[i].moveID);
+            pursue.stop.pursueBuilding(playersUnitsMoving[i].moveID);
+            pursue.stop.bePursuer(playersUnitsMoving[i].unitX, playersUnitsMoving[i].unitY);
+            sendDropUnitMove(playersUnitsMoving[i]);
+            playersUnitsMoving = dropIndex(playersUnitsMoving, i);
+         }
+      }
+   })
 
 
-	socket.on('disconnect', function() {
-		console.log('[SERVER] Client disconnected');
-		// Delete socket from users
-		for (var i=0; i<users.length; i++){
-			if (users[i].id == socket.id){
-				users = users.slice(0, i).concat(users.slice(i+1, users.length));
-			}
-		}
-		if (!users.length){
-			anySocket = null;
-		}
-	})
+   socket.on('disconnect', function() {
+      console.log('[SERVER] Client disconnected');
+      // Delete socket from users
+      for (var i=0; i<users.length; i++){
+         if (users[i].id == socket.id){
+            users = dropIndex(users, i);
+         }
+      }
+      if (!users.length){
+         anySocket = null;
+      }
+   })
 })

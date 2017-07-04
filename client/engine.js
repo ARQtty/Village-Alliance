@@ -5,473 +5,462 @@ General application logic. It is planned to divide into parts
 $(function() {
 window.app = {
 
-	/**
-	Gets textures and map from server. Is an entry-point of client-part of the app
-	@method downloadWorld
-	*/
-	downloadWorld: function () {
-		$.when(
-			app.graphics.textures.download(
-				'/media/textures/grass.png',
-				app.graphics.textures.grass
-			),
-			app.graphics.textures.download(
-				'/media/textures/road.png',
-				app.graphics.textures.road
-			),
-			app.graphics.textures.download(
-				'/media/textures/terrain.png',
-				app.graphics.textures.terrain
-			),
-			app.graphics.textures.download(
-				'/media/textures/monsters.png',
-				app.graphics.textures.monsters
-			),
-			app.environment.downloadMap(),
-			app.environment.downloadData()
-		).done(function() {
-			console.info('Okey downloadWorld');
-			app.intialize();
-		});
-	},
+   /**
+   Gets textures and map from server. Is an entry-point of client-part of the app
+   @method downloadWorld
+   */
+   downloadWorld: function () {
+      $.when(
+         app.graphics.textures.download(
+            '/media/textures/grass.png',
+            app.graphics.textures.grass
+         ),
+         app.graphics.textures.download(
+            '/media/textures/terrain.png',
+            app.graphics.textures.terrain
+         ),
+         app.graphics.textures.download(
+            '/media/textures/monsters.png',
+            app.graphics.textures.monsters
+         ),
+         app.environment.downloadMap(),
+         app.environment.downloadData()
+      ).done(function() {
+         console.info('Okey downloadWorld');
+         app.intialize();
+      });
+   },
 
-	intialize: function() {
-		app.graphics.viewportCells = app.graphics.getViewport();
-		app.graphics.intialize();
-		app.keyBinds.init();
-		app.network.connectSocket();
-		app.network.bindEvents();
-		app.sprites.listenActions();
-		app.sprites.initGameLoop();
-		app.building.init();
-	},
+   intialize: function() {
+      app.graphics.viewportCells = app.graphics.getViewport();
+      app.graphics.intialize();
+      app.keyBinds.init();
+      app.network.connectSocket();
+      app.network.bindEvents();
+      app.sprites.listenActions();
+      app.sprites.initGameLoop();
+      app.building.init();
+   },
 
 
-	/**
+   /**
 
-	@memberof engine
-	@module environment
-	*/
-	environment: {
+   @memberof engine
+   @module environment
+   */
+   environment: {
 
-		map: {
-			data: []
-		},
+      map: {
+         data: []
+      },
 
 
-		/**
-		Gets textures descriptors from server
-		@method downloadData
-		*/
-		downloadData: function() {
+      /**
+      Gets textures descriptors from server
+      @method downloadData
+      */
+      downloadData: function() {
             return $.get('/media/data.json').pipe(function(data) {
-	            app.graphics.textures.descriptors = data;
-	            return true;
+               app.graphics.textures.descriptors = data;
+               return true;
             });
         },
 
 
         /**
         Gets array-like map from server. Also gets size of map
-		@method
+      @method
         */
         downloadMap: function() {
-        	return $.get('/media/map.json').pipe(function(data) {
-        		app.environment.map.sizeX = data.length;
-        		app.environment.map.sizeY = data[0].length;
-           		console.info('Map sizes: x='+data.length+' y='+data[0].length);
-	            app.environment.map.data = data;
-	            return true;
-      		})
-		},
+           return $.get('/media/map.json').pipe(function(data) {
+              app.environment.map.sizeX = data.length;
+              app.environment.map.sizeY = data[0].length;
+                 console.info('Map sizes: x='+data.length+' y='+data[0].length);
+               app.environment.map.data = data;
+               return true;
+            })
+      },
 
 
-		/**
-		Gets information about texture from it's ID. MAYBE USELESS
-		@method getTextureInfo
-		@param x {Integer}
-		@param y {Integer}
-		@return description {Object}
-		*/
-		getTextureInfo: function(x, y) {
-			var textureId = width.app.environment.getCellByPosition(x, y);
-			console.log(textureId);
-			return app.graphics.textures.descriptors[textureId]
-		},
+      /**
+      Gets information about texture from it's ID. MAYBE USELESS
+      @method getTextureInfo
+      @param x {Integer}
+      @param y {Integer}
+      @return description {Object}
+      */
+      getTextureInfo: function(x, y) {
+         var textureId = width.app.environment.getCellByPosition(x, y);
+         console.log(textureId);
+         return app.graphics.textures.descriptors[textureId]
+      },
 
 
-		/**
-		Gets cell value by click coordinates
-		@method getCellByPosition
-		@param top {Integer} Distance from top of window
-		@param left {Integer} Distance from left of window
-		@return cells[top][left] {Integer} Value of cell in this position 
-		*/
-		getCellByPosition: function(top, left) {
-			var topIndex = Math.floor(top / app.graphics.cellSize)
-			var leftIndex = Math.floor(left / app.graphics.cellSize)
-			
-			console.log('cells['+topIndex.toString()+']['+leftIndex.toString()+'] value='+app.graphics.cells[topIndex][leftIndex])
+      /**
+      Gets cell value by click coordinates
+      @method getCellByPosition
+      @param top {Integer} Distance from top of window
+      @param left {Integer} Distance from left of window
+      @return cells[top][left] {Integer} Value of cell in this position 
+      */
+      getCellByPosition: function(top, left) {
+         var topIndex = Math.floor(top / app.graphics.cellSize)
+         var leftIndex = Math.floor(left / app.graphics.cellSize)
+         
+         console.log('cells['+topIndex.toString()+']['+leftIndex.toString()+'] value='+app.graphics.cells[topIndex][leftIndex])
 
-			return app.graphics.cells[topIndex][leftIndex]
-		},
-
-
-		/**
-		Gets cells coordinates from mouse click coordinates
-		@method getCellCoords
-		@param x {Integer} Distance in pixels from left of window
-		@param y {Integer} Distance in pixels from top of window
-		@return [xIndex, yIndex] {Array} Indexes of cell in world map
-		*/
-		getCellCoords: function(x, y) {
-			var xIndex = Math.floor(x / app.graphics.cellSize);
-			var yIndex = Math.floor(y / app.graphics.cellSize);
-			return [xIndex, yIndex]
-		}
-	},
+         return app.graphics.cells[topIndex][leftIndex]
+      },
 
 
-	/**
-
-	@module graphics
-	*/
-	graphics: {
-		cellSize: 32,
-		x1: 0,
-		y1: 0,
-		x2: Math.ceil(document.body.clientWidth  / 32),
-		y2: Math.ceil(document.body.clientHeight / 32),
-		viewportCells: [],
-		cells: [],
-		
-		cellsInRow: Math.ceil(document.body.clientWidth  / 32),
-		cellsInColumn: Math.ceil(document.body.clientHeight / 32),
-
-		canvas: document.getElementById('game'),
-
-		textures: {
-			grass: new Image(),
-			road: new Image(),
-			terrain: new Image(),
-			monsters: new Image(),
-			descriptors: {
-				terrain: null,
-				monsters: null
-			},
-
-			/**
-			Mappings texture data from a server with code objects 
-			of theese textures
-			@method download
-			@param url {String} Path to file on server
-			@param texture {Object} Object for write in data from url
-			@return Promise {Object} Deferred download object
-			*/		
-			download: function(url, texture) {
-				var d = $.Deferred();
-				texture.src = url;
-				texture.onload = function() { d.resolve(); }
-				texture.onerror = function() { d.reject(); }
-				return d.promise();
-			}
-		},
+      /**
+      Gets cells coordinates from mouse click coordinates
+      @method getCellCoords
+      @param x {Integer} Distance in pixels from left of window
+      @param y {Integer} Distance in pixels from top of window
+      @return [xIndex, yIndex] {Array} Indexes of cell in world map
+      */
+      getCellCoords: function(x, y) {
+         var xIndex = Math.floor(x / app.graphics.cellSize);
+         var yIndex = Math.floor(y / app.graphics.cellSize);
+         return [xIndex, yIndex]
+      }
+   },
 
 
-		/**
-		Cuts a piece of the world map array that is in the visibility zone on the screen
-		@method getViewport
-		@return cells {Array} The visible part of world map
-		*/
-		getViewport: function() {
-			var viewCells = [];
+   /**
 
-			for (var x = app.graphics.x1; x<app.graphics.x2; x++){
-				viewCells.push([]);
-				for (var y=app.graphics.y1; y<app.graphics.y2; y++){
-					viewCells[viewCells.length - 1].push(app.environment.map.data[x][y]);
-				}
-			}
-			app.graphics.cells = viewCells;
-			return viewCells
-		},
+   @module graphics
+   */
+   graphics: {
+      cellSize: 32,
+      x1: 0,
+      y1: 0,
+      x2: Math.ceil(document.body.clientWidth  / 32),
+      y2: Math.ceil(document.body.clientHeight / 32),
+      viewportCells: [],
+      cells: [],
+      
+      cellsInRow: Math.ceil(document.body.clientWidth  / 32),
+      cellsInColumn: Math.ceil(document.body.clientHeight / 32),
 
+      canvas: document.getElementById('game'),
 
-		/**
-		Covers the game field with surface textures
-		@method fillMap
-		@todo Need only a pattern for grass and road is needed?
-		*/
-		fillMap: function() {
-			console.log('fillMap!');
-			/* terrain drawing */
-			var context = app.graphics.canvas.getContext('2d');
-			
-			app.graphics.canvas.width = document.body.clientWidth;
-			app.graphics.canvas.height = document.body.clientHeight;
-			// Cells representation
-			var cells = app.graphics.viewportCells;
-			var cSize = app.graphics.cellSize;
+      textures: {
+         grass: new Image(),
+         terrain: new Image(),
+         monsters: new Image(),
+         descriptors: {
+            terrain: null,
+            monsters: null
+         },
 
-			// Most popular patterns
-			var grass = context.createPattern(app.graphics.textures.grass, 'repeat');
-			var road  = context.createPattern(app.graphics.textures.road, 'repeat');
-
-			for (var x = 0; x < cells.length; x++){
-				for (var y = 0; y < cells[x].length; y++){
-					var cellValue = cells[x][y];
-
-					if (cellValue == 0) {
-						// grass pattern
-						context.fillStyle = grass;
-						context.fillRect(x * cSize, y * cSize, cSize, cSize);
-
-					}else if (cellValue == 1) {
-						// road pattern
-						context.fillStyle = road;
-						context.fillRect(x * cSize, y * cSize, cSize, cSize);				
-
-					}else{
-						var texture = app.graphics.textures.terrain;
-						context.drawImage(texture,			// Image
-										  0,       			// sx
-										  cellValue * cSize,// sy
-										  cSize, 			// sWidth
-										  cSize,			// sHeight
-										  x * cSize,		// dx
-										  y * cSize, 		// dy
-										  cSize, 			// dWidth
-										  cSize);			// dHeight
-					}
-				}
-			}
-
-			
-
-			// Draw goHere crosses
-			var crosses = app.unitsControl.visual.crosses;
-			for (var i=0; i<crosses.length; i++){
-				var x = crosses[i].x, 
-				    y = crosses[i].y;
-				app.unitsControl.visual.drawCross(x, y);
-			}
-
-			// Draw select squares
-			var squares = app.unitsControl.visual.selectSquares;
-			for (var i=0; i<squares.length; i++){
-				var x = squares[i].x, 
-				    y = squares[i].y;
-				app.unitsControl.visual.drawGreenSquare(x, y);
-			}
-
-			// Draw dotted lines
-			var dtl = app.unitsControl.visual.dottedLines;
-			for (var l=0; l<dtl.length; l++){
-				context.beginPath();
-				context.lineWidth = 2;
-				context.setLineDash([7, 17]);
-				context.strokeStyle = dtl[l].color;
-				context.moveTo((dtl[l].points[0][0] - app.graphics.x1) * cSize + cSize/2, 
-					           (dtl[l].points[0][1] - app.graphics.y1) * cSize + cSize/2);
-				
-				for (var i=1; i<dtl[l].points.length; i++){
-					context.lineTo((dtl[l].points[i][0] - app.graphics.x1) * cSize + cSize/2, 
-						           (dtl[l].points[i][1] - app.graphics.y1) * cSize + cSize/2);
-				}
-				
-				context.stroke();
-			}
-			
-
-			// Delete finished pathes and crosses of it
-			for (var i=0; i<dtl.length; i++){    // MAYBE MOVE TO OTHER MODULE
-				if (dtl[i].points.length == 1){
-					// Del cross
-					for (var j=0; j<crosses.length; j++){
-						var lastInd = dtl[i].points.length - 1;
-						if (crosses[j].x == dtl[i].points[lastInd][0] &&
-							crosses[j].y == dtl[i].points[lastInd][1]){
-							app.unitsControl.visual.crosses = crosses.slice(0, j).concat(crosses.slice(j+1, crosses.length));
-							break;
-						}
-					}
-					// Del line
-					console.log('Short line #'+i);
-					app.unitsControl.visual.dottedLines = dtl.slice(0, i).concat(dtl.slice(i+1, dtl.length));
-					i--;
-					dtl = app.unitsControl.visual.dottedLines;
-				}
-			}
-		},
+         /**
+         Mappings texture data from a server with code objects 
+         of theese textures
+         @method download
+         @param url {String} Path to file on server
+         @param texture {Object} Object for write in data from url
+         @return Promise {Object} Deferred download object
+         */      
+         download: function(url, texture) {
+            var d = $.Deferred();
+            texture.src = url;
+            texture.onload = function() { d.resolve(); }
+            texture.onerror = function() { d.reject(); }
+            return d.promise();
+         }
+      },
 
 
-		/**
-		Builds structure in cell with coords x, y
-		@method fillCellWithTexture
-		@param x {Integer} X-index of cell in world map array
-		@param y {Integer} Y-index of cell in world map array
-		@param textureId {Integer} Code of object which be written to world map
-		*/
-		fillCellWithTexture: function(x, y, textureId) {
-			app.environment.map.data[y + app.graphics.x1][x + app.graphics.y1] = textureId;
-			app.graphics.fillMap()
-		},
+      /**
+      Cuts a piece of the world map array that is in the visibility zone on the screen
+      @method getViewport
+      @return cells {Array} The visible part of world map
+      */
+      getViewport: function() {
+         var viewCells = [];
 
-		intialize: function() {
-			app.graphics.fillMap();
-			console.info('Okey intialize graphics');
-		}
-	},
+         for (var x = app.graphics.x1; x<app.graphics.x2; x++){
+            viewCells.push([]);
+            for (var y=app.graphics.y1; y<app.graphics.y2; y++){
+               viewCells[viewCells.length - 1].push(app.environment.map.data[x][y]);
+            }
+         }
+         app.graphics.cells = viewCells;
+         return viewCells
+      },
 
 
-	/**
+      /**
+      Covers the game field with surface textures
+      @method fillMap
+      @todo Need only a pattern for grass and road is needed?
+      */
+      fillMap: function() {
+         console.log('fillMap!');
+         /* terrain drawing */
+         var context = app.graphics.canvas.getContext('2d');
+         
+         app.graphics.canvas.width = document.body.clientWidth;
+         app.graphics.canvas.height = document.body.clientHeight;
+         // Cells representation
+         var cells = app.graphics.viewportCells;
+         var cSize = app.graphics.cellSize;
 
-	@module chat
-	*/
-	chat: {
-		chatPanel: document.getElementById('messagefield'),
-		$output: $('#messages'),
+         // Most popular patterns
+         var grass = context.createPattern(app.graphics.textures.grass, 'repeat');
+
+         for (var x = 0; x < cells.length; x++){
+            for (var y = 0; y < cells[x].length; y++){
+               var cellValue = cells[x][y];
+
+               if (cellValue == 0) {
+                  // grass pattern
+                  context.fillStyle = grass;
+                  context.fillRect(x * cSize, y * cSize, cSize, cSize);
+
+               }else{
+                  var texture = app.graphics.textures.terrain;
+                  context.drawImage(texture,         // Image
+                                0,                // sx
+                                cellValue * cSize,// sy
+                                cSize,          // sWidth
+                                cSize,         // sHeight
+                                x * cSize,      // dx
+                                y * cSize,       // dy
+                                cSize,          // dWidth
+                                cSize);         // dHeight
+               }
+            }
+         }
+
+         
+
+         // Draw goHere crosses
+         var crosses = app.unitsControl.visual.crosses;
+         for (var i=0; i<crosses.length; i++){
+            var x = crosses[i].x, 
+                y = crosses[i].y;
+            app.unitsControl.visual.drawCross(x, y);
+         }
+
+         // Draw select squares
+         var squares = app.unitsControl.visual.selectSquares;
+         for (var i=0; i<squares.length; i++){
+            var x = squares[i].x, 
+                y = squares[i].y;
+            app.unitsControl.visual.drawGreenSquare(x, y);
+         }
+
+         // Draw dotted lines
+         var dtl = app.unitsControl.visual.dottedLines;
+         for (var l=0; l<dtl.length; l++){
+            context.beginPath();
+            context.lineWidth = 2;
+            context.setLineDash([7, 17]);
+            context.strokeStyle = dtl[l].color;
+            context.moveTo((dtl[l].points[0][0] - app.graphics.x1) * cSize + cSize/2, 
+                          (dtl[l].points[0][1] - app.graphics.y1) * cSize + cSize/2);
+            
+            for (var i=1; i<dtl[l].points.length; i++){
+               context.lineTo((dtl[l].points[i][0] - app.graphics.x1) * cSize + cSize/2, 
+                             (dtl[l].points[i][1] - app.graphics.y1) * cSize + cSize/2);
+            }
+            
+            context.stroke();
+         }
+         
+
+         // Delete finished pathes and crosses of it
+         for (var i=0; i<dtl.length; i++){    // MAYBE MOVE TO OTHER MODULE
+            if (dtl[i].points.length == 1){
+               // Del cross
+               for (var j=0; j<crosses.length; j++){
+                  var lastInd = dtl[i].points.length - 1;
+                  if (crosses[j].x == dtl[i].points[lastInd][0] &&
+                     crosses[j].y == dtl[i].points[lastInd][1]){
+                     app.unitsControl.visual.crosses = crosses.slice(0, j).concat(crosses.slice(j+1, crosses.length));
+                     break;
+                  }
+               }
+               // Del line
+               console.log('Short line #'+i);
+               app.unitsControl.visual.dottedLines = dtl.slice(0, i).concat(dtl.slice(i+1, dtl.length));
+               i--;
+               dtl = app.unitsControl.visual.dottedLines;
+            }
+         }
+      },
+
+
+      /**
+      Builds structure in cell with coords x, y
+      @method fillCellWithTexture
+      @param x {Integer} X-index of cell in world map array
+      @param y {Integer} Y-index of cell in world map array
+      @param textureId {Integer} Code of object which be written to world map
+      */
+      fillCellWithTexture: function(x, y, textureId) {
+         app.environment.map.data[y + app.graphics.x1][x + app.graphics.y1] = textureId;
+         app.graphics.fillMap()
+      },
+
+      intialize: function() {
+         app.graphics.fillMap();
+         console.info('Okey intialize graphics');
+      }
+   },
+
+
+   /**
+
+   @module chat
+   */
+   chat: {
+      chatPanel: document.getElementById('messagefield'),
+      $output: $('#messages'),
         $input: $('#message-input'),
 
 
         /**
-		Sends text from the chat input line to the server
+      Sends text from the chat input line to the server
         @method sendMessage
         */
         sendMessage: function() {
-				var message = app.chat.$input.val();
-				app.chat.$input.val('');
-				app.chat.message('P1', message);
-				app.network.send.chat(message);
+            var message = app.chat.$input.val();
+            app.chat.$input.val('');
+            app.chat.message('P1', message);
+            app.network.send.chat(message);
         },
 
 
         /**
         Enter button is controling chatPanel.
-		Show if hidden, hide if showing and it hasn't any message. 
-		Sending message if there is some text in form
-		@method toggle
-		*/
-		toggle: function() {
-			if (app.chat.chatPanel.style.display == 'block'){
-			
-				if (app.chat.$input.val() != ''){ app.chat.sendMessage() }
-				else{ app.chat.chatPanel.style.display = 'none' }
-			
-			}else{ app.chat.chatPanel.style.display = 'block' }
-		},
+      Show if hidden, hide if showing and it hasn't any message. 
+      Sending message if there is some text in form
+      @method toggle
+      */
+      toggle: function() {
+         if (app.chat.chatPanel.style.display == 'block'){
+         
+            if (app.chat.$input.val() != ''){ app.chat.sendMessage() }
+            else{ app.chat.chatPanel.style.display = 'none' }
+         
+         }else{ app.chat.chatPanel.style.display = 'block' }
+      },
 
 
-		/**
-		Shows message in chat panel. Filter for avoiding XSS attacks
-		@method message
-		@param who {String} Name of person which sended message
-		@param message {String} Text of the message
-		*/
-		message: function(who, message) {
-			/* Defence from XSS */
-			message = message.replace(/&/g, "&amp;").replace(/>/g, "&gt;").replace(/</g, "&lt;").replace(/"/g, "&quot;");
+      /**
+      Shows message in chat panel. Filter for avoiding XSS attacks
+      @method message
+      @param who {String} Name of person which sended message
+      @param message {String} Text of the message
+      */
+      message: function(who, message) {
+         /* Defence from XSS */
+         message = message.replace(/&/g, "&amp;").replace(/>/g, "&gt;").replace(/</g, "&lt;").replace(/"/g, "&quot;");
             who = who.replace(/&/g, "&amp;").replace(/>/g, "&gt;").replace(/</g, "&lt;").replace(/"/g, "&quot;");
             app.chat.$output
                 .append("<div module='message'><span module='username'>" + who + ": </span><span module='content'>" + message + "</span></div>")
-		}
-	},
+      }
+   },
 
 
-	/**
+   /**
 
-	@module network
-	*/
-	network: {
-		socket: null,
-		socketName: null,
-
-
-		/**
-		Creates socket object.
-		@method connectSocket
-		*/
-		connectSocket: function() {
-			app.network.socket = io.connect(window.document.location.protocol + "//" + window.document.location.host);
-		},
-
-		send: {
-			chat: function(message) {
-				app.network.socket.emit('chat', {
-					name: 'Someone happy',
-					message: message
-				});
-			}
-		},
-
-		/**
-		Bind "chat" socket event for delegating message displaying
-		on module:network:connectSocket
-		*/
-		bindEvents: function() {
-			var socket = app.network.socket;
-
-			socket.on('chat', function (data) {
-				app.chat.message(data.name, data.message);
-			});
-
-			socket.on('socketName', function (name) {
-				app.network.socketName = name;
-			});
-
-			socket.on('newBuild', function(data) {
-				app.building.placeStructure(data.x, 
-					                        data.y, 
-					                        data.code);
-			})
-		}
-	},
-
-	/**
-
-	@module keyBinds
-	*/
-	keyBinds: {
-
-		init: function() {
-			$(document).keydown(app.keyBinds.keyboardHandler);
-		},
+   @module network
+   */
+   network: {
+      socket: null,
+      socketName: null,
 
 
-		/**
-		Catches keypress events and run appropriate functions
-		@method keyboardHandler
-		@param e {Event} Keypress event
-		*/
-		keyboardHandler: function(e) {
-			if (e.keyCode == 13){
-				/* Enter */
-				app.chat.toggle();
+      /**
+      Creates socket object.
+      @method connectSocket
+      */
+      connectSocket: function() {
+         app.network.socket = io.connect(window.document.location.protocol + "//" + window.document.location.host);
+      },
 
-			/* Move viewport */
-			}else if (e.keyCode == 38){
-				app.moveViewport.moveUp();
-				e.preventDefault();
-			}else if (e.keyCode == 39){
-				app.moveViewport.moveRight();
-				e.preventDefault();
-			}else if (e.keyCode == 40){
-				app.moveViewport.moveDown();
-				e.preventDefault();
-			}else if (e.keyCode == 37){
-				app.moveViewport.moveLeft();
-				e.preventDefault();
+      send: {
+         chat: function(message) {
+            app.network.socket.emit('chat', {
+               name: 'Someone happy',
+               message: message
+            });
+         }
+      },
 
-			}else if (e.keyCode == 192 || e.keyCode == 0){
-				// ` or ё key
-				e.preventDefault();
-				app.moveViewport.displayMap()
+      /**
+      Bind "chat" socket event for delegating message displaying
+      on module:network:connectSocket
+      */
+      bindEvents: function() {
+         var socket = app.network.socket;
 
-			}else{
-				console.log('Unbinded keyCode "'+e.keyCode+'"')
-			}
-		}
-	}
+         socket.on('chat', function (data) {
+            app.chat.message(data.name, data.message);
+         });
+
+         socket.on('socketName', function (name) {
+            app.network.socketName = name;
+         });
+
+         socket.on('newBuild', function(data) {
+            app.building.placeStructure(data.x, 
+                                       data.y, 
+                                       data.code);
+         })
+      }
+   },
+
+   /**
+
+   @module keyBinds
+   */
+   keyBinds: {
+
+      init: function() {
+         $(document).keydown(app.keyBinds.keyboardHandler);
+      },
+
+
+      /**
+      Catches keypress events and run appropriate functions
+      @method keyboardHandler
+      @param e {Event} Keypress event
+      */
+      keyboardHandler: function(e) {
+         if (e.keyCode == 13){
+            /* Enter */
+            app.chat.toggle();
+
+         /* Move viewport */
+         }else if (e.keyCode == 38){
+            app.moveViewport.moveUp();
+            e.preventDefault();
+         }else if (e.keyCode == 39){
+            app.moveViewport.moveRight();
+            e.preventDefault();
+         }else if (e.keyCode == 40){
+            app.moveViewport.moveDown();
+            e.preventDefault();
+         }else if (e.keyCode == 37){
+            app.moveViewport.moveLeft();
+            e.preventDefault();
+
+         }else if (e.keyCode == 192 || e.keyCode == 0){
+            // ` or ё key
+            e.preventDefault();
+            app.moveViewport.displayMap()
+
+         }else{
+            console.log('Unbinded keyCode "'+e.keyCode+'"')
+         }
+      }
+   }
 };
 app.downloadWorld();
 });

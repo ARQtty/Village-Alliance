@@ -4,7 +4,7 @@
 		{
 			"name": "Road",
 			"transitable": true,
-			"decription": "an old road. Perhaps even the Romans walked on it",
+			"description": "an old road. Perhaps even the Romans walked on it",
 			"HP" : null,
 			"XP": null,
 			"Reward": null,
@@ -13,7 +13,7 @@
 		{
 			"name": "Water",
 			"transitable": false,
-			"decription": "water. No one knows what is in the deep...",
+			"description": "water. No one knows what is in the deep...",
 			"HP": null,
 			"XP": null,
 			"Reward": null,
@@ -22,17 +22,24 @@
 		{
 			"name": "House",
 			"transitable": false,
-			"decription": "village house. Inside it is always fed and sheltered at night",
+			"description": "village house. Inside it is always fed and sheltered at night",
 			"HP": 100,
 			"XP": 20,
 			"Reward": 200,
 			"avatar": "house"
-		}
+		},
+		{   "name": "Enemy house",
+		    "transitable": false,
+		    "description": "some house to attack",
+		    "HP": 110,
+		    "XP": 30,
+		    "Reward": 100,
+		    "avatar": "house3"}
 	],
 	"monsters": [
 		{	"name": "Zombie",
 			"transitable": false,
-			"decription": "zombie. It smells like shit",
+			"description": "zombie. It smells like shit",
 			"HP": null,
 			"XP": null,
 			"Reward": 15,
@@ -40,7 +47,7 @@
 		},
 		{	"name": "Snake",
 			"transitable": false,
-			"decription": "snake. Slippery and disgusting",
+			"description": "snake. Slippery and disgusting",
 			"HP": null,
 			"XP": null,
 			"Reward": 30,

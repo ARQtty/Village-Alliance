@@ -18,8 +18,7 @@ colorCodes = { (255, 255, 255): 0, # grass
                (151, 62, 53):   1, # road
                (15, 154, 255):  2, # water
                (76, 255, 0):    3, # house
-               (255, 0, 0):     4, # zombie
-               (255, 216, 0):   5} # snake
+               (250, 210, 0):   4} # enemy house
 
 
 with open('media/map.json', 'w') as jsonMap:
@@ -30,11 +29,11 @@ with open('media/map.json', 'w') as jsonMap:
         
         try:
           # Don't forget to crop brightness part (4th in tuple)
-        	row = [colorCodes[mapPixels[i, x][:-1]] for x in range(sizeY)]
+           row = [colorCodes[mapPixels[i, x][:-1]] for x in range(sizeY)]
         except KeyError:
           for j in range(sizeY):
             if mapPixels[i, j][:-1] not in colorCodes.keys():
-            	raise parsingException('Error at parsing map image at (%d, %d). Pixel value is %s' % (i, j, str(mapPixels[i, j])))
+               raise parsingException('Error at parsing map image at (%d, %d). Pixel value is %s' % (i, j, str(mapPixels[i, j])))
 
         # If first string        
         if i == 0:

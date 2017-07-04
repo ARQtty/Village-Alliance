@@ -1,76 +1,76 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<title>RTS</title>
-	<script type="text/javascript" src="/js/jquery-2.1.0.js"></script>
-	<script type="text/javascript" src="/js/socket.io.js"></script>
-	<script type="text/javascript" src="/client/engine.js"></script>
-	<script type="text/javascript" src="/client/drawingEngine.js"></script>
-	<script type="text/javascript" src="/client/moveEngine.js"></script>
-	<script type="text/javascript" src="/client/spriteEngine.js"></script>
-	<script type="text/javascript" src="/client/unitsControlEngine.js"></script>
-	<script type="text/javascript" src="/client/client.js"></script>
-	<link rel="stylesheet" type="text/css" href="/client/client.css">
-	<script type="text/javascript">
-		document.addEventListener("contextmenu", function(event){
-			event.preventDefault();
-		}, false);
-	</script>
+   <title>RTS</title>
+   <script type="text/javascript" src="/js/jquery-2.1.0.js"></script>
+   <script type="text/javascript" src="/js/socket.io.js"></script>
+   <script type="text/javascript" src="/client/engine.js"></script>
+   <script type="text/javascript" src="/client/drawingEngine.js"></script>
+   <script type="text/javascript" src="/client/moveEngine.js"></script>
+   <script type="text/javascript" src="/client/spriteEngine.js"></script>
+   <script type="text/javascript" src="/client/unitsControlEngine.js"></script>
+   <script type="text/javascript" src="/client/client.js"></script>
+   <link rel="stylesheet" type="text/css" href="/client/client.css">
+   <script type="text/javascript">
+      document.addEventListener("contextmenu", function(event){
+         event.preventDefault();
+      }, false);
+   </script>
 </head>
 <body>
 
-	<div id="messagefield">
-		<div id="messages"></div>
-			<input id="message-input" placeholder="Message <Enter>" maxlength="100" autofocus/>
-		</div>
-	</div>
+   <div id="messagefield">
+      <div id="messages"></div>
+         <input id="message-input" placeholder="Message <Enter>" maxlength="100" autofocus/>
+      </div>
+   </div>
 
 
-	<div id="mapDecorator">
-		<div id="minimap" class="panel">
-			<div id="viewport">
-			</div>
-		</div>
-	</div>
+   <div id="mapDecorator">
+      <div id="minimap" class="panel">
+         <div id="viewport">
+         </div>
+      </div>
+   </div>
 
 
-	<div id="resourcesPanel" class="panel beautyBorder"></div>
+   <div id="resourcesPanel" class="panel beautyBorder"></div>
 
 
-	<div id="buildPanel" class="panel beautyBorder">
-			
-		<input id="houseButton" class="buildButton" type="button" value="house" onclick="window.app.building.chooseStruct(this.value);">
-		<br><br>
+   <div id="buildPanel" class="panel beautyBorder">
+         
+      <input id="houseButton" class="buildButton" type="button" value="house" onclick="window.app.building.chooseStruct(this.value);">
+      <br><br>
 
-		<input id="roadButton" class="buildButton" type="button" value="road" onclick="window.app.building.chooseStruct(this.value);">
-		<br><br>
+      <input id="roadButton" class="buildButton" type="button" value="road" onclick="window.app.building.chooseStruct(this.value);">
+      <br><br>
 
-		<input id="waterButton" class="buildButton" type="button" value="water" onclick="window.app.building.chooseStruct(this.value);">
+      <input id="waterButton" class="buildButton" type="button" value="water" onclick="window.app.building.chooseStruct(this.value);">
 
-		<input id="cancel" class="buildButton cancel" type="button" value="cancel" onclick="window.app.building.abortBuild();">
+      <input id="cancel" class="buildButton cancel" type="button" value="cancel" onclick="window.app.building.abortBuild();">
 
-	</div>
-
-
-	<div id="selectPanel" class="panel beautyBorder">
-		<div id="s_avatar">
-		</div>
-		<div id="s_selectInfo">
-			<span id="s_name"></span>
-			<span id="s_description"></span>
-			<span id="s_HP"></span>
-			<span id="s_XP"></span>
-			<span id="s_Gold"></span>
-		</div>
-	</div>
+   </div>
 
 
-	<canvas id="game"></canvas>
+   <div id="selectPanel" class="panel beautyBorder">
+      <div id="s_avatar">
+      </div>
+      <div id="s_selectInfo">
+         <span id="s_name"></span>
+         <span id="s_description"></span>
+         <span id="s_HP"></span>
+         <span id="s_XP"></span>
+         <span id="s_Gold"></span>
+      </div>
+   </div>
 
 
-	<div id="triangleUp" 	class="triangle" onclick="window.app.moveViewport.moveUp();"></div>
-	<div id="triangleRight" class="triangle" onclick="window.app.moveViewport.moveRight();"></div>
-	<div id="triangleDown"  class="triangle" onclick="window.app.moveViewport.moveDown();"></div>
-	<div id="triangleLeft"  class="triangle" onclick="window.app.moveViewport.moveLeft();"></div>
+   <canvas id="game"></canvas>
+
+
+   <div id="triangleUp"    class="triangle" onclick="window.app.moveViewport.moveUp();"></div>
+   <div id="triangleRight" class="triangle" onclick="window.app.moveViewport.moveRight();"></div>
+   <div id="triangleDown"  class="triangle" onclick="window.app.moveViewport.moveDown();"></div>
+   <div id="triangleLeft"  class="triangle" onclick="window.app.moveViewport.moveLeft();"></div>
 </body>
 </html>

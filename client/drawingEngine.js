@@ -118,11 +118,13 @@ window.app.building = {
          console.log('Хочу создать юнита на '+cellX+', '+cellY);
          app.network.socket.emit('verifyUnit',  {x: cellX,
                                                  y: cellY,
+                                                 owner: 'ARQ',
                                                  unitID: app.building.buildingKey});
       }else{
          console.log('Хочу строить на '+cellX+', '+cellY);
          app.network.socket.emit('verifyBuild', {x: cellX, 
-                                                 y: cellY, 
+                                                 y: cellY,
+                                                 owner: 'ARQ',
                                                  structureID: app.building.buildingKey});
       }
    },

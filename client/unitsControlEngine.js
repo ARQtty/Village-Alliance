@@ -68,8 +68,6 @@ window.app.unitsControl = {
    */
    selectUnit: function(unit){
       (function drawSquare(){
-         // CHECK FOR NEED2MOVE. DONT SELECT MOVING UNITS!!!!!!!!
-
          // Check for already select of this unit
          var selected = app.unitsControl.visual.selectSquares;
          for (var i=0; i<selected.length; i++){
@@ -97,17 +95,19 @@ window.app.unitsControl = {
          
 
          app.unitsControl.visual.selectSquares.push({x: unit.abs_x,
-                                                    y: unit.abs_y,
-                                                    id: unit.id,
-                                                    unitCode: unit.unitCode,
-                                                    socketID: app.network.socket.id,
-                                                    moving: {
-                                                       serverUpd:{
+                                                     y: unit.abs_y,
+                                                     id: unit.id,
+                                                     unitCode: unit.unitCode,
+                                                     unitOwner: 'ARQ',
+                                                     socketID: app.network.socket.id,
+                                                     moving: {
+                                                        serverUpd:{
                                                           untilCounter: unit.moving.serverUpd.untilCounter,
                                                           interval: unit.moving.serverUpd.interval
-                                                       }
-                                                    }});
+                                                        }
+                                                     }});
       })();
+      console.log(app.unitsControl.visual.selectSquares);
    },
 
 
@@ -129,7 +129,7 @@ window.app.unitsControl = {
       var selectedUnits = app.unitsControl.visual.selectSquares;
       var attack = false,
           attackedType,
-          owner;
+          attackerOwner, attackedOwner;
 
       // Don't place cross if we haven't select any heros
       if (!selectedUnits.length) return;
@@ -140,37 +140,43 @@ window.app.unitsControl = {
       if (unitHere){
          attack = true;
          attackedType = 'unit';
-         owner = 'notARQ';
+         attackedOwner = 'notARQ';
          console.log('Attack!')
       }else if (typeof buildingHere == 'number'){
           attack = true;
           attackedType = 'building';
-          owner = (buildingHere == 4)? 'notARQ':'ARQ';
+          attackedOwner = (buildingHere == 4)? 'notARQ':'ARQ';
           console.log('Attack!')
+      }else{
+          attack = false;
+          attackedType = 'nothing';
+          console.log('Attack nothing!');
       }
 
       for (var i=0; i<selectedUnits.length; i++){
-          app.network.socket.emit('sendOffUnit', {unitX: selectedUnits[i].x,
-                                                  unitY: selectedUnits[i].y,
+          app.network.socket.emit('sendOffUnit', {x: selectedUnits[i].x,
+                                                  y: selectedUnits[i].y,
                                                   targetX: coords[0],
                                                   targetY: coords[1],
+
                                                   attack: attack,
                                                   attackedType: attackedType,
-                                                  attackedObjOwner: owner,
+                                                  attackedOwner: attackedOwner,
                                                   attackerOwner: 'ARQ',
+                                                 
                                                   unitID: selectedUnits[i].id,
                                                   unitMapCode: selectedUnits[i].unitCode,
                                                   ownerSocketID: app.network.socket.id,
                                                   moving: {
                                                     serverUpd:{
                                                        untilCounter: selectedUnits[i].moving.serverUpd.untilCounter,
-                                                       interval: selectedUnits[i].moving.serverUpd.interval
+                                                       interval:     selectedUnits[i].moving.serverUpd.interval
                                                     }
-                                                 }});
+                                                  }});
       }
       // We have sent off selected units. Removing select and placing cross
       app.unitsControl.visual.selectSquares = [];
-      if (!attack){
+      if (attackedType == 'nothing'){
          app.unitsControl.visual.crosses.push({x: coords[0],
                                                y: coords[1]});
       }

@@ -1,12 +1,14 @@
 {
   "name": "Village-Alliance",
-  "version": "0.6.4",
+  "version": "0.6.6",
   "description": "Real time multiplayer strategy stylized like village",
   "main": "server.js",
   "dependencies": {
     "express": "~4.15.2",
     "http": "~0.0.0",
-    "socket.io": "~1.7.3"
+    "socket.io": "~1.7.3",
+    "heap": "~0.2.6",
+    "underscore": "~1.8.3"
   },
   "devDependencies": {},
   "scripts": {

@@ -73,6 +73,7 @@ module.exports = {
 
                for (var k=0; k<playerUnitCodes.length; k++){
                   if (unitsMap[x+i][y+j] == playerUnitCodes[k]){
+                     console.log('Unit is near');
                      return {instance: true, 
                             x: x+i, 
                             y: y+j}
@@ -104,6 +105,7 @@ module.exports = {
 
                for (var k=0; k<playerBuildingCodes.length; k++){
                   if (map[x+i][y+j] == playerBuildingCodes[k]){
+                     console.log('building is near');
                      return {instance: true, 
                             x: x+i, 
                             y: y+j}

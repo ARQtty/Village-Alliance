@@ -1,10 +1,13 @@
 var _ = require("underscore");
 
-module.exports = {
+var herosCounter = 0;
+var monstersCounter = 0;
+
+var dataGens = module.exports = {
    serverUpdInterval: 1, // seconds
 
    createMonster: function(){
-      var coords = [_.random(0, 20), _.random(0, 20)];
+      var coords = [_.random(5, 5), _.random(2, 2)];
       var HP = _.random(100, 350);
       var randomMob = _.random(0, 2);
       switch (randomMob) {
@@ -47,9 +50,11 @@ module.exports = {
                   y: coords[1],
                   abs_x: coords[0],
                   abs_y: coords[1],
-                  id: _.random(10000, 50000),
+                  id: dataGens.randomId('monster', Name.toLowerCase()),
                   textureType: textureType,
                   unitCode: unitCode,
+                  owner: 'noone',
+                  pursuers: [],
                   info: {
                      Name: Name,
                      avatar: avatar,
@@ -77,18 +82,19 @@ module.exports = {
    },
 
 
-   createHero: function(x, y){
+   createHero: function(x, y, heroOwner){
       var coords = [_.random(0, 20), _.random(0, 20)];
-      if (x !== undefined && y !== undefined) coords = [x, y];
+      if (typeof x == 'number' && typeof y == 'number') coords = [x, y];
       var HP = _.random(100, 350);
       var hero = {x: coords[0],
                   y: coords[1],
                   abs_x: coords[0],
                   abs_y: coords[1],
-                  id: _.random(60000, 90000),
+                  id: dataGens.randomId('hero', 'knight'),
                   textureType: 2,
                   unitCode: 7,
-                  owner: "ARQ",
+                  owner: heroOwner || 'someone',
+                  pursuers: [],
                   info: {
                      Name: "Knight",
                      avatar: "Knight.png",
@@ -131,5 +137,27 @@ module.exports = {
                      fifth[_.random(0, fifth.length-1)] +
                        six[_.random(0, six.length-1)];
       return color;
+   },
+
+   randomId: function(creatureType, creatureName){
+      var nums = '0123456789',
+          alph = 'qwertyuiopasdfghjklzxcvbnm',
+          id;
+
+      var randLtr = function(){return _.random(0, alph.length-1)},
+          randNum = function(){return _.random(0, nums.length-1)};
+
+      switch (creatureType){
+         case 'monster':
+            id =  'm_'+ creatureName[0] + '_00' + monstersCounter;
+            monstersCounter++;
+            break;
+
+         case 'hero':
+            id =  'h_'+ creatureName[0] + '_00' + herosCounter;
+            herosCounter++;
+            break;
+      }
+      return id
    }
 }

@@ -1,3 +1,4 @@
+'use strict';
 var pursuedCreaturesCoords = [],
     pursuedBuildingsCoords = [],
     pursuers = [];
@@ -7,160 +8,118 @@ function dropIndex(array, i){
              .concat(array.slice(i+1, array.length))
 }
 
-module.exports = {
+var pursue = module.exports = {
 
-   start:{
-      pursueBuilding: function(moveData){
-            console.log('[PL_ACTIONS] Start pursuing building');
-            for (var i=0; i<pursuedBuildingsCoords.length; i++){
-               if (moveData.targetX == pursuedBuildingsCoords[i].x && moveData.targetY == pursuedBuildingsCoords[i].y){
-                  return
-               }
-            }
-            pursuedBuildingsCoords.push({x: moveData.targetX,
-                                         y: moveData.targetY,
-                                         moveID: moveData.moveID,
-                                         owner: moveData.attackedObjOwner})
-            // TODO -> define owner of building when it puresued by monster
-      },
-      pursueCreature: function(moveData){
-            var pursued = pursuedCreaturesCoords;
-            for (var i=0; i<pursued.length; i++){
-               if ((moveData.targetX == pursued[i].x && moveData.targetY == pursued[i].y) ||
-                  (moveData.x       == pursued[i].x && moveData.y       == pursued[i].y))   
-                  { console.log('already pursued');return }
-            }
-            console.log('Start pursue');
-
-            var owner = moveData.attackedObjOwner || moveData.owner;
-            var x = moveData.targetX || moveData.x,
-                y = moveData.targetY || moveData.y;
-
-            pursuedCreaturesCoords.push({x: x,
-                                         y: y,
-                                         moveID: moveData.moveID,
-                                         owner: owner});
-            console.log('Lets pursue')      
-      },
-      bePursuer: function(moveData){
-         if (moveData.unitX){   // Is unit
-            pursuers.push({x: moveData.unitX,
-                           y: moveData.unitY,
-                           owner: moveData.attackerOwner})
-                           //moveID: moveData.moveID})
-         }else{                 // is monster
-            pursuers.push({x: moveData.x,
-                           y: moveData.y,
-                           owner: moveData.owner})
-                           //moveData: moveData.moveID})
+   // Mark attacked unit as pursued by unit with this id
+   startPursue: function(x, y, id, owner, monsters, units, buildings){
+      console.log('Start pursue');
+      for (let k=0; k<units.length; k++){
+         if (x == units[k].x && y == units[k].y){
+            console.log('new units pursuer '+id); 
+            units[k].pursuers.push({id: id, pursuerOwner: owner});
+            return {monsters: monsters, units: units, buildings: buildings}
          }
       }
+      for (let k=0; k<monsters.length; k++){
+         if (x == monsters[k].x && y == monsters[k].y){
+            console.log('new monsters pursuer '+id); 
+            monsters[k].pursuers.push({id: id, pursuerOwner: owner});
+            return {monsters: monsters, units: units, buildings: buildings}
+         }
+      }
+      for (let k=0; k<buildings.length; k++){
+         if (x == buildings[k].x && y == buildings[k].y){
+            console.log('new buildings pursuer '+id); 
+            buildings[k].pursuers.push({id: id, pursuerOwner: owner});
+            return {monsters: monsters, units: units, buildings: buildings}
+         }
+      }
+      return {monsters: monsters, units: units, buildings: buildings}
    },
 
-   stop:{
-      pursueBuilding: function(moveID){ // Not by moveID?
-         for (var i=0; i<pursuedBuildingsCoords.length; i++){
-            if (pursuedBuildingsCoords[i].moveID == moveID){
-               console.log('[PL_ACTIONS] Stop pursue building {'+pursuedBuildingsCoords[i].x+', '+pursuedBuildingsCoords[i].y+'}');
-               pursuedBuildingsCoords = dropIndex(pursuedBuildingsCoords, i);
-               return true
-            }
-         }
-         return false
-      },
-      pursueCreature: function(moveID){
-         for (var i=0; i<pursuedCreaturesCoords.length; i++){
-            if (pursuedCreaturesCoords[i].moveID == moveID){
-               console.log('[PL_ACTIONS] Stop pursue creature {'+pursuedCreaturesCoords[i].x+', '+pursuedCreaturesCoords[i].y+'}');
-               pursuedCreaturesCoords = dropIndex(pursuedCreaturesCoords, i);
-               return true  // Maybe not returning anything
-            }
-         }
-         return false
-      },
-      bePursuer: function(x, y){
-         for (var i=0; i<pursuers.length; i++){
-            if (x == pursuers[i].x && y == pursuers[i].y){
-               pursuers = dropIndex(pursuers, i);
-               console.log('Stop pursuing');
-               return
-            }
+   inPursuers: function(creature, id){
+      if (creature.pursuers.length){
+         for (var q=0; q<creature.pursuers.length; q++){
+            if (creature.pursuers[q] == id) console.log(id, 'in pursuers');return {instance: true, index: q};
          }
       }
+      return {instance: false}
+   },
+
+   stopPursue: function(unitID, monsters, units, buildings){
+      // Decrement pursued unit pursue counter by deleting
+      // his pursue's id from it's pursuers property array
+
+      console.log('stopPursue');
+      for (var i=0; i<units.length; i++){
+         // in units
+         let hasPursuedUnit = pursue.inPursuers(units[i], unitID);
+         if (hasPursuedUnit.instance){
+            console.log(unitID,'in units pursuers');
+            units[i].pursuers = dropIndex(units[i].pursuers, hasPursuedUnit.index);
+            //return {monsters: monsters, units: units, buildings: buildings}
+         }
+      }
+      for (var i=0; i<monsters.length; i++){
+         // in monsters
+         let hasPursuedMonster = pursue.inPursuers(monsters[i], unitID);
+         if (hasPursuedMonster.instance){
+            console.log(unitID,'in monsters pursuers');
+            monsters[i].pursuers = dropIndex(monsters[i].pursuers, hasPursuedMonster.index);
+            //return {monsters: monsters, units: units, buildings: buildings}
+         }
+      }
+      for (var i=0; i<buildings.length; i++){
+         // in monsters
+         let hasPursuedBuilding = pursue.inPursuers(buildings[i], unitID);
+         if (hasPursuedBuilding.instance){
+            console.log(unitID,'in buildings    pursuers');
+            buildings[i].pursuers = dropIndex(buildings[i].pursuers, hasPursuedBuilding.index);
+            //return {monsters: monsters, units: units, buildings: buildings}
+         }
+      }
+      console.log(unitID,'cannot stop pursue target cause cannot find himself in pursuers');
+      return {monsters: monsters, units: units, buildings: buildings}
    },
    
    instance: {
+
+      // Search creature with x y coords in all of creatures
       pursued: function(creature){
-         for (var i=0; i<pursuedCreaturesCoords.length; i++){
-            if ((creature.x       == pursuedCreaturesCoords[i].x && creature.y       == pursuedCreaturesCoords[i].y) ||   // For monster -> Monster
-                (creature.targetX == pursuedCreaturesCoords[i].x && creature.targetY == pursuedCreaturesCoords[i].y))     // For unit    -> Monster   
-            { return true }
-         }
-         for (var i=0; i<pursuedBuildingsCoords.length; i++){
-            if ((creature.x       == pursuedBuildingsCoords[i].x && creature.y       == pursuedBuildingsCoords[i].y) ||   // For monster -> Monster
-                (creature.targetX == pursuedBuildingsCoords[i].x && creature.targetY == pursuedBuildingsCoords[i].y))     // For unit    -> Monster   
-            { return true }
-         }
+         if (creature.pursuers.length) return true;
          return false
       },
-      pursuer: function(creature){
 
-         for (var i=0; i<pursuers.length; i++){
-            if ((creature.x       == pursuers[i].x && creature.y       == pursuers[i].y) ||
-               (creature.unitX == pursuers[i].x && creature.unitY == pursuers[i].y))
-            { return true }
+      // Search creature with targetX targetY in all creatures
+      pursuer: function(id, monsters, units, buildings){
+         for (var i=0; i<monsters.length; i++){
+            if (pursue.inPursuers(monsters[i], id).instance) return true
          }
-         return false
+         for (var i=0; i<units.length; i++){
+            if (pursue.inPursuers(units[i], id).instance) return true
+         }
+         for (var i=0; i<buildings.length; i++){
+            if (pursue.inPursuers(buildings[i], id).instance) return true
+         }
       }
    },
 
    update: {
-      pursuersTarget: function(oldTargetX, oldTargetY, newTargetX, newTargetY, pursuersGameLoopUnits){
-         // Inside update
-         for (var i=0; i<pursuedCreaturesCoords.length; i++){
-            if (pursuedCreaturesCoords[i].x == oldTargetX && pursuedCreaturesCoords[i].y == oldTargetY){
-               pursuedCreaturesCoords[i].x = newTargetX;
-               pursuedCreaturesCoords[i].y = newTargetY;
-            }
-            console.log('[PL_ACTIONS] Okey update pursuedCreaturesCoords');
-         }
-
-         // Outside update
-         for (var i=0; i<pursuersGameLoopUnits.length; i++){
-            if (pursuersGameLoopUnits[i].targetX == oldTargetX && pursuersGameLoopUnits[i].targetY == oldTargetY){
-               pursuersGameLoopUnits[i].targetX = newTargetX;
-               pursuersGameLoopUnits[i].targetY = newTargetY;
-               console.log('[PL_ACTIONS] Okey update pursuersGameLoopUnits');
+      pursuersTarget: function(oldTargetX, oldTargetY, newTargetX, newTargetY, monsters, units){
+         for (var i=0; i<monsters.length; i++){
+            if (monsters[i].targetX == oldTargetX && monsters[i].targetY == oldTargetY){
+               monsters[i].targetX = newTargetX;
+               monsters[i].targetY = newTargetY;
             }
          }
-         return pursuersGameLoopUnits
-      },
-      pursuerCoords: function(oldX, oldY, newX, newY){
-         // Inside update
-         for (var i=0; i<pursuers.length; i++){
-            if (pursuers[i].x == oldX && pursuers[i].y == oldY){
-               pursuers[i].x = newX;
-               pursuers[i].y = newY;
-               console.log('[PL_ACTIONS] Okey update pursuers');
-               return
+         for (var i=0; i<units.length; i++){
+            if (units[i].targetX == oldTargetX && units[i].targetY == oldTargetY){
+               units[i].targetX = newTargetX;
+               units[i].targetY = newTargetY;
             }
          }
-         return
-      }
-   },
-
-   get: {
-      pursuers: function(){
-
-         return pursuers
-      },
-      pursuedBuildings: function(){
-
-         return pursuedBuildingsCoords
-      },
-      pursuedCreatures: function(){
-
-         return pursuedCreaturesCoords
+         return {monsters: monsters,
+                 units: units}
       }
    }
 }

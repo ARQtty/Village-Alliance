@@ -51,7 +51,7 @@ window.onload = function() {
    function showSpriteDescr(sprite) {
       selectPanel.style.display = 'block';
       s_avatar.innerHTML = '<img src="/media/textures/'+sprite['info']['avatar']+'" style="width: 5vw;"/>';
-      s_name.innerHTML = '<b>Name</b>: '+sprite['info']['Name'];
+      s_name.innerHTML = '<b>Name</b>: '+sprite['owner'];
       s_description.innerHTML = '<b>It is</b> '+sprite['info']['description'];
       s_HP.innerHTML = '<b>HP</b>: '+sprite['characts']['HP'];
       s_XP.innerHTML = '<b>XP</b>: '+sprite['characts']['XP'];

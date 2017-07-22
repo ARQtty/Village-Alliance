@@ -42,12 +42,28 @@ with open('media/map.json', 'w') as jsonMap:
         for b in range(len(row)):
           if row[b] >= 3:   # Is building
             ID = str(random.randint(10000, 50000))
+            owner = '"ARQ"' if row[b] == 3 else '"SomeOne"'
             if firstStrFlag:
-              buildings.write('{"x": %s,\n  "y": %s,\n  "id": %s,\n  "pursuers": [],\n  "code": %s\n}\n' % (i, b, ID, row[b]))
+              buildings.write(str(
+                               '{"x":  %s,\n'+
+                              '  "y":  %s,\n'+
+                              '  "id": %s,\n'+
+                              '  "owner": %s,\n'+
+                              '  "pursuers": [],\n'+
+                              '  "code": %s,\n'+
+                              '  "characts": {"HP": 300}\n'+
+                               '}\n') % (i, b, ID, owner, row[b]))
               firstStrFlag = False
             else:
-              buildings.write(',{"x": %s,\n  "y": %s,\n  "id": %s,\n  "pursuers": [],\n  "code": %s\n}\n' % (i, b, ID, row[b]))
-
+              buildings.write(str(
+                              ',{"x":  %s,\n'+
+                              '  "y":  %s,\n'+
+                              '  "id": %s,\n'+
+                              '  "owner": %s,\n'+
+                              '  "pursuers": [],\n'+
+                              '  "code": %s,\n'+
+                              '  "characts": {"HP": 300}\n'+
+                               '}\n') % (i, b, ID, owner, row[b]))
 
         # If first string        
         if i == 0:

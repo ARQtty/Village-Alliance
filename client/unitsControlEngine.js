@@ -127,7 +127,7 @@ window.app.unitsControl = {
       coords[1] += app.graphics.y1;
       var sprites = app.sprites.coords;
       var selectedUnits = app.unitsControl.visual.selectSquares;
-      var attack = false,
+      var attack,
           attackedType,
           attackerOwner, attackedOwner;
 
@@ -141,15 +141,16 @@ window.app.unitsControl = {
          attack = true;
          attackedType = 'unit';
          attackedOwner = 'notARQ';
-         console.log('Attack!')
+         console.log('Attack unit!')
       }else if (typeof buildingHere == 'number'){
           attack = true;
           attackedType = 'building';
           attackedOwner = (buildingHere == 4)? 'notARQ':'ARQ';
-          console.log('Attack!')
+          console.log('Attack building!')
       }else{
           attack = false;
           attackedType = 'nothing';
+          attackedOwner = 'world';
           console.log('Attack nothing!');
       }
 

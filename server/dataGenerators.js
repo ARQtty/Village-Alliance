@@ -7,7 +7,7 @@ var dataGens = module.exports = {
    serverUpdInterval: 1, // seconds
 
    createMonster: function(){
-      var coords = [_.random(5, 5), _.random(2, 2)];
+      var coords = [_.random(5, 5), _.random(5, 5)];
       var HP = _.random(100, 350);
       var randomMob = _.random(0, 2);
       switch (randomMob) {
@@ -15,6 +15,7 @@ var dataGens = module.exports = {
          case 0:
             var textureType = 0,
                 unitCode = 2,
+                damage = 50,
                 Name = 'Zombie',
                 avatar = 'zombie.png',
                 description = 'smelly decayed zombie. It can infect you',
@@ -26,6 +27,7 @@ var dataGens = module.exports = {
          case 1:
              textureType = 1,
              unitCode = 1,
+             damage = 100,
              Name = 'Snake',
              avatar = 'snake.png',
              description = 'slippery, creeping fucking creature. Poisonous',
@@ -37,6 +39,7 @@ var dataGens = module.exports = {
          case 2:
             textureType = 3,
             unitCode = 3,
+            damage = 150,
             Name = 'Octopus',
             avatar = 'octopus.png',
             description = 'octopus. Its tentacles will crawl into all your holes',
@@ -46,39 +49,40 @@ var dataGens = module.exports = {
              interval = 4;
             break;
       }
-      var unit = {x: coords[0],
-                  y: coords[1],
-                  abs_x: coords[0],
-                  abs_y: coords[1],
-                  id: dataGens.randomId('monster', Name.toLowerCase()),
-                  textureType: textureType,
-                  unitCode: unitCode,
-                  owner: 'noone',
-                  pursuers: [],
-                  info: {
-                     Name: Name,
-                     avatar: avatar,
-                     description: description
-                  },
-                  characts: {
-                     HP: HP,
-                     XP: Math.ceil(0.35 * HP),
-                     Reward: HP - 50
-                  },
-                  moving: {
-                     direction: 1,
-                     dirVariant: 0,
-                     speed: speed, // px/s
-                     need2Move: false,
-                     need2MoveX: 0,
-                     need2MoveY: 0,
-                     serverUpd: {
-                        untilCounter: untilCounter,
-                        interval: interval
-                     }
+      var monster =  {x: coords[0],
+                      y: coords[1],
+                      abs_x: coords[0],
+                      abs_y: coords[1],
+                      id: dataGens.randomId('monster', Name.toLowerCase()),
+                      textureType: textureType,
+                      unitCode: unitCode,
+                      owner: 'noone',
+                      pursuers: [],
+                      info: {
+                         Name: Name,
+                         avatar: avatar,
+                         description: description
+                      },
+                      characts: {
+                         HP: HP,
+                         XP: Math.ceil(0.35 * HP),
+                         Reward: HP - 50,
+                         damage: damage
+                      },
+                      moving: {
+                         direction: 1,
+                         dirVariant: 0,
+                         speed: speed, // px/s
+                         need2Move: false,
+                         need2MoveX: 0,
+                         need2MoveY: 0,
+                         serverUpd: {
+                            untilCounter: untilCounter,
+                            interval: interval
+                         }
+                      }
                   }
-              }
-      return unit
+      return monster
    },
 
 
@@ -103,7 +107,8 @@ var dataGens = module.exports = {
                   characts: {
                      HP: HP,
                      XP: Math.ceil(0.65 * HP),
-                     Reward: HP + 50
+                     Reward: HP + 50,
+                     damage: 250
                   },
                   moving: {
                      direction: 4,

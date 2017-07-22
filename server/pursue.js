@@ -12,7 +12,6 @@ var pursue = module.exports = {
 
    // Mark attacked unit as pursued by unit with this id
    startPursue: function(x, y, id, owner, monsters, units, buildings){
-      console.log('Start pursue');
       for (let k=0; k<units.length; k++){
          if (x == units[k].x && y == units[k].y){
             console.log('new units pursuer '+id); 
@@ -40,7 +39,7 @@ var pursue = module.exports = {
    inPursuers: function(creature, id){
       if (creature.pursuers.length){
          for (var q=0; q<creature.pursuers.length; q++){
-            if (creature.pursuers[q] == id) console.log(id, 'in pursuers');return {instance: true, index: q};
+            if (creature.pursuers[q].id == id) return {instance: true, index: q};
          }
       }
       return {instance: false}
@@ -49,13 +48,13 @@ var pursue = module.exports = {
    stopPursue: function(unitID, monsters, units, buildings){
       // Decrement pursued unit pursue counter by deleting
       // his pursue's id from it's pursuers property array
-
-      console.log('stopPursue');
+      console.log('stopPursue for '+unitID);
       for (var i=0; i<units.length; i++){
          // in units
          let hasPursuedUnit = pursue.inPursuers(units[i], unitID);
          if (hasPursuedUnit.instance){
             console.log(unitID,'in units pursuers');
+            //console.log(hasPursuedUnit.index);
             units[i].pursuers = dropIndex(units[i].pursuers, hasPursuedUnit.index);
             //return {monsters: monsters, units: units, buildings: buildings}
          }
@@ -84,7 +83,6 @@ var pursue = module.exports = {
    
    instance: {
 
-      // Search creature with x y coords in all of creatures
       pursued: function(creature){
          if (creature.pursuers.length) return true;
          return false
@@ -106,6 +104,7 @@ var pursue = module.exports = {
 
    update: {
       pursuersTarget: function(oldTargetX, oldTargetY, newTargetX, newTargetY, monsters, units){
+         console.log('Update target ['+oldTargetX+','+oldTargetY+'] -> ['+newTargetX+','+newTargetY+']');
          for (var i=0; i<monsters.length; i++){
             if (monsters[i].targetX == oldTargetX && monsters[i].targetY == oldTargetY){
                monsters[i].targetX = newTargetX;

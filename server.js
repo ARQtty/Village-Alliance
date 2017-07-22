@@ -52,7 +52,6 @@ function sendDropUnitMove(targetX, targetY, unitID, sockId){
    for (var i=0; i<users.length; i++){
       if (users[i].id == sockId){
          thisSocket = users[i];
-         console.log('Find owner socket ', targetX, targetY, unitID);
          break;
       }
    }
@@ -71,13 +70,15 @@ function dropIndex(arr, i){
 
 function unsetAttackFlags(unit){
    var attackProps = ['targetX', 'targetY', 
-                      'attack', 'attackOn', 
+                      'attack', 'attackOn',
                       'attackedOwner', 'attackerOwner', 
                       'ownerSocketID'];
    for (var i=0; i<attackProps.length; i++){
       let prop = attackProps[i];
-      delete unit[prop]
+      //delete unit[prop]
+      unit[prop] = null;
    }
+
    return unit
 }
 
@@ -98,9 +99,9 @@ var monsters  = [],
     units     = [],
     unitsMap  = [],
     
-    ENEMIES_SEARCH_RADIUS = 3,
-    MONSTERS_LIMIT        = 1,
-    UNITS_LIMIT           = 1,
+    ENEMIES_SEARCH_RADIUS = 5,
+    MONSTERS_LIMIT        = 2,
+    UNITS_LIMIT           = 0,
 
     abs = Math.abs;
 
@@ -136,23 +137,13 @@ setInterval(function(){
          var hero = dataGenerators.createHero('', '', 'autogen hero');
          if (kernel.isMoveable(map, unitsMap, hero.x, hero.y)){
             unitsMap[hero.x][hero.y] = hero.unitCode;
-            console.log('okey new U');
+            console.log('okey new U'+hero.id);
             anySocket.emit('newUnit', hero);
             anySocket.broadcast.emit('newUnit', hero)
             units.push(hero);
          }
       }
    }
-
-   try{
-    console.log(monsters[0].pursuers, monsters[0].id);
-    console.log(units[0].pursuers, units[0].id);
-    for (var i=0; i<buildings.length; i++){
-      if (buildings[i].pursuers.length) console.log(buildings[i].pursuers);
-    }
-    console.log('--');    
-   }catch(e){}
-
 
    /*********** Monsters' AI *********/
    for (var i=0; i<monsters.length; i++){
@@ -166,8 +157,6 @@ setInterval(function(){
              somethingCoords = ['_', '_'], 
              somethingIsNear;
          let stopRange, stopDottedLineRange;
-
-         console.log("Nears: "+unitIsNear.instance, buildingIsNear.instance);
 
          // Following units is priority
          if ((unitIsNear.instance &&  buildingIsNear.instance) || (unitIsNear.instance && !buildingIsNear.instance)){
@@ -193,7 +182,6 @@ setInterval(function(){
               units    = tmp.units;
               buildings= tmp.buildings;
             }
-            console.log('somethingIsNear');
             var attackedUnitX = somethingCoords[0],
                 attackedUnitY = somethingCoords[1],
                 path = kernel.shortestPathTo(map, unitsMap, monsters[i].x, monsters[i].y, attackedUnitX, attackedUnitY, stopRange, stopDottedLineRange);
@@ -317,7 +305,6 @@ setInterval(function(){
       }
    }
 
-
    /******* Player units part ********/
    // Now do a step for all units which be sent off by player
    for (var i=0; i<units.length; i++){
@@ -333,16 +320,16 @@ setInterval(function(){
              attackedType = units[i].attackedType,
              stopRange, stopDottedLineRange;
 
-         if (!attack){
+         if (!toX){
             sendDropUnitMove(toX, toY, units[i].id, units[i].ownerSocketID);
             continue
-         }else if (attack && attackedType == 'nothing'){
+         }else if (attackedType == 'nothing'){
             stopRange = 0;
             stopDottedLineRange = 0;
-         }else if (attack && attackedType == 'unit'){
+         }else if (attackedType == 'unit'){
             stopRange = 1;
             stopDottedLineRange = 0;
-         }else if (attack && attackedType == 'building'){
+         }else if (attackedType == 'building'){
             stopRange = 1;         
             stopDottedLineRange = 1;
          }
@@ -354,20 +341,20 @@ setInterval(function(){
             continue;
          }
             /*var end_dx = _.random(-1, 1);
-            var end_dy = (end_dx == 0)? _.random(-1, 1) : 0;
-            if (kernel.isMoveable(map, unitsMap, toX+end_dx, toY+end_dy)){
-               sendDropUnitMove(units[i]);
-               toX += end_dx;
-               toY += end_dy;
-               console.log('Translate end point');
-            }else{
-               console.log('Deleted move with ID', units[i].moveID);
-               sendDropUnitMove(units[i]);
-               //units = dropIndex(units, i);
-               i--;
-               continue;
-            }
-         }*/
+              var end_dy = (end_dx == 0)? _.random(-1, 1) : 0;
+              if (kernel.isMoveable(map, unitsMap, toX+end_dx, toY+end_dy)){
+                 sendDropUnitMove(units[i]);
+                 toX += end_dx;
+                 toY += end_dy;
+                 console.log('Translate end point');
+              }else{
+                 console.log('Deleted move with ID', units[i].moveID);
+                 sendDropUnitMove(units[i]);
+                 //units = dropIndex(units, i);
+                 i--;
+                 continue;
+              }
+            }*/
          
          
          // Pop unit which destinates target
@@ -377,7 +364,7 @@ setInterval(function(){
             //console.log('Deleted move with ID', units[i].moveID);
             sendDropUnitMove(units[i].targetX, units[i].targetY, units[i].id, units[i].ownerSocketID);
             //units[i] = unsetAttackFlags(units[i]);
-            continue;
+            //continue;
          }
 
          var path = kernel.shortestPathTo(map, unitsMap, fromX, fromY, toX, toY, stopRange, stopDottedLineRange);
@@ -423,10 +410,12 @@ setInterval(function(){
                                                   units[i].y, 
                                                   units[i].x + dxdy[0], 
                                                   units[i].y + dxdy[1], 
-                                                  units[i].unitMapCode);
+                                                  units[i].unitCode);
 
             units[i].x += dxdy[0];
             units[i].y += dxdy[1];
+            units[i].abs_x += dxdy[0];
+            units[i].abs_y += dxdy[1];
           
           }else{
              // If we haven't path
@@ -454,8 +443,33 @@ setInterval(function(){
 
    /********** Process hits **********/
    var near = function(atckX, atckY, trgtX, trgtY, atckRng){ return abs(atckX-trgtX)+abs(atckY-trgtY) <= atckRng };
-   var hitFunc = function(attacker, attacked) { console.log('[ATTACK] '+attacker.id+' on '+attacked.id) };
+   var hitFunc = function(attackerType, attackerIndex, attackedType, attackedIndex) { 
+      var attackerArray, attackedArray, damage;
+      switch(attackerType){
+        case 'unit':
+          attackerArray = units; break;
+        case 'monster':
+          attackerArray = monsters; break;
+      }
+      switch(attackedType){
+        case 'unit':
+          attackedArray = units; break;
+        case 'monster':
+          attackedArray = monsters; break;
+        case 'building':
+          attackedArray = buildings; break;
+      }
+
+      damage = attackerArray[attackerIndex].characts.damage;
+      attackedArray[attackedIndex].characts.HP -= damage;
+      console.log('[ATTACK] '+attackerArray[attackerIndex].id+
+                  ' on '     +attackedArray[attackedIndex].id+
+                  ' damage ' +damage);
+   };
+   console.log('----');
+   // M->U, U->U
    for (var i=0; i<units.length; i++){
+      console.log('[PROCESS] unit '+units[i].id, units[i].pursuers);
       if (units[i].pursuers.length){
         // If this unit is pursued, look at all creatures which can damage it and
         // and search for equals in this unit.pursuers ids and other unit ids. If 
@@ -464,46 +478,48 @@ setInterval(function(){
           // For every pursuer we check if it near this unit
           for (var j=0; j<monsters.length; j++){
             if (monsters[j].id == units[i].pursuers[p].id){
-              if (near(monsters[j].x, monsters[j].y, units[i].x, units[i].y, 1)) hitFunc(monsters[j], units[i]);
+              if (near(monsters[j].x, monsters[j].y, units[i].x, units[i].y, 1)) hitFunc('monster', j, 'unit', i);
             }
           }
           for (var j=0; j<units.length; j++){
-            console.log(units[j].id, units[i].id);
             if (units[j].id == units[i].pursuers[p].id &&
                 units[j].owner != units[i].owner){
-                if (near(units[j].x, units[j].y, units[i].x, units[i].y, 1)) hitFunc(units[j], units[i]);
+                if (near(units[j].x, units[j].y, units[i].x, units[i].y, 1)) hitFunc('unit', j, 'unit', i);
             }
           }
         }
       }
    }
+   // M->M, U->M
    for (var i=0; i<monsters.length; i++){
       if (monsters[i].pursuers.length){
         for (var p=0; p<monsters[i].pursuers.length; p++){
           for (var j=0; j<monsters.length; j++){
             if (monsters[j].id == monsters[i].pursuers[p].id){
-              if (near(monsters[j].x, monsters[j].y, monsters[i].x, monsters[i].y, 1)) hitFunc(monsters[j], monsters[i]);
+              if (near(monsters[j].x, monsters[j].y, monsters[i].x, monsters[i].y, 1)) hitFunc('monster', j, 'monster', i);
             }
           }
           for (var j=0; j<units.length; j++){
             if (units[j].id == monsters[i].pursuers[p].id){
-              if (near(units[j].x, units[j].y, monsters[i].x, monsters[i].y, 1)) hitFunc(units[j], monsters[i]);
+              if (near(units[j].x, units[j].y, monsters[i].x, monsters[i].y, 1)) hitFunc('unit', j, 'monster', i);
             }
           }
         }
       }
    }
+   // M->B, U->B
    for (i=0; i<buildings.length; i++){
-    if (buildings[i].pursuers.length){
-      for (var p=0; p<buildings[i].pursuers.length; p++){
-        for (var j=0; j<monsters.length; j++){
-          if (monsters[j].id == buildings[i].pursuers[p].id){
-            if (near(monsters[j].x, monsters[j].y, buildings[i].x, buildings[i].y, 1)) hitFunc(monsters[j], buildings[i]);
+      if (buildings[i].pursuers.length){
+        for (var p=0; p<buildings[i].pursuers.length; p++){
+          for (var j=0; j<monsters.length; j++){
+            if (monsters[j].id == buildings[i].pursuers[p].id){
+             if (near(monsters[j].x, monsters[j].y, buildings[i].x, buildings[i].y, 1)) hitFunc('monster', j, 'building', i);
           }
         }
         for (var j=0; j<units.length; j++){
-          if (units[j].id == buildings[i].pursuers[p].id){
-            if (near(units[j].x, units[j].y, buildings[i].x, buildings[i].y, 1)) hitFunc(units[j], buildings[i]);
+          if (units[j].id == buildings[i].pursuers[p].id &&
+              units[j].owner != buildings[i].owner){
+             if (near(units[j].x, units[j].y, buildings[i].x, buildings[i].y, 1)) hitFunc('unit', j, 'building', i);
           }
         }
       }
@@ -572,7 +588,7 @@ io.sockets.on('connection', function(socket){
 
    socket.on('sendOffUnit', function(data){
       // Remember attacker and attacked creatures in pursue module
-      if (data.attack){
+      if (data.attackedType == 'building' || data.attackedType == 'unit'){
         let tmp = pursue.startPursue(data.targetX,
                                      data.targetY,
                                      data.unitID,
@@ -589,7 +605,7 @@ io.sockets.on('connection', function(socket){
          if (units[i].x == data.x && units[i].y == data.y){
              units[i].targetX = data.targetX;
              units[i].targetY = data.targetY;
-             units[i].attack = true;
+             units[i].attack = data.attack;
              units[i].attackedType = data.attackedType;
              units[i].attackedOwner = data.attackedOwner;
              units[i].attackerOwner = data.attackerOwner;
@@ -611,7 +627,6 @@ io.sockets.on('connection', function(socket){
       // Unset unit's attack flag
       for (var i=0; i<units.length; i++){
          if (data.unitID == units[i].id){
-            console.log('unsetAttackFlags for '+data.unitID);
             sendDropUnitMove(units[i].targetX, units[i].targetY, units[i].id, units[i].ownerSocketID);
             units[i] = unsetAttackFlags(units[i])
          }

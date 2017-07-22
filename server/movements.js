@@ -4,8 +4,8 @@ Server side sprites engine. Controls unit's moves
 */
 'use strict';
 var playerUnitCodes = [7]; // For agressive
-var playerBuildingCodes = [];//[3, 4];
-var imbuildableTextureCodes = [2, 3];
+var playerBuildingCodes = [3, 4];
+var imbuildableTextureCodes = [2, 3, 4];
 
 
 module.exports = {

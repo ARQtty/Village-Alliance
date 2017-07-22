@@ -224,15 +224,6 @@ var kernel = module.exports = {
    @param pursuedCreaturesCoords {Array of {Objects}}
    */
    processHits: function(hitFunction, pursuers, pursuedBuildingsCoords, pursuedCreaturesCoords){
-      /*
-      console.log('+------------------------------------+');
-      console.log(pursuers);
-      console.log('------');
-      console.log(pursuedCreaturesCoords);
-      console.log('------');
-      console.log(pursuedBuildingsCoords);
-      console.log('+------------------------------------+');
-      */
       // At first, process Unit->Building and Monster->Building hits
       var builds = pursuedBuildingsCoords,
           abs    = Math.abs,

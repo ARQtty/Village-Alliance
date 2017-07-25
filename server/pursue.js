@@ -14,21 +14,18 @@ var pursue = module.exports = {
    startPursue: function(x, y, id, owner, monsters, units, buildings){
       for (let k=0; k<units.length; k++){
          if (x == units[k].x && y == units[k].y){
-            console.log('new units pursuer '+id); 
             units[k].pursuers.push({id: id, pursuerOwner: owner});
             return {monsters: monsters, units: units, buildings: buildings}
          }
       }
       for (let k=0; k<monsters.length; k++){
          if (x == monsters[k].x && y == monsters[k].y){
-            console.log('new monsters pursuer '+id); 
             monsters[k].pursuers.push({id: id, pursuerOwner: owner});
             return {monsters: monsters, units: units, buildings: buildings}
          }
       }
       for (let k=0; k<buildings.length; k++){
-         if (x == buildings[k].x && y == buildings[k].y){
-            console.log('new buildings pursuer '+id); 
+         if (x == buildings[k].x && y == buildings[k].y){ 
             buildings[k].pursuers.push({id: id, pursuerOwner: owner});
             return {monsters: monsters, units: units, buildings: buildings}
          }
@@ -48,36 +45,27 @@ var pursue = module.exports = {
    stopPursue: function(unitID, monsters, units, buildings){
       // Decrement pursued unit pursue counter by deleting
       // his pursue's id from it's pursuers property array
-      console.log('stopPursue for '+unitID);
       for (var i=0; i<units.length; i++){
          // in units
          let hasPursuedUnit = pursue.inPursuers(units[i], unitID);
          if (hasPursuedUnit.instance){
-            console.log(unitID,'in units pursuers');
-            //console.log(hasPursuedUnit.index);
             units[i].pursuers = dropIndex(units[i].pursuers, hasPursuedUnit.index);
-            //return {monsters: monsters, units: units, buildings: buildings}
          }
       }
       for (var i=0; i<monsters.length; i++){
          // in monsters
          let hasPursuedMonster = pursue.inPursuers(monsters[i], unitID);
          if (hasPursuedMonster.instance){
-            console.log(unitID,'in monsters pursuers');
             monsters[i].pursuers = dropIndex(monsters[i].pursuers, hasPursuedMonster.index);
-            //return {monsters: monsters, units: units, buildings: buildings}
          }
       }
       for (var i=0; i<buildings.length; i++){
          // in monsters
          let hasPursuedBuilding = pursue.inPursuers(buildings[i], unitID);
          if (hasPursuedBuilding.instance){
-            console.log(unitID,'in buildings    pursuers');
             buildings[i].pursuers = dropIndex(buildings[i].pursuers, hasPursuedBuilding.index);
-            //return {monsters: monsters, units: units, buildings: buildings}
          }
       }
-      console.log(unitID,'cannot stop pursue target cause cannot find himself in pursuers');
       return {monsters: monsters, units: units, buildings: buildings}
    },
    

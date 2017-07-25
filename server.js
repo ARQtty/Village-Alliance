@@ -99,8 +99,8 @@ var monsters  = [],
     units     = [],
     unitsMap  = [],
     
-    ENEMIES_SEARCH_RADIUS = 5,
-    MONSTERS_LIMIT        = 2,
+    ENEMIES_SEARCH_RADIUS = 10,
+    MONSTERS_LIMIT        = 10,
     UNITS_LIMIT           = 0,
 
     abs = Math.abs;
@@ -110,6 +110,12 @@ for (var i=0; i<map.length; i++){
    for (var j=0; j<map[i].length; j++){
       unitsMap[i][j] = 0;
    }
+}
+// Merge buildings and texture maps
+for (var b=0; b<buildings.length; b++){
+  let x = buildings[b].x,
+      y = buildings[b].y;
+  map[x][y] = buildings[b].code;
 }
 /*******************************/
 
@@ -462,68 +468,141 @@ setInterval(function(){
 
       damage = attackerArray[attackerIndex].characts.damage;
       attackedArray[attackedIndex].characts.HP -= damage;
-      console.log('[ATTACK] '+attackerArray[attackerIndex].id+
-                  ' on '     +attackedArray[attackedIndex].id+
-                  ' damage ' +damage);
+
+
+      if (attackedArray[attackedIndex].characts.HP <= 0){
+        console.log('[DIED] ID '+attackedArray[attackedIndex].id);
+        let x_died = attackedArray[attackedIndex].x,
+            y_died = attackedArray[attackedIndex].y;
+
+        // Drop creature from original array
+        switch(attackedType){
+
+          case 'unit':
+            unitsMap[x_died][y_died] = 0;
+            return false;
+
+          case 'monster':
+            unitsMap[x_died][y_died] = 0;
+            return false;
+
+          case 'building':
+            map[x_died][y_died] = 0;
+            console.log('Building died');
+            if (anySocket){
+              anySocket.emit('died_building', {x: x_died, 
+                                               y: y_died});
+              anySocket.broadcast.emit('died_building', {x: x_died, 
+                                                         y: y_died});
+            }else{ console.log('No socket for send died_building') }
+            return 'died';
+        }
+
+      }else{
+        console.log('[ATTACK] '+attackerArray[attackerIndex].id+
+                    ' on '     +attackedArray[attackedIndex].id+
+                    ' damage ' +damage);
+        console.log('Attacked creature HP is '+attackedArray[attackedIndex].characts.HP);
+      }
    };
+
    console.log('----');
+   var dethFlag = false;
    // M->U, U->U
    for (var i=0; i<units.length; i++){
       console.log('[PROCESS] unit '+units[i].id, units[i].pursuers);
       if (units[i].pursuers.length){
-        // If this unit is pursued, look at all creatures which can damage it and
-        // and search for equals in this unit.pursuers ids and other unit ids. If 
-        // we find equal and their owners aren't same, we will count it like a hit
-        for (var p=0; p<units[i].pursuers.length; p++){
-          // For every pursuer we check if it near this unit
-          for (var j=0; j<monsters.length; j++){
-            if (monsters[j].id == units[i].pursuers[p].id){
-              if (near(monsters[j].x, monsters[j].y, units[i].x, units[i].y, 1)) hitFunc('monster', j, 'unit', i);
-            }
-          }
-          for (var j=0; j<units.length; j++){
-            if (units[j].id == units[i].pursuers[p].id &&
-                units[j].owner != units[i].owner){
-                if (near(units[j].x, units[j].y, units[i].x, units[i].y, 1)) hitFunc('unit', j, 'unit', i);
-            }
-          }
-        }
+         // If this unit is pursued, look at all creatures which can damage it and
+         // and search for equals in this unit.pursuers ids and other unit ids. If 
+         // we find equal and their owners aren't same, we will count it like a hit
+         for (var p=0; p<units[i].pursuers.length; p++){
+            // For every pursuer we check if it near this unit
+            if (!dethFlag){
+               for (var j=0; j<monsters.length; j++){
+                  if (monsters[j].id == units[i].pursuers[p].id){
+                     if (near(monsters[j].x, monsters[j].y, units[i].x, units[i].y, 1)){
+                        dethFlag = hitFunc('monster', j, 'unit', i);
+                     }
+                  }
+               }
+            }else{ units = dropIndex(units, i); i--; dethFlag=false; continue } // deth. Go to next unit
+            if (!dethFlag){
+               for (var j=0; j<units.length; j++){
+                  if (units[j].id == units[i].pursuers[p].id &&
+                      units[j].owner != units[i].owner){
+                     if (near(units[j].x, units[j].y, units[i].x, units[i].y, 1)){
+                        dethFlag = hitFunc('unit', j, 'unit', i);
+                     }
+                  }
+               }
+            }else{ units = dropIndex(units, i); i--; dethFlag=false; continue } // deth. Go to next unit
+         }
       }
    }
    // M->M, U->M
    for (var i=0; i<monsters.length; i++){
       if (monsters[i].pursuers.length){
-        for (var p=0; p<monsters[i].pursuers.length; p++){
-          for (var j=0; j<monsters.length; j++){
-            if (monsters[j].id == monsters[i].pursuers[p].id){
-              if (near(monsters[j].x, monsters[j].y, monsters[i].x, monsters[i].y, 1)) hitFunc('monster', j, 'monster', i);
-            }
-          }
-          for (var j=0; j<units.length; j++){
-            if (units[j].id == monsters[i].pursuers[p].id){
-              if (near(units[j].x, units[j].y, monsters[i].x, monsters[i].y, 1)) hitFunc('unit', j, 'monster', i);
-            }
-          }
-        }
+         for (var p=0; p<monsters[i].pursuers.length; p++){
+            if (!dethFlag){
+               for (var j=0; j<monsters.length; j++){
+                  if (monsters[j].id == monsters[i].pursuers[p].id){
+                     if (near(monsters[j].x, monsters[j].y, monsters[i].x, monsters[i].y, 1)){
+                        dethFlag = hitFunc('monster', j, 'monster', i);
+                     }
+                  }
+               }
+            }else{ monsters = dropIndex(monsters, i); i--; dethFlag=false; continue } // deth. Go to next monster
+            if (!dethFlag){
+               for (var j=0; j<units.length; j++){
+                  if (units[j].id == monsters[i].pursuers[p].id){
+                     if (near(units[j].x, units[j].y, monsters[i].x, monsters[i].y, 1)){
+                        dethFlag =  hitFunc('unit', j, 'monster', i);
+                     }
+                  }
+               }
+            }else{ monsters = dropIndex(monsters, i); i--; dethFlag=false; continue } // deth. Go to next monster
+         }
       }
    }
    // M->B, U->B
    for (i=0; i<buildings.length; i++){
       if (buildings[i].pursuers.length){
-        for (var p=0; p<buildings[i].pursuers.length; p++){
-          for (var j=0; j<monsters.length; j++){
-            if (monsters[j].id == buildings[i].pursuers[p].id){
-             if (near(monsters[j].x, monsters[j].y, buildings[i].x, buildings[i].y, 1)) hitFunc('monster', j, 'building', i);
-          }
-        }
-        for (var j=0; j<units.length; j++){
-          if (units[j].id == buildings[i].pursuers[p].id &&
-              units[j].owner != buildings[i].owner){
-             if (near(units[j].x, units[j].y, buildings[i].x, buildings[i].y, 1)) hitFunc('unit', j, 'building', i);
-          }
-        }
+         for (var p=0; p<buildings[i].pursuers.length; p++){
+            if (dethFlag != 'died'){
+               for (var j=0; j<monsters.length; j++){
+                  if (monsters[j].id == buildings[i].pursuers[p].id){
+                    if (near(monsters[j].x, monsters[j].y, buildings[i].x, buildings[i].y, 1)){
+                       dethFlag = hitFunc('monster', j, 'building', i);
+                     }
+                  }
+               }
+            }else{ 
+               buildings = dropIndex(buildings, i); 
+               p=0; 
+               dethFlag=true; 
+               console.log('dethFlag else condition'); 
+               fs.writeFileSync('media/buildings.json', JSON.stringify(buildings)); 
+               continue 
+            } // deth. Go to next building
+            if (dethFlag != 'died'){
+               for (var j=0; j<units.length; j++){
+                  if (units[j].id == buildings[i].pursuers[p].id &&
+                      units[j].owner != buildings[i].owner){
+                     if (near(units[j].x, units[j].y, buildings[i].x, buildings[i].y, 1)){
+                        dethFlag = hitFunc('unit', j, 'building', i);
+                     }
+                  }
+               }
+            }else{ 
+               buildings = dropIndex(buildings, i); 
+               p=0; 
+               dethFlag=true; 
+               console.log('dethFlag else condition'); 
+               fs.writeFileSync('media/buildings.json', JSON.stringify(buildings)); 
+               continue 
+            } // deth. Go to next building
+         }
       }
-    }
    }
 }}, 1000);
 
@@ -548,11 +627,12 @@ io.sockets.on('connection', function(socket){
           socket.emit('newUnit', units[i]);
           socket.broadcast.emit('newUnit', units[i]);
        }
+       /*
        // Send all buildings
        for (var i=0; i<buildings.length; i++){
          socket.emit('newBuild', buildings[i]);
          socket.broadcast.emit('newBuild', buildings[i]);
-       }
+       }*/
     })();
 
    socket.on('chat', function (data) {

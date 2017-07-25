@@ -24,6 +24,7 @@ window.app = {
             app.graphics.textures.monsters
          ),
          app.environment.downloadMap(),
+         app.environment.downloadBuildings(),
          app.environment.downloadData()
       ).done(function() {
          console.info('Okey downloadWorld');
@@ -32,14 +33,14 @@ window.app = {
    },
 
    intialize: function() {
-      app.graphics.viewportCells = app.graphics.getViewport();
+      app.building.init();
+      app.graphics.cells = app.graphics.getViewport();
       app.graphics.intialize();
       app.keyBinds.init();
       app.network.connectSocket();
       app.network.bindEvents();
       app.sprites.listenActions();
       app.sprites.initGameLoop();
-      app.building.init();
       app.moveViewport.drawMinimapViewport();
    },
 
@@ -61,25 +62,33 @@ window.app = {
       @method downloadData
       */
       downloadData: function() {
-            return $.get('/media/data.json').pipe(function(data) {
-               app.graphics.textures.descriptors = data;
-               return true;
-            });
+         return $.get('/media/data.json').pipe(function(data) {
+            app.graphics.textures.descriptors = data;
+            return true;
+         });
         },
 
 
-        /**
-        Gets array-like map from server. Also gets size of map
+      downloadBuildings: function() {
+         return $.get('/media/buildings.json').pipe(function(data) {
+            app.building.buildings = data;
+            return true;
+         });
+      },
+
+
+      /**
+      Gets array-like map from server. Also gets size of map
       @method
-        */
-        downloadMap: function() {
-           return $.get('/media/map.json').pipe(function(data) {
-              app.environment.map.sizeX = data.length;
-              app.environment.map.sizeY = data[0].length;
-                 console.info('Map sizes: x='+data.length+' y='+data[0].length);
-               app.environment.map.data = data;
-               return true;
-            })
+      */
+      downloadMap: function() {
+        return $.get('/media/map.json').pipe(function(data) {
+           app.environment.map.sizeX = data.length;
+           app.environment.map.sizeY = data[0].length;
+              console.info('Map sizes: x='+data.length+' y='+data[0].length);
+            app.environment.map.data = data;
+            return true;
+         })
       },
 
 
@@ -100,7 +109,7 @@ window.app = {
       /**
       Gets cell value by click coordinates
       @method getCellByPosition
-      @param top {Integer} Distance from top of window
+      @param  top {Integer} Distance from top of window
       @param left {Integer} Distance from left of window
       @return cells[top][left] {Integer} Value of cell in this position 
       */
@@ -139,7 +148,7 @@ window.app = {
       y1: 0,
       x2: Math.ceil(document.body.clientWidth  / 32),
       y2: Math.ceil(document.body.clientHeight / 32),
-      viewportCells: [],
+      viewportCells: [], // Maybe not needed cause of cells variable
       cells: [],
       
       cellsInRow: Math.ceil(document.body.clientWidth  / 32),
@@ -185,10 +194,16 @@ window.app = {
          for (var x = app.graphics.x1; x<app.graphics.x2; x++){
             viewCells.push([]);
             for (var y=app.graphics.y1; y<app.graphics.y2; y++){
-               viewCells[viewCells.length - 1].push(app.environment.map.data[x][y]);
+               var cellData;
+               if (app.building.buildingsMap[x][y] != 0){
+                  cellData = app.building.buildingsMap[x][y];
+               }else{
+                  cellData = app.environment.map.data[x][y];
+               }
+               viewCells[viewCells.length - 1].push(cellData);
             }
          }
-         app.graphics.cells = viewCells;
+         app.graphics.cells = viewCells; // Maybe not needed
          return viewCells
       },
 
@@ -205,14 +220,14 @@ window.app = {
          app.graphics.canvas.width = document.body.clientWidth;
          app.graphics.canvas.height = document.body.clientHeight;
          // Cells representation
-         var cells = app.graphics.viewportCells;
+         var cells = app.graphics.cells;
          var cSize = app.graphics.cellSize;
 
          // Most popular patterns
          var grass = context.createPattern(app.graphics.textures.grass, 'repeat');
 
-         for (var x = 0; x < cells.length; x++){
-            for (var y = 0; y < cells[x].length; y++){
+         for (var x=0; x < cells.length; x++){
+            for (var y=0; y < cells[x].length; y++){
                var cellValue = cells[x][y];
 
                if (cellValue == 0) {
@@ -220,17 +235,51 @@ window.app = {
                   context.fillStyle = grass;
                   context.fillRect(x * cSize, y * cSize, cSize, cSize);
 
+               }else if (typeof cellValue == 'object'){  // Is building
+                  if (cellValue.status != 'dies'){
+                     var texture = app.graphics.textures.terrain;
+                     context.drawImage(texture,                      // Image
+                                       0,                            // sx
+                                       cellValue.textureCode * cSize,// sy
+                                       cSize,                        // sWidth
+                                       cSize,                        // sHeight
+                                       x * cSize,                    // dx
+                                       y * cSize,                    // dy
+                                       cSize,                        // dWidth
+                                       cSize);                       // dHeight                 
+                  }else{
+                     try{
+                        var xd = cellValue.coords.x,
+                            yd = cellValue.coords.y;
+                        if (cellValue.animCounter == 0){
+                              app.building.deleteBuildingWithCoords(xd, yd);
+                              app.environment.map.data[xd][yd] = 0;
+                              //app.graphics.cells[xd][yd] = 0;
+                              app.graphics.cells = app.graphics.getViewport();
+                        }else{
+                              app.building.buildingsMap[xd][yd].animCounter--;
+                              app.graphics.cells[xd][yd].animCounter--;
+                              // 5 is a number of skull texture in textureset
+                              context.drawImage(app.graphics.textures.terrain, 0, 5*cSize, cSize, cSize, x*cSize, y*cSize, cSize, cSize)
+                        }
+                     }catch(e){
+                        console.log('Err at xd xd -->', xd, yd);
+                        console.log('Cell value is', cellValue);
+                        console.log('Err is ', e);
+                     }
+                  }
+
                }else{
                   var texture = app.graphics.textures.terrain;
-                  context.drawImage(texture,         // Image
-                                0,                // sx
-                                cellValue * cSize,// sy
-                                cSize,          // sWidth
-                                cSize,         // sHeight
-                                x * cSize,      // dx
-                                y * cSize,       // dy
-                                cSize,          // dWidth
-                                cSize);         // dHeight
+                  context.drawImage(texture,          // Image
+                                    0,                // sx
+                                    cellValue * cSize,// sy
+                                    cSize,            // sWidth
+                                    cSize,            // sHeight
+                                    x * cSize,        // dx
+                                    y * cSize,        // dy
+                                    cSize,            // dWidth
+                                    cSize);           // dHeight
                }
             }
          }
@@ -303,7 +352,7 @@ window.app = {
       */
       fillCellWithTexture: function(x, y, textureId) {
          app.environment.map.data[y + app.graphics.x1][x + app.graphics.y1] = textureId;
-         app.graphics.viewportCells = app.graphics.getViewport();
+         app.graphics.cells = app.graphics.getViewport();
          app.graphics.fillMap()
       },
 
@@ -410,6 +459,7 @@ window.app = {
          });
 
          socket.on('newBuild', function(data) {
+            console.log('Для newBuild не хватает данных');
             app.building.placeStructure(data.x, 
                                         data.y, 
                                         data.code);

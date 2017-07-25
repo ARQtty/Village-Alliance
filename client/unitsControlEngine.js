@@ -136,7 +136,7 @@ window.app.unitsControl = {
 
       var unitHere = app.sprites.unitWithCoords(coords[0], coords[1]);
       var buildingHere = app.building.buildingWithCoords(coords[0], coords[1]);
-
+      console.log(buildingHere);
       if (unitHere){
          attack = true;
          attackedType = 'unit';

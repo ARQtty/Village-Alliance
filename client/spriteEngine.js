@@ -44,9 +44,16 @@ window.app.sprites = {
          app.unitsControl.visual.dottedLines.push(data);
       });
       
-      socket.on('hitUnit', function(data){
+      socket.on('died_building', function(msg){
+         console.log('animCounter >>>>> ',app.sprites.fps);
+         app.building.buildingsMap[msg.x][msg.y] = {type: "building",
+                                                    status: 'dies',
+                                                    animCounter: app.sprites.fps*2, 
+                                                    coords: {x: msg.x, 
+                                                             y: msg.y}
+                                                    };
 
-         console.log('hitUnit message');
+         app.graphics.viewportCells = app.graphics.getViewport();
       });
       
       socket.on('hurtUnit', function(data){

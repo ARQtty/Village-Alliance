@@ -6,33 +6,67 @@ The logic of construction of objects on the game space
 $(function() {
 window.app.building = {
    /* Part for building structures on game field */
-   buildings: [],
+   buildings:    [],
+   buildingsMap: [],
    cancelButton: document.getElementById('cancel'),
    buildingStructure: null,
-   buildingKey: null,
-   buildingModel: null,
+   buildingKey:       null,
+   buildingModel:     null,
 
 
    init: function(){
-      var map = app.environment.map.data;
-      for (var i=0; i<map.length; i++){
-         for (var j=0; j<map[0].length; j++){
-            if (map[i][j] == 3 || map[i][j] == 4){    // home
-               app.building.buildings.push({x: i, y: j, code: map[i][j]})
-            }
+      for (var i=0; i<app.environment.map.sizeX; i++){
+         app.building.buildingsMap.push([]);
+         for (var j=0; j<app.environment.map.sizeY; j++){
+            app.building.buildingsMap[i].push(0);
          }
+      }
+
+      var b_Data = app.building.buildings;
+      for (var i=0; i<b_Data.length; i++){
+         let x = b_Data[i].x,
+             y = b_Data[i].y,
+             avatar, reward, name;
+
+          if (b_Data[i].code == 3){ 
+            avatar = 'house.png'; 
+            reward = 100; 
+            name = 'House'
+          }else if (b_Data[i].code == 4){
+            avatar = 'house3.png'; 
+            reward = 110; 
+            name = 'Enemy house'
+          }
+
+         app.building.buildingsMap[x][y] = {x: x, 
+                                            y: y, 
+                                            textureCode: b_Data[i].code,
+                                            characts: {HP:  b_Data[i].characts.HP,
+                                                       XP:  b_Data[i].characts.XP,
+                                                       Reward: reward
+                                                       },
+                                            reward: b_Data[i].reward,
+                                            owner:  b_Data[i].owner,
+                                            info: {avatar: avatar,
+                                                   }
+                                            }
       }
    },
 
 
    buildingWithCoords: function(x, y){
-      var buildings = app.building.buildings;
-      for (var i=0; i<buildings.length; i++){
-         if (buildings[i].x == x && buildings[i].y == y){
-            return buildings[i].code
-         }
+      console.log('Try to find building at '+x, y, '-->', app.building.buildingsMap[x][y]);
+      if (app.building.buildingsMap[x][y] != 0){
+            return app.building.buildingsMap[x][y].textureCode;
       }
       return false
+   },
+
+
+   deleteBuildingWithCoords: function(x, y) {
+      console.log('Deleting building ['+x+', '+y+']');
+      console.log(app.building.buildingsMap[x][y]);
+      app.building.buildingsMap[x][y] = 0;
    },
 
 
@@ -133,7 +167,7 @@ window.app.building = {
    placeStructure: function(x, y, structureCode){
       // Placing object on the map
       console.log('Someone calls me!');
-      app.building.buildings.push({x: x, y: y});
+      app.building.buildingsMap[x][y] = 'не хватает данных для заполнения'
       app.graphics.fillCellWithTexture(y, x, structureCode);
    }
 

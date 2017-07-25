@@ -14,15 +14,29 @@ window.onload = function() {
       var informative = (cellValue == 0) ? false : true; // grass is not informative
       
       if (!getSpriteDescription(event)){
-         app.unitsControl.removeSelect();
-         if (cellValue <= 4) {
-            if (informative) {
-               showTextureDescr(app.graphics.textures.descriptors.terrain[cellValue]);
-            }else{
-               selectPanel.style.display = 'none';
+         if (!getBuildingDescription(event)){
+            app.unitsControl.removeSelect();
+            if (cellValue <= 4) {
+               if (informative) {
+                  showTextureDescr(app.graphics.textures.descriptors.terrain[cellValue]);
+               }else{
+                  selectPanel.style.display = 'none';
+               }
             }
          }
       }
+   };
+
+   function getBuildingDescription(event){
+      var coords = app.environment.getCellCoords(event.layerX, event.layerY);
+      // Get absolute values
+      coords[0] += app.graphics.x1;
+      coords[1] += app.graphics.y1;
+      if (app.building.buildingsMap[coords[0]][coords[1]] == 0) return false;
+
+      var building = app.building.buildingsMap[coords[0]][coords[1]];
+      showBuildingDescr(building);
+      return true
    };
 
    function getSpriteDescription(event) {
@@ -47,6 +61,15 @@ window.onload = function() {
       return false
    };
 
+   function showBuildingDescr(building){
+      selectPanel.style.display = 'block';
+      s_avatar.innerHTML = '<img src="/media/textures/'+building['info']['avatar']+'" style="width: 5vw;"/>';
+      s_name.innerHTML = '<b>Name</b>: '+building['owner'];
+      s_description.innerHTML = '<b>It is</b> '+building['info']['description'];
+      s_HP.innerHTML = '<b>HP</b>: '+building['characts']['HP'];
+      s_XP.innerHTML = '<b>XP</b>: '+building['characts']['XP'];
+      s_Gold.innerHTML = '<b>Gold for destroy</b>: '+building['characts']['Reward']
+   };
 
    function showSpriteDescr(sprite) {
       selectPanel.style.display = 'block';

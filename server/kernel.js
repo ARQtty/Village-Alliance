@@ -9,7 +9,8 @@ var kernel = module.exports = {
 
    dropIndex: function(array, i){
       return array.slice(0, i)
-             .concat(array.slice(i+1, array.length))
+             .concat(
+             array.slice(i+1, array.length))
    },
 
 
@@ -210,49 +211,5 @@ var kernel = module.exports = {
          }
       }
        return [[0, 0]]
-   },
-
-
-   /**
-   Looks for all pair pursuer-pursued and generate a hit when distance between
-   pursuer and pursued is less or equal with it's attack range
-   @method processHits
-   @param hitFunction {Function} Callback for handle creatures' hit on something.
-   It must take a stock the resistance of pursued target, HP and etc.
-   @param pursuers {Array of {Objects}} Representation of pursuers-creatures
-   @param pursuedBuildingsCoords {Array of {Objects}}
-   @param pursuedCreaturesCoords {Array of {Objects}}
-   */
-   processHits: function(hitFunction, pursuers, pursuedBuildingsCoords, pursuedCreaturesCoords){
-      // At first, process Unit->Building and Monster->Building hits
-      var builds = pursuedBuildingsCoords,
-          abs    = Math.abs,
-          near   = function(x1, y1, x2, y2){ return (abs(x1-x2)+abs(y1-y2)==1)? true : false }
-      for (var i=0; i<builds.length; i++){
-         for (var j=0; j<pursuers.length; j++){
-            if (near(builds[i].x, builds[i].y, pursuers[j].x, pursuers[j].y) && 
-               builds[i].owner != pursuers[j].owner){
-               // && cooldown
-               console.log('[ATTACK] {'+pursuers[j].x+', '+pursuers[j].y+
-                  '} attacks build {'+builds[i].x+', '+builds[i].y+
-                  '}(near(',builds[i].x, builds[i].y, pursuers[j].x, pursuers[j].y,')='
-                  +near(builds[i].x, builds[i].y, pursuers[j].x, pursuers[j].y)+')');
-            }
-         }
-      }
-
-      // Secondly, process Unit -> Monster
-      var creatures = pursuedCreaturesCoords;
-      for (var i=0; i<creatures.length; i++){
-         for (var j=0; j<pursuers.length; j++){
-            if (near(creatures[i].x, creatures[i].y, pursuers[j].x, pursuers[j].y) && 
-               creatures[i].owner != pursuers[j].owner){
-               console.log('[ATTACK] {'+pursuers[j].x+', '+pursuers[j].y+
-                  '} attacks creature {'+creatures[i].x+', '+creatures[i].y+
-                  '}(near(',creatures[i].x, creatures[i].y, pursuers[j].x, pursuers[j].y,')='
-                  +near(creatures[i].x, creatures[i].y, pursuers[j].x, pursuers[j].y)+')');
-            }
-         }
-      }
    }
 }

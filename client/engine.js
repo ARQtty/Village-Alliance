@@ -23,6 +23,9 @@ window.app = {
             '/media/textures/monsters.png',
             app.graphics.textures.monsters
          ),
+         app.graphics.textures.download(
+            '/media/textures/hurt.png',
+            app.graphics.textures.hurt),
          app.environment.downloadMap(),
          app.environment.downloadBuildings(),
          app.environment.downloadData()
@@ -34,6 +37,7 @@ window.app = {
 
    intialize: function() {
       app.building.init();
+      app.graphics.initEffectsMap();
       app.graphics.cells = app.graphics.getViewport();
       app.graphics.intialize();
       app.keyBinds.init();
@@ -150,6 +154,8 @@ window.app = {
       y2: Math.ceil(document.body.clientHeight / 32),
       viewportCells: [], // Maybe not needed cause of cells variable
       cells: [],
+      visEffects: [],
+      viewVisEffects: [],
       
       cellsInRow: Math.ceil(document.body.clientWidth  / 32),
       cellsInColumn: Math.ceil(document.body.clientHeight / 32),
@@ -160,6 +166,7 @@ window.app = {
          grass: new Image(),
          terrain: new Image(),
          monsters: new Image(),
+         hurt: new Image(),
          descriptors: {
             terrain: null,
             monsters: null
@@ -204,7 +211,18 @@ window.app = {
             }
          }
          app.graphics.cells = viewCells; // Maybe not needed
+         app.graphics.getViewEffects(); // Update effectsMap
          return viewCells
+      },
+      getViewEffects: function() {
+         var effMap = [];
+         for (var x=app.graphics.x1; x<app.graphics.x2; x++){
+            effMap.push([]);
+            for (var y=app.graphics.y1; y<app.graphics.y2; y++){
+               effMap[effMap.length - 1].push(app.graphics.visEffects[x][y]);
+            }
+         }
+         app.graphics.viewVisEffects = effMap;
       },
 
 
@@ -280,12 +298,11 @@ window.app = {
                                     y * cSize,        // dy
                                     cSize,            // dWidth
                                     cSize);           // dHeight
-               }
+               } 
             }
          }
 
          
-
          // Draw goHere crosses
          var crosses = app.unitsControl.visual.crosses;
          for (var i=0; i<crosses.length; i++){
@@ -343,6 +360,36 @@ window.app = {
       },
 
 
+      drawVisualEffects: function(){
+         let effMap = app.graphics.viewVisEffects,
+             x1 = app.graphics.x1,
+             y1 = app.graphics.y1;
+
+         for (var x=0; x < effMap.length; x++){
+            for (var y=0; y < effMap[x].length; y++){
+               // Visual effects
+               // TODO --> Multiple effects in one cell
+               if (effMap[x][y] != 0){
+                  let effect = effMap[x][y][0];
+                  if (effect.duration == 0){
+                     // Destroy effect globally and locally
+                     app.graphics.visEffects[x+x1][y+y1][0];
+                     app.graphics.viewVisEffects[x][y][0] = 0;
+                  }else{
+                     effect.animate(context, 
+                                    32*x, 32*y, 
+                                    effect.duration, 
+                                    effect.texture);
+                     app.graphics.visEffects[x+x1][y+y1][0].duration--;
+                     app.graphics.viewVisEffects[x][y][0].duration--;
+
+                  }
+               }
+            }
+         }
+      },
+
+
       /**
       Builds structure in cell with coords x, y
       @method fillCellWithTexture
@@ -359,6 +406,14 @@ window.app = {
       intialize: function() {
          app.graphics.fillMap();
          console.info('Okey intialize graphics');
+      },
+
+      initEffectsMap: function() {
+         for (var i=0; i<app.environment.map.sizeX; i++){
+            app.graphics.visEffects.push([]);
+            for (var j=0; j<app.environment.map.sizeY; j++) app.graphics.visEffects[i].push(0);
+         }
+         console.info('Ok init effects map');
       }
    },
 

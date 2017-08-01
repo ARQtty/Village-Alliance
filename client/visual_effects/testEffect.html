@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html>
+<head>
+   <title>TEST VISUAL EFFECT</title>
+   <meta charset="utf-8">
+   <style type="text/css">
+      html, body{
+         width: 100%;
+         height: 100%;
+         margin: 0px;
+      }
+      canvas{
+         background-color: #7FD187;
+         width: 200px;
+         height: 200px;
+         margin-top: 100px;
+         margin-left: 100px;
+      }
+   </style>
+   <script type="text/javascript">
+      function start_drawCells(){
+         setInterval(drawCells, 34);
+      }
+
+
+      function animHurt(x, y, counter, texture){
+         let xBiasKoef = 0.7;
+         let yBiasKoef = 0.4;
+
+         let e = Math.exp, 
+             cos = Math.cos, 
+             pow = Math.pow;
+         let bias = cos(counter/2) * e(0.08*counter);
+
+         context.drawImage(texture, 
+                           x + bias*xBiasKoef, 
+                           y + bias*yBiasKoef, 
+                           32, 
+                           32);
+      }
+
+
+      var context;
+      var effectsMap = [];
+      // Init effectsMap
+         var i=0;
+         for (; i<200/32 + 1; i++){
+            effectsMap.push([]);
+            for (j=0; j<200/32 + 1; j++){
+               effectsMap[i].push(0);
+            }
+         }
+
+      function startEffect(){
+         var texture = new Image();
+             texture.src = "hurt.png";
+
+         effectsMap[3][3] = [{"name": "testEffect_0",
+                              texture: texture,
+                              counter: 34,
+                              func_: animHurt}];
+      }
+
+      function drawCells() {
+         console.log('Draw!');
+         var canvas = document.getElementById('c');
+             canvas.width = "200";
+             canvas.height= "200";
+             context = canvas.getContext('2d');
+
+         for (var x=0; x<200/32; x++){
+            for (var y=0; y<200/32; y++){
+             
+               if (x == y && y == 3){
+                  context.fillStyle = "green";
+                  context.fillRect(32*x, 32*y, 32, 32);
+               }
+
+               if (effectsMap[x][y] != 0){
+                  let em = effectsMap[x][y][0];
+                  if (em.counter == 0) effectsMap[x][y] = 0;
+                  else{
+                     animHurt(32*x, 32*y, em.counter, em.texture);
+                     effectsMap[x][y][0].counter--;
+                  }
+               }
+
+               // Draw cells
+                  context.beginPath();
+                  context.strokeStyle = 'black';
+                  context.moveTo(x * 32      - 0.5, y * 32      - 0.5)
+                  context.lineTo(x * 32      - 0.5, y * 32 + 32 - 0.5)
+                  context.lineTo(x * 32 + 32 - 0.5, y * 32 + 32 - 0.5)
+                  context.lineTo(x * 32 + 32 - 0.5, y * 32      - 0.5)
+                  context.lineTo(x * 32      - 0.5, y * 32      - 0.5)
+                  context.stroke()
+            }
+         }
+      }
+   </script>
+</head>
+<body onload="start_drawCells()" onclick="startEffect()">
+   <canvas id="c"></canvas>
+</body>
+</html>

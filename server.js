@@ -95,13 +95,26 @@ function idOfCreature(x, y){
    console.log('Cannot find id of creature at {'+x,y+'}');
 }
 
+function attackMsg(x, y, damage){
+  if (anySocket){
+    anySocket.emit("attack", {x: x,
+                              y: y,
+                              duration: 34,
+                              damage: damage});  // Not supported on client
+    anySocket.broadcast.emit("attack", {x: x,
+                              y: y,
+                              duration: 34,
+                              damage: damage});  // Not supported on client
+  }
+}
+
 var monsters  = [],
     units     = [],
     unitsMap  = [],
     
-    ENEMIES_SEARCH_RADIUS = 10,
+    ENEMIES_SEARCH_RADIUS = 7,
     MONSTERS_LIMIT        = 10,
-    UNITS_LIMIT           = 0,
+    UNITS_LIMIT           = 5,
 
     abs = Math.abs;
 
@@ -502,6 +515,9 @@ setInterval(function(){
         console.log('[ATTACK] '+attackerArray[attackerIndex].id+
                     ' on '     +attackedArray[attackedIndex].id+
                     ' damage ' +damage);
+        attackMsg(attackedArray[attackedIndex].x,
+                  attackedArray[attackedIndex].y, 
+                  damage);
         console.log('Attacked creature HP is '+attackedArray[attackedIndex].characts.HP);
       }
    };

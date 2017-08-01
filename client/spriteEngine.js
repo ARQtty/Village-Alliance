@@ -56,10 +56,20 @@ window.app.sprites = {
          app.graphics.viewportCells = app.graphics.getViewport();
       });
       
-      socket.on('hurtUnit', function(data){
+      socket.on('attack', function(data){
+         let texture = app.graphics.textures.hurt;
+         app.graphics.visEffects[data.x][data.y] = [{name: "hurt",
+                                                     texture: texture,
+                                                     duration: data.duration,
+                                                     animate: app.visualEffects.hurt}];
+         if (data.x >= app.graphics.x1 && data.x <= app.graphics.x2 &&
+             data.y >= app.graphics.y1 && data.y <= app.graphics.y2){
+            app.graphics.getViewEffects();
+         }
 
-         console.log('hurtUnit message');
+         console.log("[ATTACK] on "+data.on+" with dmg "+data.damage);
       });
+
       console.info('Okey init listenActions');
    },
 
@@ -170,6 +180,7 @@ window.app.sprites = {
          app.sprites.coords = toMove;
          app.graphics.fillMap();
          app.sprites.drawViewportSprites();
+         app.graphics.drawVisualEffects();
          app.sprites.moving.updateCoords({action: 'swapDirectionVariant'});
       }
    },

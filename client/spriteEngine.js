@@ -210,6 +210,10 @@ window.app.sprites = {
          var x1 = sprites2draw[i].x - app.graphics.x1,
              y1 = sprites2draw[i].y - app.graphics.y1,
              dir = sprites2draw[i].moving.direction + sprites2draw[i].moving.dirVariant;
+         var owner = sprites2draw[i].owner;
+         console.log(owner);
+         var ARQcolor = "#05ff00";
+         var guestColor = "#929292";
          context.drawImage(app.graphics.textures.monsters,
                            dir * cSize,
                            sprites2draw[i].textureType * cSize,
@@ -219,6 +223,15 @@ window.app.sprites = {
                            y1 * cSize,
                            cSize,
                            cSize);
+         if (sprites2draw[i].creatureType == "unit"){
+            // And now mark it with player's color
+            context.beginPath();
+            context.lineWidth = 4;
+            context.strokeStyle = (owner == "ARQ")? ARQcolor : guestColor;
+            context.moveTo(x1*cSize + 8, y1*cSize + 20);
+            context.lineTo(x1*cSize + 17,y1*cSize + 20);
+            context.stroke();
+         }
       }
    },
 

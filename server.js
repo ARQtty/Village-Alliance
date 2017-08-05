@@ -461,8 +461,15 @@ setInterval(function(){
 
 
    /********** Process hits **********/
+
+   // Prepare for indexErrors when deletes last element and app crushes with 
+   // "cant read prop of undefined". This elements will be deleted in the
+   // end of processing hits
+   units.push({pursuers: []});
+   monsters.push({pursuers: []});
+   
    var near = function(atckX, atckY, trgtX, trgtY, atckRng){ return abs(atckX-trgtX)+abs(atckY-trgtY) <= atckRng };
-   var hitFunc = function(attackerType, attackerIndex, attackedType, attackedIndex) { 
+   var hitFunc = function(attackerType, attackerIndex, attackedType, attackedIndex) {
       var attackerArray, attackedArray, damage;
       switch(attackerType){
         case 'unit':
@@ -493,7 +500,12 @@ setInterval(function(){
 
           case 'unit':
             unitsMap[x_died][y_died] = 0;
-            return false;
+            console.log('Unit died');
+            if (anySocket){
+              anySocket.emit('died_unit', {id: attackedArray[attackedIndex].id});
+              anySocket.broadcast.emit('died_unit', {id: attackedArray[attackedIndex].id});
+            }else{ console.log('No socket for send died_building')}
+            return 'died';
 
           case 'monster':
             unitsMap[x_died][y_died] = 0;
@@ -503,10 +515,8 @@ setInterval(function(){
             map[x_died][y_died] = 0;
             console.log('Building died');
             if (anySocket){
-              anySocket.emit('died_building', {x: x_died, 
-                                               y: y_died});
-              anySocket.broadcast.emit('died_building', {x: x_died, 
-                                                         y: y_died});
+              anySocket.emit('died_building', {x: x_died, y: y_died});
+              anySocket.broadcast.emit('died_building', {x: x_died, y: y_died});
             }else{ console.log('No socket for send died_building') }
             return 'died';
         }
@@ -526,14 +536,14 @@ setInterval(function(){
    var dethFlag = false;
    // M->U, U->U
    for (var i=0; i<units.length; i++){
-      console.log('[PROCESS] unit '+units[i].id, units[i].pursuers);
+      //console.log('[PROCESS] unit '+units[i].id, units[i].pursuers);
       if (units[i].pursuers.length){
          // If this unit is pursued, look at all creatures which can damage it and
          // and search for equals in this unit.pursuers ids and other unit ids. If 
          // we find equal and their owners aren't same, we will count it like a hit
          for (var p=0; p<units[i].pursuers.length; p++){
             // For every pursuer we check if it near this unit
-            if (!dethFlag){
+            if (dethFlag != 'died'){
                for (var j=0; j<monsters.length; j++){
                   if (monsters[j].id == units[i].pursuers[p].id){
                      if (near(monsters[j].x, monsters[j].y, units[i].x, units[i].y, 1)){
@@ -541,7 +551,13 @@ setInterval(function(){
                      }
                   }
                }
-            }else{ units = dropIndex(units, i); i--; dethFlag=false; continue } // deth. Go to next unit
+            }else{ 
+              units = dropIndex(units, i); 
+              p=0; 
+              dethFlag=true;
+              console.log('dethFlag DIED condition'); 
+              continue 
+            } // deth. Go to next unit
             if (!dethFlag){
                for (var j=0; j<units.length; j++){
                   if (units[j].id == units[i].pursuers[p].id &&
@@ -551,7 +567,13 @@ setInterval(function(){
                      }
                   }
                }
-            }else{ units = dropIndex(units, i); i--; dethFlag=false; continue } // deth. Go to next unit
+            }else{ 
+              units = dropIndex(units, i); 
+              p=0; 
+              dethFlag=true;
+              console.log('dethFlag DIED condition'); 
+              continue 
+            } // deth. Go to next unit
          }
       }
    }
@@ -620,6 +642,11 @@ setInterval(function(){
          }
       }
    }
+
+   // Delete empty element
+   units = dropIndex(units, units.length-1);
+   monsters = dropIndex(monsters, monsters.length-1);
+
 }}, 1000);
 
 

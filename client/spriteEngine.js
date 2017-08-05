@@ -44,8 +44,18 @@ window.app.sprites = {
          app.unitsControl.visual.dottedLines.push(data);
       });
       
+      socket.on('died_unit', function(msg){
+         var arr = app.sprites.coords;
+         for (var i=0; i<arr.length; i++){
+            if (msg.id == arr[i].id){
+               app.sprites.coords = app.sprites.coords.slice(0, i)
+                                    .concat(
+                                    app.sprites.coords.slice(i+1, app.sprites.coords.length));
+            }
+         }
+      });
+
       socket.on('died_building', function(msg){
-         console.log('animCounter >>>>> ',app.sprites.fps);
          app.building.buildingsMap[msg.x][msg.y] = {type: "building",
                                                     status: 'dies',
                                                     animCounter: app.sprites.fps*2, 
@@ -201,14 +211,14 @@ window.app.sprites = {
              y1 = sprites2draw[i].y - app.graphics.y1,
              dir = sprites2draw[i].moving.direction + sprites2draw[i].moving.dirVariant;
          context.drawImage(app.graphics.textures.monsters,
-                       dir * cSize,
-                       sprites2draw[i].textureType * cSize,
-                       cSize,
-                       cSize,
-                       x1 * cSize,
-                       y1 * cSize,
-                       cSize,
-                       cSize);
+                           dir * cSize,
+                           sprites2draw[i].textureType * cSize,
+                           cSize,
+                           cSize,
+                           x1 * cSize,
+                           y1 * cSize,
+                           cSize,
+                           cSize);
       }
    },
 
@@ -222,11 +232,10 @@ window.app.sprites = {
       var arr = app.sprites.coords;
       for (var i = 0; i < app.sprites.coords.length; i++){
          if (arr[i].x >= app.graphics.x1 &&
-            arr[i].x <= app.graphics.x2 &&
-            arr[i].y >= app.graphics.y1 &&
-            arr[i].y <= app.graphics.y2)
-            {
-
+             arr[i].x <= app.graphics.x2 &&
+             arr[i].y >= app.graphics.y1 &&
+             arr[i].y <= app.graphics.y2)
+         {
             inViewport.push(arr[i])
          }
       }

@@ -18,8 +18,68 @@
       }
    </style>
    <script type="text/javascript">
+      var context;
+      var effectsMap = [];
+      // Init effectsMap
+         var i=0;
+         for (; i<200/32 + 1; i++){
+            effectsMap.push([]);
+            for (j=0; j<200/32 + 1; j++){
+               effectsMap[i].push([]);
+            }
+         }
+
+
       function start_drawCells(){
+
          setInterval(drawCells, 34);
+      }
+      function drawCells() {
+         console.log('Draw!');
+         var canvas = document.getElementById('c');
+             canvas.width = "200";
+             canvas.height= "200";
+             context = canvas.getContext('2d');
+
+         for (var x=0; x<200/32; x++){
+            for (var y=0; y<200/32; y++){
+             
+               if (x == 3 && y == 3){
+                  context.fillStyle = "green";
+                  context.fillRect(32*x, 32*y, 32, 32);
+               }
+               // Draw cells
+                  context.beginPath();
+                  context.strokeStyle = 'black';
+                  context.moveTo(x * 32      - 0.5, y * 32      - 0.5)
+                  context.lineTo(x * 32      - 0.5, y * 32 + 32 - 0.5)
+                  context.lineTo(x * 32 + 32 - 0.5, y * 32 + 32 - 0.5)
+                  context.lineTo(x * 32 + 32 - 0.5, y * 32      - 0.5)
+                  context.lineTo(x * 32      - 0.5, y * 32      - 0.5)
+                  context.stroke()
+
+               if (effectsMap[x][y].length > 0){  // we've got an effect
+                  var effects = [];
+                  for (var eff=0; eff<effectsMap[x][y].length; eff++){
+                     if (effectsMap[x][y][eff].counter != 0) effects.push(effectsMap[x][y][eff]);
+                  }
+                  effectsMap[x][y] = effects;
+                  for (var eff=0; eff<effectsMap[x][y].length; eff++){
+                     let em = effectsMap[x][y][eff];
+                     /*if (em.name == "testEffect_hurt"){
+                        em.func(32*x, 32*y, em.counter, em.texture);
+                        effectsMap[x][y][eff].counter--;
+                     }else if (em.name == "testEffect_dmg"){
+                        em.func(32*x, 32*y, em.counter, em.damage);
+                        effectsMap[x][y][eff].counter--;
+                     }*/
+                     em.func(32*x, 32*y, em.counter, em.animData);
+                     effectsMap[x][y][eff].counter--;
+
+                  }
+               }
+            }
+         }
       }
 
 
@@ -38,68 +98,43 @@
                            32, 
                            32);
       }
+      function animDmg(x, y, counter, text){
+         context.font = "24px fantasy";
+         context.strokeStyle = "black";
+         context.fillStyle = "red";
+         y += 16; // align center
+         counter = 34 - counter; // Inverse counter value
+         var logBias = 7*Math.log(counter);
 
+         context.strokeText(text, x + logBias,y - counter);
+         context.fillText(text, x + logBias,  y - counter);
+      }
 
-      var context;
-      var effectsMap = [];
-      // Init effectsMap
-         var i=0;
-         for (; i<200/32 + 1; i++){
-            effectsMap.push([]);
-            for (j=0; j<200/32 + 1; j++){
-               effectsMap[i].push(0);
-            }
-         }
-
-      function startEffect(){
+      
+      function startEffect_hurt(){
          var texture = new Image();
              texture.src = "hurt.png";
 
-         effectsMap[3][3] = [{"name": "testEffect_0",
-                              texture: texture,
-                              counter: 34,
-                              func_: animHurt}];
+         effectsMap[3][3].push({"name": "testEffect_hurt",
+                                animData: texture,
+                                counter: 34,
+                                func: animHurt});
       }
+      function startEffect_dmg(){
+         var damage = "-" + Math.ceil(Math.random()*3000).toString();
 
-      function drawCells() {
-         console.log('Draw!');
-         var canvas = document.getElementById('c');
-             canvas.width = "200";
-             canvas.height= "200";
-             context = canvas.getContext('2d');
-
-         for (var x=0; x<200/32; x++){
-            for (var y=0; y<200/32; y++){
-             
-               if (x == y && y == 3){
-                  context.fillStyle = "green";
-                  context.fillRect(32*x, 32*y, 32, 32);
-               }
-
-               if (effectsMap[x][y] != 0){
-                  let em = effectsMap[x][y][0];
-                  if (em.counter == 0) effectsMap[x][y] = 0;
-                  else{
-                     animHurt(32*x, 32*y, em.counter, em.texture);
-                     effectsMap[x][y][0].counter--;
-                  }
-               }
-
-               // Draw cells
-                  context.beginPath();
-                  context.strokeStyle = 'black';
-                  context.moveTo(x * 32      - 0.5, y * 32      - 0.5)
-                  context.lineTo(x * 32      - 0.5, y * 32 + 32 - 0.5)
-                  context.lineTo(x * 32 + 32 - 0.5, y * 32 + 32 - 0.5)
-                  context.lineTo(x * 32 + 32 - 0.5, y * 32      - 0.5)
-                  context.lineTo(x * 32      - 0.5, y * 32      - 0.5)
-                  context.stroke()
-            }
-         }
+         effectsMap[3][3].push({"name": "testEffect_dmg",
+                                counter: 34,
+                                animData: damage,
+                                func: animDmg});
       }
    </script>
 </head>
-<body onload="start_drawCells()" onclick="startEffect()">
+<body onload="start_drawCells()">
    <canvas id="c"></canvas>
+   <br>
+   <button onclick="startEffect_hurt()">Hurt me</button><br>
+   <button onclick="startEffect_dmg()">Damage me</button><br>
+   <button onclick="startEffect_hurt(); startEffect_dmg()">Combo!</button>
 </body>
 </html>

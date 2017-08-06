@@ -100,11 +100,11 @@ function attackMsg(x, y, damage){
     anySocket.emit("attack", {x: x,
                               y: y,
                               duration: 34,
-                              damage: damage});  // Not supported on client
+                              damage: damage});
     anySocket.broadcast.emit("attack", {x: x,
-                              y: y,
-                              duration: 34,
-                              damage: damage});  // Not supported on client
+                                        y: y,
+                                        duration: 34,
+                                        damage: damage});
   }
 }
 

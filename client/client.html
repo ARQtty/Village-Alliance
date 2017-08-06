@@ -11,6 +11,7 @@
    <script type="text/javascript" src="/client/visualEffects.js"></script>
    <script type="text/javascript" src="/client/unitsControlEngine.js"></script>
    <script type="text/javascript" src="/client/client.js"></script>
+   <script type="text/javascript" src="/client/resources.js"></script>
    <link rel="stylesheet" type="text/css" href="/client/client.css">
    <script type="text/javascript">
       // Right click uses for send off units
@@ -36,7 +37,17 @@
    </div>
 
 
-   <div id="resourcesPanel" class="panel beautyBorder"></div>
+   <div id="resourcesPanel" class="panel beautyBorder">
+      <div>
+         <img src="../media/textures/goldBig.png" class="resource" style="width: 40%;">
+         <span id="goldSpan" class="resource"></span>
+      </div>
+      <br><br>
+      <select id="playerName" onchange="window.app.player.relogin(this.value)">
+         <option>ARQ</option>
+         <option>Guest</option>
+      </select>
+   </div>
 
 
    <div id="buildPanel" class="panel beautyBorder" >   

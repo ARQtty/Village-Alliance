@@ -98,7 +98,7 @@ window.app.unitsControl = {
                                                      y: unit.abs_y,
                                                      id: unit.id,
                                                      unitCode: unit.unitCode,
-                                                     unitOwner: 'ARQ',
+                                                     unitOwner: app.player.name,
                                                      socketID: app.network.socket.id,
                                                      moving: {
                                                         serverUpd:{
@@ -134,18 +134,18 @@ window.app.unitsControl = {
       // Don't place cross if we haven't select any heros
       if (!selectedUnits.length) return;
 
-      var unitHere = app.sprites.unitWithCoords(coords[0], coords[1]);
+      var unitHere = app.sprites.unitWithCoords(coords[0], coords[1]);  // Returns null or owner's name
       var buildingHere = app.building.buildingWithCoords(coords[0], coords[1]);
-      console.log(buildingHere);
+
       if (unitHere){
          attack = true;
          attackedType = 'unit';
-         attackedOwner = 'notARQ';
+         attackedOwner = unitHere;
          console.log('Attack unit!')
       }else if (typeof buildingHere == 'number'){
           attack = true;
           attackedType = 'building';
-          attackedOwner = (buildingHere == 4)? 'notARQ':'ARQ';
+          attackedOwner = app.building.buildingsMap[coords[0]][coords[1]].owner;//(buildingHere == 4)? 'Guest':'ARQ';
           console.log('Attack building!')
       }else{
           attack = false;
@@ -163,7 +163,7 @@ window.app.unitsControl = {
                                                   attack: attack,
                                                   attackedType: attackedType,
                                                   attackedOwner: attackedOwner,
-                                                  attackerOwner: 'ARQ',
+                                                  attackerOwner: app.player.name,
                                                  
                                                   unitID: selectedUnits[i].id,
                                                   unitMapCode: selectedUnits[i].unitCode,

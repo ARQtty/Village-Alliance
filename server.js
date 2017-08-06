@@ -16,9 +16,11 @@ var fs            = require("fs"),
     buildings     = require('./media/buildings.json'),
     map           = require('./media/map.json'),
     _             = require("underscore"),
-    
+
+    User          = require("./server/users.js"),    
     anySocket = null,
-    users = [];
+    users = [],
+    usersProfiles = [];
 
 
 /******** Requests *************/
@@ -155,7 +157,7 @@ setInterval(function(){
    // Generate new units
    if (units.length < UNITS_LIMIT){
       for (var i=0; i<UNITS_LIMIT; i++){
-         var hero = dataGenerators.createHero('', '', 'autogen hero');
+         var hero = dataGenerators.createHero('', '', 'Guest');
          if (kernel.isMoveable(map, unitsMap, hero.x, hero.y)){
             unitsMap[hero.x][hero.y] = hero.unitCode;
             console.log('okey new U'+hero.id);
@@ -505,7 +507,13 @@ setInterval(function(){
             console.log('Unit died');
             if (anySocket){
               anySocket.emit('died_unit', {id: attackedArray[attackedIndex].id});
-              anySocket.broadcast.emit('died_unit', {id: attackedArray[attackedIndex].id});
+              anySocket.broadcast
+                       .emit('died_unit', {id: attackedArray[attackedIndex].id});
+              // Send message with lethal damage (surplus HP)
+              attackMsg(attackedArray[attackedIndex].x,
+                        attackedArray[attackedIndex].y,
+                        attackedArray[attackedIndex].id,
+                        attackedArray[attackedIndex].characts.HP);
             }else{ console.log('No socket for send died_building')}
             return 'died';
 
@@ -518,7 +526,13 @@ setInterval(function(){
             console.log('Building died');
             if (anySocket){
               anySocket.emit('died_building', {x: x_died, y: y_died});
-              anySocket.broadcast.emit('died_building', {x: x_died, y: y_died});
+              anySocket.broadcast
+                       .emit('died_building', {x: x_died, y: y_died});
+              // Send message with lethal damage (surplus HP)
+              attackMsg(attackedArray[attackedIndex].x,
+                        attackedArray[attackedIndex].y,
+                        attackedArray[attackedIndex].id,
+                        attackedArray[attackedIndex].characts.HP);
             }else{ console.log('No socket for send died_building') }
             return 'died';
         }
@@ -656,6 +670,9 @@ setInterval(function(){
 /************** Network **************/
 io.sockets.on('connection', function(socket){
    users.push(socket);
+   let user = new User.User();
+   user.setSockID(socket.id);
+   usersProfiles.push(user);
    anySocket = socket;
    
    (function initClient(){
@@ -673,12 +690,6 @@ io.sockets.on('connection', function(socket){
           socket.emit('newUnit', units[i]);
           socket.broadcast.emit('newUnit', units[i]);
        }
-       /*
-       // Send all buildings
-       for (var i=0; i<buildings.length; i++){
-         socket.emit('newBuild', buildings[i]);
-         socket.broadcast.emit('newBuild', buildings[i]);
-       }*/
     })();
 
    socket.on('chat', function (data) {
@@ -687,6 +698,30 @@ io.sockets.on('connection', function(socket){
          message: data.message
       });
         console.log("[CHAT] User "+ data.name + " sad '" + data.message + "'");
+   });
+
+
+   socket.on('definePlayerName', function(data){
+    for (var i=0; i<usersProfiles.length; i++){
+      if (usersProfiles[i].sockID == socket.id){
+        usersProfiles[i].setName(data.name);
+        console.log('OK define player '+data.name);
+        return;
+      }
+    }
+    // If we cannot find such player, we will create him
+    let newUser = new User.User();
+    newUser.setSockID(socket.id);
+    newUser.setName(data.name);
+    usersProfiles.push(newUser);
+    console.log('OK define new player '+data.name);
+   });
+
+
+   socket.on('getGoldBalance', function(data){
+    for (var i=0; i<usersProfiles.length; i++){
+      if (usersProfiles[i].name == data.playerName) socket.emit('goldBalance', {balance: usersProfiles[i].gold});
+    }
    });
 
 
@@ -764,7 +799,9 @@ io.sockets.on('connection', function(socket){
       console.log('[SERVER] Client disconnected');
       // Delete socket from users
       for (var i=0; i<users.length; i++){
-         if (users[i].id == socket.id) users = dropIndex(users, i);
+         if (users[i].id == socket.id){ 
+          users = dropIndex(users, i);
+        }
       }
       if (!users.length) anySocket = null;
    })

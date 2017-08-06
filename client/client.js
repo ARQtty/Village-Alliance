@@ -48,9 +48,8 @@ window.onload = function() {
       for (var i=0; i<sprites.length; i++){
          if (sprites[i].abs_x == coords[0] && sprites[i].abs_y== coords[1]){
 
-            // Scheme for determining the player's unit's worth:
-                // Cookies -> owner name -> Compare %sprites[i].owner% with %owner name%
-            if (sprites[i].owner == "ARQ") app.unitsControl.selectUnit(sprites[i]);
+            // Player can select only his units
+            if (sprites[i].owner == app.player.name) app.unitsControl.selectUnit(sprites[i]);
             else app.unitsControl.removeSelect();
 
             showSpriteDescr(sprites[i]);

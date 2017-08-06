@@ -47,7 +47,7 @@ window.app.building = {
                                                        },
                                             reward: b_Data[i].reward,
                                             owner:  b_Data[i].owner,
-                                            info: {avatar: avatar,
+                                            info: {avatar: avatar
                                                    }
                                             }
       }
@@ -152,13 +152,13 @@ window.app.building = {
          console.log('Хочу создать юнита на '+cellX+', '+cellY);
          app.network.socket.emit('verifyUnit',  {x: cellX,
                                                  y: cellY,
-                                                 owner: 'ARQ',
+                                                 owner: app.player.name,
                                                  unitID: app.building.buildingKey});
       }else{
          console.log('Хочу строить на '+cellX+', '+cellY);
          app.network.socket.emit('verifyBuild', {x: cellX, 
                                                  y: cellY,
-                                                 owner: 'ARQ',
+                                                 owner: app.player.name,
                                                  structureID: app.building.buildingKey});
       }
    },

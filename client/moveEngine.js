@@ -88,8 +88,8 @@ window.app.moveViewport = {
    @method drawMinimapViewport
    */
    drawMinimapViewport: function() {
-      var mapX = document.getElementById('minimap').offsetWidth;
-      var mapY = document.getElementById('minimap').offsetHeight;
+      var mapX = document.getElementById('minimap').clientWidth;
+      var mapY = document.getElementById('minimap').clientHeight;
       var viewX = mapX / app.environment.map.sizeX;
       var viewY = mapY / app.environment.map.sizeY;
 

@@ -45,7 +45,9 @@ window.app = {
       app.network.bindEvents();
       app.sprites.listenActions();
       app.sprites.initGameLoop();
+      app.player.init();
       app.moveViewport.drawMinimapViewport();
+      app.resources.init();
    },
 
 
@@ -424,23 +426,23 @@ window.app = {
    chat: {
       chatPanel: document.getElementById('messagefield'),
       $output: $('#messages'),
-        $input: $('#message-input'),
+      $input: $('#message-input'),
 
 
-        /**
+      /**
       Sends text from the chat input line to the server
-        @method sendMessage
-        */
-        sendMessage: function() {
-            var message = app.chat.$input.val();
-            app.chat.$input.val('');
-            app.chat.message('P1', message);
-            app.network.send.chat(message);
-        },
+      @method sendMessage
+      */
+      sendMessage: function() {
+         var message = app.chat.$input.val();
+         app.chat.$input.val('');
+         app.chat.message(app.player.name, message);
+         app.network.send.chat(message);
+      },
 
 
-        /**
-        Enter button is controling chatPanel.
+      /**
+      Enter button is controling chatPanel.
       Show if hidden, hide if showing and it hasn't any message. 
       Sending message if there is some text in form
       @method toggle
@@ -468,6 +470,36 @@ window.app = {
             app.chat.$output
                 .append("<div module='message'><span module='username'>" + who + ": </span><span module='content'>" + message + "</span></div>")
       }
+   },
+
+
+   /**
+
+   @module player
+   */
+   player: {
+      name: null,
+
+      init: function(){ 
+         app.player.name = document.getElementById("playerName").value 
+         app.network.socket.emit('definePlayerName', {name: app.player.name});
+      },
+
+      relogin: function(newName){
+         app.player.name = newName;
+         // This data special for every user. Clear it on change user
+         app.unitsControl.visual.dottedLines = [];
+         app.unitsControl.visual.selectSquares = [];
+         app.unitsControl.visual.crosses = [];
+         // And change gold balance, actually
+         // Do it with request to server
+         app.network.socket.emit('getGoldBalance', {playerName: newName});
+         app.network.socket.on('goldBalance', function(data){
+            app.resources.setGold(data.balance);
+         })
+
+      },
+      displayGold: function(){}
    },
 
 
@@ -518,6 +550,11 @@ window.app = {
                                         data.y, 
                                         data.code);
          });
+
+         socket.on('changeGold', function(data){
+            console.log("изменение баланса на "+data.addition);
+            app.resources.changeGold(data.addition);
+         })
       }
    },
 
@@ -559,7 +596,8 @@ window.app = {
          }else if (e.keyCode == 192 || e.keyCode == 0){
             // ` or ё key
             e.preventDefault();
-            app.moveViewport.displayMap()
+            app.moveViewport.displayMap();
+            app.moveViewport.drawMinimapViewport();
 
          }else{
             console.log('Unbinded keyCode "'+e.keyCode+'"')

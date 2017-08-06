@@ -232,7 +232,6 @@ window.app.sprites = {
          var curHP = sprites2draw[i].characts.curHP;
          var greenPart = 32 * (curHP / allHP);
          var red__Part = 32 - greenPart;
-         console.log(greenPart, red__Part, curHP / allHP);
          context.beginPath();
          context.lineWidth = 2;
          context.setLineDash([0, 0]);
@@ -289,7 +288,7 @@ window.app.sprites = {
       var units = app.sprites.coords;
       for (var i=0; i<units.length; i++){
          if (units[i].abs_x == x && units[i].abs_y == y){
-            return true
+            return units[i].owner;
          }
       }
       return null

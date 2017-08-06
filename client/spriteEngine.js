@@ -77,7 +77,7 @@ window.app.sprites = {
                                                        animData: texture,
                                                        duration: data.duration,
                                                        animate: app.visualEffects.hurt});
-         
+         app.sprites.lowerUnitHP(data.id, data.damage);
          
          if (data.x >= app.graphics.x1 && data.x <= app.graphics.x2 &&
              data.y >= app.graphics.y1 && data.y <= app.graphics.y2){
@@ -212,28 +212,53 @@ window.app.sprites = {
           cSize = app.graphics.cellSize;
       
       for (var i = 0; i < sprites2draw.length; i++){
-         var x1 = sprites2draw[i].x - app.graphics.x1,
-             y1 = sprites2draw[i].y - app.graphics.y1,
+         var xSpr = sprites2draw[i].x - app.graphics.x1,
+             ySpr = sprites2draw[i].y - app.graphics.y1,
              dir = sprites2draw[i].moving.direction + sprites2draw[i].moving.dirVariant;
-         var owner = sprites2draw[i].owner;
-         var ARQcolor = "#05ff00";
-         var guestColor = "#929292";
          context.drawImage(app.graphics.textures.monsters,
                            dir * cSize,
                            sprites2draw[i].textureType * cSize,
                            cSize,
                            cSize,
-                           x1 * cSize,
-                           y1 * cSize,
+                           xSpr * cSize,
+                           ySpr * cSize,
                            cSize,
                            cSize);
+
+         // Draw health bars
+         // Cell has 32px width and health bar is 32px too. HP bar has two 
+         // parts - all HP and current HP
+         var allHP = sprites2draw[i].characts.HP;
+         var curHP = sprites2draw[i].characts.curHP;
+         var greenPart = 32 * (curHP / allHP);
+         var red__Part = 32 - greenPart;
+         console.log(greenPart, red__Part, curHP / allHP);
+         context.beginPath();
+         context.lineWidth = 2;
+         context.setLineDash([0, 0]);
+         // Green part
+         context.strokeStyle = "#7BD10E";
+         context.moveTo(xSpr*cSize, ySpr*cSize);
+         context.lineTo(xSpr*cSize + greenPart, ySpr*cSize);
+         context.stroke();
+         // Red part
+         context.beginPath();
+         context.strokeStyle = "red";
+         context.moveTo(xSpr*cSize + greenPart, ySpr*cSize);
+         context.lineTo(xSpr*cSize + greenPart + red__Part, ySpr*cSize);
+         context.stroke();
+         
+
+         // Mark units with their player's color
+         var owner = sprites2draw[i].owner;
+         var ARQcolor = "#05ff00";
+         var guestColor = "#929292";
          if (sprites2draw[i].creatureType == "unit"){
-            // And now mark it with player's color
             context.beginPath();
             context.lineWidth = 4;
             context.strokeStyle = (owner == "ARQ")? ARQcolor : guestColor;
-            context.moveTo(x1*cSize + 8, y1*cSize + 20);
-            context.lineTo(x1*cSize + 17,y1*cSize + 20);
+            context.moveTo(xSpr*cSize + 8, ySpr*cSize + 20);
+            context.lineTo(xSpr*cSize + 17,ySpr*cSize + 20);
             context.stroke();
          }
       }
@@ -268,5 +293,14 @@ window.app.sprites = {
          }
       }
       return null
+   },
+
+   lowerUnitHP: function(id, dmg){
+      for (var i=0; i<app.sprites.coords.length; i++){
+         if (app.sprites.coords[i].id == id){
+            app.sprites.coords[i].characts.curHP -= dmg;
+            return
+         }
+      }
    }
 }})

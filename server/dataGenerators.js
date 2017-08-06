@@ -66,6 +66,7 @@ var dataGens = module.exports = {
                       },
                       characts: {
                          HP: HP,
+                         curHP: HP,
                          XP: Math.ceil(0.35 * HP),
                          Reward: HP - 50,
                          damage: damage
@@ -108,6 +109,7 @@ var dataGens = module.exports = {
                   },
                   characts: {
                      HP: HP,
+                     curHP: HP,
                      XP: Math.ceil(0.65 * HP),
                      Reward: HP + 50,
                      damage: 250

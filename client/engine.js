@@ -327,11 +327,11 @@ window.app = {
             context.setLineDash([7, 17]);
             context.strokeStyle = dtl[l].color;
             context.moveTo((dtl[l].points[0][0] - app.graphics.x1) * cSize + cSize/2, 
-                          (dtl[l].points[0][1] - app.graphics.y1) * cSize + cSize/2);
+                           (dtl[l].points[0][1] - app.graphics.y1) * cSize + cSize/2);
             
             for (var i=1; i<dtl[l].points.length; i++){
                context.lineTo((dtl[l].points[i][0] - app.graphics.x1) * cSize + cSize/2, 
-                             (dtl[l].points[i][1] - app.graphics.y1) * cSize + cSize/2);
+                              (dtl[l].points[i][1] - app.graphics.y1) * cSize + cSize/2);
             }
             
             context.stroke();

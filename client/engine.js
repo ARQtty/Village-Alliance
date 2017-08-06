@@ -365,24 +365,23 @@ window.app = {
              x1 = app.graphics.x1,
              y1 = app.graphics.y1;
 
-         for (var x=0; x < effMap.length; x++){
-            for (var y=0; y < effMap[x].length; y++){
-               // Visual effects
-               // TODO --> Multiple effects in one cell
-               if (effMap[x][y] != 0){
-                  let effect = effMap[x][y][0];
-                  if (effect.duration == 0){
-                     // Destroy effect globally and locally
-                     app.graphics.visEffects[x+x1][y+y1][0];
-                     app.graphics.viewVisEffects[x][y][0] = 0;
-                  }else{
-                     effect.animate(context, 
-                                    32*x, 32*y, 
-                                    effect.duration, 
-                                    effect.texture);
-                     app.graphics.visEffects[x+x1][y+y1][0].duration--;
-                     app.graphics.viewVisEffects[x][y][0].duration--;
-
+         for (var x=0; x<effMap.length; x++){
+            for (var y=0; y<effMap[x].length; y++){
+               if (effMap[x][y].length){
+                  var effects = [];
+                  // Get actual effects
+                  for (var eff=0; eff<effMap[x][y].length; eff++){
+                     if (effMap[x][y][eff].duration != 0) effects.push(effMap[x][y][eff]);
+                  }
+                  // Update effects cell localy and globaly
+                  effMap[x][y] = effects;
+                  app.graphics.viewVisEffects[x][y]  = effects;
+                  app.graphics.visEffects[x1+x][y1+y]= effects;
+                  // Draw effects
+                  for (var eff=0; eff<effMap[x][y].length; eff++){
+                     let e = effMap[x][y][eff];
+                     e.animate(context, 32*x, 32*y, e.duration, e.animData);
+                     effMap[x][y][eff].duration = effMap[x][y][eff].duration-1;
                   }
                }
             }
@@ -411,7 +410,7 @@ window.app = {
       initEffectsMap: function() {
          for (var i=0; i<app.environment.map.sizeX; i++){
             app.graphics.visEffects.push([]);
-            for (var j=0; j<app.environment.map.sizeY; j++) app.graphics.visEffects[i].push(0);
+            for (var j=0; j<app.environment.map.sizeY; j++) app.graphics.visEffects[i].push([]);
          }
          console.info('Ok init effects map');
       }

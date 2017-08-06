@@ -68,16 +68,21 @@ window.app.sprites = {
       
       socket.on('attack', function(data){
          let texture = app.graphics.textures.hurt;
-         app.graphics.visEffects[data.x][data.y] = [{name: "hurt",
-                                                     texture: texture,
-                                                     duration: data.duration,
-                                                     animate: app.visualEffects.hurt}];
+
+         app.graphics.visEffects[data.x][data.y].push({name: "damage",
+                                                       animData: data.damage,
+                                                       duration: data.duration,
+                                                       animate: app.visualEffects.damage});
+         app.graphics.visEffects[data.x][data.y].push({name: "hurt",
+                                                       animData: texture,
+                                                       duration: data.duration,
+                                                       animate: app.visualEffects.hurt});
+         
+         
          if (data.x >= app.graphics.x1 && data.x <= app.graphics.x2 &&
              data.y >= app.graphics.y1 && data.y <= app.graphics.y2){
             app.graphics.getViewEffects();
          }
-
-         console.log("[ATTACK] on "+data.on+" with dmg "+data.damage);
       });
 
       console.info('Okey init listenActions');
@@ -211,7 +216,6 @@ window.app.sprites = {
              y1 = sprites2draw[i].y - app.graphics.y1,
              dir = sprites2draw[i].moving.direction + sprites2draw[i].moving.dirVariant;
          var owner = sprites2draw[i].owner;
-         console.log(owner);
          var ARQcolor = "#05ff00";
          var guestColor = "#929292";
          context.drawImage(app.graphics.textures.monsters,
